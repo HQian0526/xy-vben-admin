@@ -1,0 +1,87 @@
+// 布局相关
+.flex-box {
+  display: flex;
+}
+.col-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+}
+.flex1 {
+  flex-grow: 1;
+}
+// 定义一个变量来控制循环的范围
+$gap-values: 5, 10, 15, 20, 30, 40, 50, 80;
+// 使用 @each 循环来生成类
+@each $value in $gap-values {
+  .gap#{$value} {
+    gap: #{$value}px;
+  }
+}
+
+// 位置相关
+// 定义一个变量来控制循环的范围
+$margin-values: 5, 10, 15, 20, 25, 30, 35, 40, 45, 50;
+// 使用 @each 循环来生成类
+@each $value in $margin-values {
+  .mg#{$value} {
+    margin: #{$value}px;
+  }
+  .mgt#{$value} {
+    margin-top: #{$value}px;
+  }
+  .mgl#{$value} {
+    margin-left: #{$value}px;
+  }
+  .mgb#{$value} {
+    margin-bottom: #{$value}px;
+  }
+  .mgr#{$value} {
+    margin-right: #{$value}px;
+  }
+}
+// 定义一个变量来控制循环的范围
+$padding-values: 5, 10, 15, 20, 25, 30, 35, 40;
+// 使用 @each 循环来生成类
+@each $value in $padding-values {
+  .pd#{$value} {
+    padding: #{$value}px;
+  }
+  .pdt#{$value} {
+    padding-top: #{$value}px;
+  }
+  .pdl#{$value} {
+    padding-left: #{$value}px;
+  }
+  .pdb#{$value} {
+    padding-bottom: #{$value}px;
+  }
+  .pdr#{$value} {
+    padding-right: #{$value}px;
+  }
+}
+
+// 文字相关
+// 定义一个变量来控制循环的范围
+$font-values: 14, 16, 18, 20, 22;
+// 使用 @each 循环来生成类
+@each $value in $font-values {
+  .font#{$value} {
+    font-size: #{$value}px;
+  }
+}
+.font-center {
+  text-align: center;
+}
+.bold {
+  font-weight: bold;
+}
+
+// 颜色相关
+.bg-white {
+  background-color: #fff;
+}

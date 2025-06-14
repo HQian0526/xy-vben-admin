@@ -1,0 +1,8 @@
+{
+  "system-manage": "system administration",
+  "user-manage": "user management",
+  "role-manage": "role management",
+  "menu-manage": "menu management",
+  "store-manage": "store management",
+  "dictionary-manage": "dictionary management"
+}
