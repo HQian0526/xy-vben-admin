@@ -1,7 +1,14 @@
 <template>
   <div class="table-container">
-    <el-table :data="props.list" style="width: 100%; height: 100%">
-      <template v-for="(item, index) in tableConfig.list" :key="item.prop">
+    <el-table
+      :data="props.list"
+      :stripe="props.stripe ? props.stripe : false"
+      style="width: 100%; height: 100%"
+    >
+      <template
+        v-for="(item, index) in props.tableConfig.list"
+        :key="item.prop"
+      >
         <!-- 索引列 -->
         <el-table-column v-if="item.prop === 'index'" type="index" width="50" />
         <!-- 字典赋值列 如1男 2女 -->
@@ -15,6 +22,17 @@
             <div style="display: flex; align-items: center">
               {{ getDictValue(scope.row[item.prop], item.dict) }}
             </div>
+          </template>
+        </el-table-column>
+        <!-- 表格内input框编辑列 -->
+        <el-table-column
+          v-else-if="item.type && item.type === 'input'"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+        >
+          <template #default="scope">
+            <el-input v-model="scope.row[item.prop]" />
           </template>
         </el-table-column>
         <!-- 操作列 -->
@@ -47,7 +65,7 @@
     </el-table>
     <!-- 分页 -->
     <div
-      v-if="tableConfig.pagination ? tableConfig.pagination : true"
+      v-if="props.tableConfig.pagination === false ? false : true"
       class="table-pagination"
     >
       <el-pagination
@@ -65,7 +83,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ElButton, ElPagination, ElTable, ElTableColumn } from 'element-plus';
+import {
+  ElButton,
+  ElInput,
+  ElPagination,
+  ElTable,
+  ElTableColumn,
+} from 'element-plus';
 import { defineEmits, defineProps, reactive } from 'vue';
 
 const props = defineProps({

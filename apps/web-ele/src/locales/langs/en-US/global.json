@@ -4,6 +4,27 @@
   "operation": "operation",
   "required": "required",
   "errorFormat": "error format",
+  "createdTime": "created time",
+  "updateTime": "updated time",
+  "createdBy": "created by",
+  "updatedBy": "updated by",
+  "tip": "tip",
+  "message": {
+    "success": "success",
+    "error": "error",
+    "confirmDelete": "confirm delete?",
+    "confirmLock": "confirm lock?",
+    "confirmUnlock": "confirm unlock?",
+    "confirmSave": "confirm save?",
+    "confirmImport": "confirm import?",
+    "confirmExport": "confirm export?",
+    "confirmUpload": "confirm upload?",
+    "confirmDownload": "confirm download?",
+    "confirmPreview": "confirm preview?",
+    "confirmSetting": "confirm setting?",
+    "confirmDeleteSelected": "confirm delete?",
+    "cancelConfirm": "cancel confirm"
+  },
   "btn": {
     "add": "add",
     "edit": "edit",
@@ -47,5 +68,12 @@
     "birthday": "birthday",
     "address": "address",
     "remark": "remark"
+  },
+  "dict": {
+    "code": "dictionary code",
+    "dictName": "dictionary name",
+    "remark": "remark",
+    "key": "key",
+    "value": "value"
   }
 }

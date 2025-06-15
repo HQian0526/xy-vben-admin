@@ -64,6 +64,8 @@
         </template>
       </el-row>
     </el-form>
+    <slot name="slot"></slot>
+    <!-- 底部按钮 -->
     <div class="bottom-item">
       <div class="button">
         <div class="cancel">

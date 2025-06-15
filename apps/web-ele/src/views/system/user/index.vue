@@ -25,7 +25,7 @@
       <Table
         :table-config="tableConfig"
         :list="list"
-        :total="total.value"
+        :total="total"
         @handleClick="handleClick"
         @handleCurrentChange="handleCurrentChange"
         @handleSizeChange="handleSizeChange"
@@ -50,7 +50,7 @@ import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
-import { ElButton, ElCard } from 'element-plus';
+import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { reactive, ref } from 'vue';
 //table相关变量
 let total = ref(10);
@@ -458,6 +458,13 @@ let list = reactive([
 const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
+  if (label === $t('global.btn.detail')) {
+    itemVisible.value = true;
+    formTitle.value = '详情';
+    othersInfo.value = row;
+  } else if (label === $t('global.btn.delete')) {
+    handleDelete(row);
+  }
 };
 
 // 表格分页
@@ -480,10 +487,32 @@ const confirmDialog = () => {
   itemVisible.value = true;
 };
 
-// 新增用户
+// 新增
 const handleAdd = () => {
   formTitle.value = '添加';
   itemVisible.value = true;
+};
+
+// 删除
+const handleDelete = (row: any) => {
+  console.log('row', row);
+  ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
+    confirmButtonText: $t('global.btn.confirm'),
+    cancelButtonText: $t('global.btn.cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: $t('global.message.cancelConfirm'),
+      });
+    });
 };
 </script>
 

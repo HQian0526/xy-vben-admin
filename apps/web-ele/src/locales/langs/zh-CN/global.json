@@ -4,6 +4,27 @@
   "operation": "操作",
   "required": "必填项",
   "errorFormat": "格式错误",
+  "createdTime": "创建时间",
+  "updateTime": "更新时间",
+  "createdBy": "创建人",
+  "updatedBy": "更新人",
+  "tip": "提示",
+  "message": {
+    "success": "操作成功",
+    "error": "操作失败",
+    "confirmDelete": "确认删除？",
+    "confirmLock": "确认冻结？",
+    "confirmUnlock": "确认解冻？",
+    "confirmSave": "确认保存？",
+    "confirmImport": "确认导入？",
+    "confirmExport": "确认导出？",
+    "confirmUpload": "确认上传？",
+    "confirmDownload": "确认下载？",
+    "confirmPreview": "确认预览？",
+    "confirmSetting": "确认设置？",
+    "confirmDeleteSelected": "确认删除选中项？",
+    "cancelConfirm": "已取消操作"
+  },
   "btn": {
     "add": "添加",
     "edit": "编辑",
@@ -47,5 +68,12 @@
     "birthday": "出生日期",
     "address": "通讯地址",
     "remark": "备注"
+  },
+  "dict": {
+    "code": "字典编码",
+    "dictName": "字典名称",
+    "remark": "备注",
+    "key": "数据键",
+    "value": "数据值"
   }
 }
