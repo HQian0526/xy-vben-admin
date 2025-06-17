@@ -9,6 +9,9 @@
   "createdBy": "created by",
   "updatedBy": "updated by",
   "tip": "tip",
+  "choosePeople": "choose people",
+  "allPeople": "all people",
+  "choicePeople": "choice people",
   "message": {
     "success": "success",
     "error": "error",
@@ -51,7 +54,9 @@
     "collapse": "collapse",
     "expandMore": "expand more",
     "collapseMore": "collapse",
-    "detail": "detail"
+    "detail": "detail",
+    "devideUser": "devide user",
+    "devideAuth": "devide auth"
   },
   "user": {
     "userName": "account",
@@ -75,5 +80,9 @@
     "remark": "remark",
     "key": "key",
     "value": "value"
+  },
+  "role": {
+    "roleName": "role name",
+    "remark": "remark"
   }
 }

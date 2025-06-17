@@ -9,6 +9,9 @@
   "createdBy": "创建人",
   "updatedBy": "更新人",
   "tip": "提示",
+  "choosePeople": "选择人员",
+  "allPeople": "全部人员",
+  "choicePeople": "已选人员",
   "message": {
     "success": "操作成功",
     "error": "操作失败",
@@ -51,7 +54,9 @@
     "collapse": "收起",
     "expandMore": "展开更多功能",
     "collapseMore": "收起更多功能",
-    "detail": "详情"
+    "detail": "详情",
+    "devideUser": "分配用户",
+    "devideAuth": "分配权限"
   },
   "user": {
     "userName": "用户号",
@@ -75,5 +80,9 @@
     "remark": "备注",
     "key": "数据键",
     "value": "数据值"
+  },
+  "role": {
+    "roleName": "角色名称",
+    "remark": "备注"
   }
 }

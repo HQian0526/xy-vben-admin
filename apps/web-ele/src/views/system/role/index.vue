@@ -31,48 +31,117 @@
         @handleSizeChange="handleSizeChange"
       ></Table>
     </el-card>
-    <!-- 弹窗 -->
-    <Edit
-      ref="editForm"
-      :formConfig="editConfig"
-      :formRules="editRules"
-      :title="formTitle"
-      :formInfo="othersInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    ></Edit>
+          <!-- 编辑弹窗 -->
+          <Edit
+            ref="editForm"
+            :formConfig="editConfig"
+            :formRules="editRules"
+            :title="formTitle"
+            :formInfo="othersInfo"
+            :visible="itemVisible"
+            @close="closeDialog"
+            @confirm="confirmDialog"
+          ></Edit>
+          <!-- 分配用户弹窗 -->
+          <SelectPeople
+            :visible="userVisible"
+            @close="closeUserDialog"
+            @confirm="confirmUserDialog"
+          ></SelectPeople>
   </div>
 </template>
 
 <script lang="ts" setup>
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
+import SelectPeople from '#/components/selectPeople/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { reactive, ref } from 'vue';
-//table相关变量
+//**************table相关变量**************
 let total = ref(10);
-//filter相关变量
+// 表格配置
+const tableConfig = reactive({
+  list: [
+    {
+      prop: 'index',
+    },
+    {
+      prop: 'roleName',
+      label: $t('global.role.roleName'),
+    },
+    {
+      prop: 'remark',
+      label: $t('global.role.remark'),
+    },
+    {
+      prop: 'operation',
+      label: $t('global.operation'),
+      fixed: 'right',
+      width: '400px',
+      operations: [
+        {
+          type: 'primary',
+          label: $t('global.btn.edit'),
+          show: true,
+        },
+        {
+          type: 'primary',
+          label: $t('global.btn.devideUser'),
+          show: true,
+        },
+        {
+          type: 'primary',
+          label: $t('global.btn.devideAuth'),
+          show: true,
+        },
+        {
+          type: 'danger',
+          label: $t('global.btn.delete'),
+          show: true,
+        },
+      ],
+    },
+  ],
+});
+// 表格数据
+let list = reactive([
+  {
+    roleName: '系统管理员',
+    remark: '系统管理员',
+  },
+  {
+    roleName: '基础用户组',
+    remark: '基础用户组',
+  },
+]);
+
+//**************filter相关变量**************
 const isCollapsed = ref(false);
-//edit相关变量
+// 头部搜索框
+const formConfig = reactive({
+  list: [
+    {
+      type: 'input',
+      prop: 'roleName',
+      label: $t('global.role.roleName'),
+      value: '',
+      placeholder: `${$t('global.pleaseEnter')}${$t('global.role.roleName')}`,
+    },
+  ],
+});
+
+//**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
 let formTitle = ref(''); //弹窗标题
 let othersInfo = ref({}); //弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
-  dictName: [
+  roleName: [
     {
       required: true,
-      message: $t('global.dict.dictName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-  code: [
-    {
-      required: true,
-      message: $t('global.dict.code') + $t('global.required'),
+      message: $t('global.role.roleName') + $t('global.required'),
       trigger: 'blur',
     },
   ],
@@ -80,25 +149,23 @@ const editRules = reactive({
 // 弹窗表单配置
 const editConfig = reactive([
   {
-    label: $t('global.dict.code'),
-    name: 'code',
+    label: $t('global.role.roleName'),
+    name: 'roleName',
     type: 'input',
     readonly: false,
+    span: 24,
   },
   {
-    label: $t('global.dict.dictName'),
-    name: 'dictName',
-    type: 'input',
-    readonly: false,
-  },
-  {
-    label: $t('global.dict.remark'),
+    label: $t('global.role.remark'),
     name: 'remark',
     type: 'textarea',
     readonly: false,
     span: 24,
   },
 ]);
+
+//**************分配用户相关变量**************
+let userVisible = ref(false); //是否展示弹窗
 
 // 点击展开收起
 const toggleCollapse = () => {
@@ -116,94 +183,21 @@ const reset = (form: any) => {
   });
 };
 
-// 头部搜索框
-const formConfig = reactive({
-  list: [
-    {
-      type: 'input',
-      prop: 'dictName',
-      label: $t('global.dict.dictName'),
-      value: '',
-      placeholder: `${$t('global.pleaseEnter')}${$t('global.dict.dictName')}`,
-    },
-    {
-      type: 'input',
-      prop: 'code',
-      label: $t('global.dict.code'),
-      value: '',
-      placeholder: `${$t('global.pleaseEnter')}${$t('global.dict.code')}`,
-    },
-  ],
-});
-
-// 表格配置
-const tableConfig = reactive({
-  list: [
-    {
-      prop: 'index',
-    },
-    {
-      prop: 'code',
-      label: $t('global.dict.code'),
-    },
-    {
-      prop: 'dictName',
-      label: $t('global.dict.dictName'),
-    },
-    {
-      prop: 'remark',
-      label: $t('global.dict.remark'),
-    },
-    {
-      prop: 'operation',
-      label: $t('global.operation'),
-      fixed: 'right',
-      width: '200px',
-      operations: [
-        {
-          type: 'primary',
-          label: $t('global.btn.detail'),
-          show: true,
-        },
-        {
-          type: 'danger',
-          label: $t('global.btn.delete'),
-          show: true,
-        },
-      ],
-    },
-  ],
-});
-
-// 表格数据
-let list = reactive([
-  {
-    code: 'sex',
-    dictName: '性别',
-    remark: '性别字典',
-  },
-  {
-    code: 'sex',
-    dictName: '性别',
-    remark: '性别字典',
-  },
-  {
-    code: 'sex',
-    dictName: '性别',
-    remark: '性别字典',
-  },
-]);
-
 // 点击操作列按钮
 const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
-  if (label === $t('global.btn.detail')) {
+  if (label === $t('global.btn.edit')) {
     itemVisible.value = true;
-    formTitle.value = '详情';
+    formTitle.value = label;
     othersInfo.value = row;
   } else if (label === $t('global.btn.delete')) {
     handleDelete(row);
+  } else if (label === $t('global.btn.devideUser')) {
+    console.log('devideUser');
+    userVisible.value = true;
+  } else if (label === $t('global.btn.devideAuth')) {
+    console.log('devideAuth');
   }
 };
 
@@ -217,19 +211,30 @@ const handleSizeChange = (pageSize: number) => {
   console.log('pageSize', pageSize);
 };
 
-//关闭弹窗
+//关闭编辑弹窗
 const closeDialog = () => {
   itemVisible.value = false;
 };
 
-//确定
+//确定编辑弹窗
 const confirmDialog = () => {
-  itemVisible.value = true;
+  itemVisible.value = false;
+};
+
+//关闭分配用户弹窗
+const closeUserDialog = () => {
+  userVisible.value = false;
+};
+
+//确定分配用户弹窗
+const confirmUserDialog = (val) => {
+  console.log('val', val);
+  userVisible.value = false;
 };
 
 // 新增
 const handleAdd = () => {
-  formTitle.value = '添加';
+  formTitle.value = $t('global.btn.add');
   itemVisible.value = true;
 };
 

@@ -460,7 +460,7 @@ const handleClick = (row: any, label: string) => {
   console.log('label', label);
   if (label === $t('global.btn.detail')) {
     itemVisible.value = true;
-    formTitle.value = '详情';
+    formTitle.value = label;
     othersInfo.value = row;
   } else if (label === $t('global.btn.delete')) {
     handleDelete(row);
@@ -484,12 +484,12 @@ const closeDialog = () => {
 
 //确定
 const confirmDialog = () => {
-  itemVisible.value = true;
+  itemVisible.value = false;
 };
 
 // 新增
 const handleAdd = () => {
-  formTitle.value = '添加';
+  formTitle.value = $t('global.btn.add');
   itemVisible.value = true;
 };
 
