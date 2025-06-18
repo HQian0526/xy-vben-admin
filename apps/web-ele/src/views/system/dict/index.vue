@@ -58,15 +58,20 @@
 </template>
 
 <script lang="ts" setup>
+import { getDictListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 
 //**************table相关变量**************
 let total = ref(10);
+let pageInfo = reactive({
+  pageNum: 1,
+  pageSize: 10,
+});
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -106,23 +111,7 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-let list = reactive([
-  {
-    code: 'sex',
-    dictName: '性别',
-    remark: '性别字典',
-  },
-  {
-    code: 'sex',
-    dictName: '性别',
-    remark: '性别字典',
-  },
-  {
-    code: 'sex',
-    dictName: '性别',
-    remark: '性别字典',
-  },
-]);
+let list = reactive([]);
 
 //**************filter相关变量**************
 const isCollapsed = ref(false);
@@ -248,14 +237,16 @@ const toggleCollapse = () => {
 // 点击搜索
 const search = (form: any) => {
   console.log('form', form);
+  getDictList(form);
 };
 
 // 点击重置
 const reset = (form: any) => {
   console.log('form', form);
-  formConfig.list.forEach((item) => {
+  formConfig.list.forEach((item: any) => {
     item.value = null;
   });
+  getDictList(form);
 };
 
 // 点击操作列按钮
@@ -283,11 +274,15 @@ const editTableClick = (row: any, label: string) => {
 // 表格分页
 const handleCurrentChange = (currentPage: number) => {
   console.log('currentPage', currentPage);
+  pageInfo.pageNum = currentPage;
+  getDictList();
 };
 
 // 表格分页大小
 const handleSizeChange = (pageSize: number) => {
   console.log('pageSize', pageSize);
+  pageInfo.pageSize = pageSize;
+  getDictList();
 };
 
 //关闭弹窗
@@ -336,6 +331,26 @@ const handleDelete = (row: any) => {
       });
     });
 };
+
+// 获取字典列表
+const getDictList = async (form: any = undefined) => {
+  let obj = {
+    ...form,
+    pageNum: pageInfo.pageNum,
+    pageSize: pageInfo.pageSize,
+  };
+  try {
+    const res = await getDictListApi(obj);
+    list = res.list;
+    total.value = res.total;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+onMounted(() => { 
+  getDictList();
+});
 </script>
 
 <style lang="scss" scoped>

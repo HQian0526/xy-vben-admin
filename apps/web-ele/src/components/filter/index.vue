@@ -73,17 +73,17 @@
 <script lang="ts" setup>
 import { $t } from '#/locales';
 import {
-  ElButton,
-  ElCheckbox,
-  ElCheckboxGroup,
-  ElDatePicker,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElOption,
-  ElRadio,
-  ElRadioGroup,
-  ElSelect,
+ElButton,
+ElCheckbox,
+ElCheckboxGroup,
+ElDatePicker,
+ElForm,
+ElFormItem,
+ElInput,
+ElOption,
+ElRadio,
+ElRadioGroup,
+ElSelect
 } from 'element-plus';
 import { defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
 
@@ -116,9 +116,9 @@ const search = () => {
 };
 
 const reset = async () => {
-  props.formConfig.list.forEach((item) => {
+  props.formConfig.list.forEach((item: any) => {
     if (item.prop) {
-      form[item.prop] = '';
+      form[item.prop] = undefined;
     }
   });
   emit('reset', form);
@@ -126,9 +126,9 @@ const reset = async () => {
 
 // 将formConfig中的值同步到form对象
 const initFormData = () => {
-  props.formConfig.list.forEach((item) => {
+  props.formConfig.list.forEach((item: any) => {
     if (item.prop) {
-      form[item.prop] = item.value ? item.value : '';
+      form[item.prop] = item.value ? item.value : undefined;
     }
   });
 };

@@ -52,15 +52,20 @@
 </template>
 
 <script lang="ts" setup>
+import { getRoleListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import SelectPeople from '#/components/selectPeople/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 //**************table相关变量**************
 let total = ref(10);
+let pageInfo = reactive({
+  pageNum: 1,
+  pageSize: 10,
+});
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -106,16 +111,7 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-let list = reactive([
-  {
-    roleName: '系统管理员',
-    remark: '系统管理员',
-  },
-  {
-    roleName: '基础用户组',
-    remark: '基础用户组',
-  },
-]);
+let list = reactive([]);
 
 //**************filter相关变量**************
 const isCollapsed = ref(false);
@@ -174,6 +170,7 @@ const toggleCollapse = () => {
 
 const search = (form: any) => {
   console.log('form', form);
+  getRoleList(form);
 };
 
 const reset = (form: any) => {
@@ -181,6 +178,7 @@ const reset = (form: any) => {
   formConfig.list.forEach((item) => {
     item.value = null;
   });
+  getRoleList(form);
 };
 
 // 点击操作列按钮
@@ -204,11 +202,15 @@ const handleClick = (row: any, label: string) => {
 // 表格分页
 const handleCurrentChange = (currentPage: number) => {
   console.log('currentPage', currentPage);
+  pageInfo.pageNum = currentPage;
+  getRoleList();
 };
 
 // 表格分页大小
 const handleSizeChange = (pageSize: number) => {
   console.log('pageSize', pageSize);
+  pageInfo.pageSize = pageSize;
+  getRoleList();
 };
 
 //关闭编辑弹窗
@@ -227,7 +229,7 @@ const closeUserDialog = () => {
 };
 
 //确定分配用户弹窗
-const confirmUserDialog = (val) => {
+const confirmUserDialog = (val: any) => {
   console.log('val', val);
   userVisible.value = false;
 };
@@ -259,6 +261,26 @@ const handleDelete = (row: any) => {
       });
     });
 };
+
+// 获取角色列表
+const getRoleList = async (form: any = undefined) => {
+  let obj = {
+    ...form,
+    pageNum: pageInfo.pageNum,
+    pageSize: pageInfo.pageSize,
+  };
+  try {
+    const res = await getRoleListApi(obj);
+    list = res.list;
+    total.value = res.total;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+onMounted(() => { 
+  getRoleList();
+});
 </script>
 
 <style lang="scss" scoped>
