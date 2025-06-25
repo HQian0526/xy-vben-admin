@@ -11,16 +11,16 @@
       >
         <!-- 索引列 -->
         <el-table-column v-if="item.prop === 'index'" type="index" width="50" />
-        <!-- 字典赋值列 如1男 2女 -->
+        <!-- 字典/过滤器赋值列 如1男 2女 -->
         <el-table-column
-          v-else-if="item.dict"
+          v-else-if="item.filter"
           :prop="item.prop"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
         >
           <template #default="scope">
             <div style="display: flex; align-items: center">
-              {{ getDictValue(scope.row[item.prop], item.dict) }}
+              {{ item.filter(scope.row[item.prop]) }}
             </div>
           </template>
         </el-table-column>
@@ -45,7 +45,7 @@
           <template #default="scope">
             <template v-for="(op, ind) in item.operations" :key="ind">
               <el-button
-                v-if="op.show"
+                :style="{display: op.isShow && !op.isShow(scope.row) ? 'none' : ''}"
                 :type="op.type !== 'text' ? op.type : 'primary'"
                 :link="op.type === 'text' ? true : false"
                 @click="handleClick(scope.row, op.label)"
@@ -84,11 +84,11 @@
 
 <script lang="ts" setup>
 import {
-  ElButton,
-  ElInput,
-  ElPagination,
-  ElTable,
-  ElTableColumn,
+ElButton,
+ElInput,
+ElPagination,
+ElTable,
+ElTableColumn
 } from 'element-plus';
 import { defineEmits, defineProps, reactive } from 'vue';
 
@@ -122,17 +122,6 @@ const emit = defineEmits<{
   // 页码大小改变
   (e: 'handleSizeChange', pageSize: number): void;
 }>();
-
-// 获取字典值
-const getDictValue = (value: any, dict: any) => {
-  let dictValue = '';
-  dict.forEach((item) => {
-    if (Number(item.key) === Number(value)) {
-      dictValue = item.value;
-    }
-  });
-  return dictValue;
-};
 
 // 点击操作按钮
 const handleClick = (row: any, label: string) => {

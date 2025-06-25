@@ -99,12 +99,12 @@ const tableConfig = reactive({
         {
           type: 'primary',
           label: $t('global.btn.detail'),
-          show: true,
+          isShow: () => true,
         },
         {
           type: 'danger',
           label: $t('global.btn.delete'),
-          show: true,
+          isShow: () => true,
         },
       ],
     },
@@ -341,8 +341,11 @@ const getDictList = async (form: any = undefined) => {
   };
   try {
     const res = await getDictListApi(obj);
-    list = res.list;
-    total.value = res.total;
+    if (res.code === 200) {
+      // 使用 Object.assign 保持响应性
+      Object.assign(list, res.data.list);
+      total.value = res.data.total;
+    }
   } catch (err) {
     console.log(err);
   }

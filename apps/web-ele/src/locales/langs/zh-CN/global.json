@@ -72,7 +72,12 @@
     "normal": "正常",
     "birthday": "出生日期",
     "address": "通讯地址",
-    "remark": "备注"
+    "remark": "备注",
+    "normalUser": "基础用户",
+    "vipUser": "VIP用户",
+    "adminUser": "管理员",
+    "man": "男",
+    "woman": "女"
   },
   "dict": {
     "code": "字典编码",

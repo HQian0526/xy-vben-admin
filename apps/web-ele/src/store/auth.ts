@@ -33,17 +33,17 @@ export const useAuthStore = defineStore('auth', () => {
     let userInfo: null | UserInfo = null;
     try {
       loginLoading.value = true;
-      const { accessToken } = await loginApi(params);
-      if (accessToken) {
+      const res = await loginApi(params);
+      if (res.code === 200 && res.data && res.data.accessToken) {
         // 将 accessToken 存储到 accessStore 中
-        accessStore.setAccessToken(accessToken);
+        accessStore.setAccessToken(res.data.accessToken);
 
         // 获取用户信息并存储到 accessStore 中
         const [fetchUserInfoResult, accessCodes] = await Promise.all([
           fetchUserInfo(),
-          getAccessCodesApi(),
+          getAccessCodes(),
         ]);
-
+        
         userInfo = fetchUserInfoResult;
 
         userStore.setUserInfo(userInfo);
@@ -97,9 +97,21 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchUserInfo() {
     let userInfo: null | UserInfo = null;
-    userInfo = await getUserInfoApi();
-    userStore.setUserInfo(userInfo);
+    const res = await getUserInfoApi();
+    if (res.code === 200 && res.data) {
+      userInfo = res.data;
+      userStore.setUserInfo(res.data);
+    }
     return userInfo;
+  }
+
+  async function getAccessCodes() {
+    let codeInfo: null | UserInfo = null;
+    const res = await getAccessCodesApi();
+    if (res.code === 200 && res.data) {
+      codeInfo = res.data;
+    }
+    return codeInfo;
   }
 
   function $reset() {

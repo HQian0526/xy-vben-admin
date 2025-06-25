@@ -31,28 +31,28 @@
         @handleSizeChange="handleSizeChange"
       ></Table>
     </el-card>
-          <!-- 编辑弹窗 -->
-          <Edit
-            ref="editForm"
-            :formConfig="editConfig"
-            :formRules="editRules"
-            :title="formTitle"
-            :formInfo="othersInfo"
-            :visible="itemVisible"
-            @close="closeDialog"
-            @confirm="confirmDialog"
-          ></Edit>
-          <!-- 分配用户弹窗 -->
-          <SelectPeople
-            :visible="userVisible"
-            @close="closeUserDialog"
-            @confirm="confirmUserDialog"
-          ></SelectPeople>
+    <!-- 编辑弹窗 -->
+    <Edit
+      ref="editForm"
+      :formConfig="editConfig"
+      :formRules="editRules"
+      :title="formTitle"
+      :formInfo="othersInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    ></Edit>
+    <!-- 分配用户弹窗 -->
+    <SelectPeople
+      :visible="userVisible"
+      @close="closeUserDialog"
+      @confirm="confirmUserDialog"
+    ></SelectPeople>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { getRoleListApi } from '#/api';
+import { addRoleApi, deleteRoleApi, editRoleApi, getRoleListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import SelectPeople from '#/components/selectPeople/index.vue';
@@ -89,22 +89,22 @@ const tableConfig = reactive({
         {
           type: 'primary',
           label: $t('global.btn.edit'),
-          show: true,
+          isShow: () => true,
         },
         {
           type: 'primary',
           label: $t('global.btn.devideUser'),
-          show: true,
+          isShow: () => true,
         },
         {
           type: 'primary',
           label: $t('global.btn.devideAuth'),
-          show: true,
+          isShow: () => true,
         },
         {
           type: 'danger',
           label: $t('global.btn.delete'),
-          show: true,
+          isShow: () => true,
         },
       ],
     },
@@ -219,8 +219,23 @@ const closeDialog = () => {
 };
 
 //确定编辑弹窗
-const confirmDialog = () => {
-  itemVisible.value = false;
+const confirmDialog = async (title: string, data: any) => {
+  console.log('title', title);
+  console.log('data', data);
+  try {
+    const res =
+      title === $t('global.btn.add')
+        ? await addRoleApi(data)
+        : await editRoleApi(data);
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+      getRoleList();
+      itemVisible.value = false;
+    }
+  } catch {}
 };
 
 //关闭分配用户弹窗
@@ -243,23 +258,30 @@ const handleAdd = () => {
 // 删除
 const handleDelete = (row: any) => {
   console.log('row', row);
-  ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
-    confirmButtonText: $t('global.btn.confirm'),
-    cancelButtonText: $t('global.btn.cancel'),
-    type: 'warning',
-  })
-    .then(() => {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: $t('global.message.cancelConfirm'),
-      });
+  try {
+    ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    }).then(async () => {
+      const res = await deleteRoleApi([row.id]);
+      console.log('res', res);
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        getRoleList();
+      } else {
+        ElMessage({
+          type: 'error',
+          message: $t('global.message.error'),
+        });
+      }
     });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // 获取角色列表
@@ -271,14 +293,17 @@ const getRoleList = async (form: any = undefined) => {
   };
   try {
     const res = await getRoleListApi(obj);
-    list = res.list;
-    total.value = res.total;
+    if (res.code === 200) {
+      // 使用 Object.assign 保持响应性
+      Object.assign(list, res.data.list);
+      total.value = res.data.total;
+    }
   } catch (err) {
     console.log(err);
   }
 };
 
-onMounted(() => { 
+onMounted(() => {
   getRoleList();
 });
 </script>

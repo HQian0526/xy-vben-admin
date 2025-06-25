@@ -72,7 +72,12 @@
     "normal": "normal",
     "birthday": "birthday",
     "address": "address",
-    "remark": "remark"
+    "remark": "remark",
+    "normalUser": "normal user",
+    "vipUser": "VIP user",
+    "adminUser": "admin user",
+    "man": "man",
+    "woman": "woman"
   },
   "dict": {
     "code": "dictionary code",

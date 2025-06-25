@@ -12,9 +12,9 @@ defineOptions({
 });
 
 withDefaults(defineProps<Props>(), {
-  companyName: 'Vben Admin',
+  companyName: '广州市星萤网络有限公司',
   companySiteLink: '',
-  date: '2024',
+  date: '2025',
   icp: '',
   icpLink: '',
 });

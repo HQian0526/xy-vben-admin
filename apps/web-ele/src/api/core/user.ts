@@ -18,3 +18,27 @@ export async function getUserListApi(param: any) {
     params: param
   });
 }
+
+/**
+ * 新增
+ */
+export async function addUserApi(data: any) {
+  return requestClient.post('/user/addUser', data);
+}
+
+/**
+ * 编辑
+ */
+export async function editUserApi(data: any) {
+  return requestClient.put('/user/editUser', data);
+}
+
+/**
+ * 删除
+ */
+export async function deleteUserApi(data: any) {
+  return requestClient.delete('/user/deleteUser', {
+    data: data,
+  });
+}
+

@@ -7,8 +7,8 @@
           <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
-              ? $t('global.btn.expandMore')
-              : $t('global.btn.collapseMore')
+                ? $t('global.btn.expandMore')
+                : $t('global.btn.collapseMore')
             }}
           </el-button>
 
@@ -22,17 +22,32 @@
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table :table-config="tableConfig" :list="list" :total="total" @handleClick="handleClick"
-        @handleCurrentChange="handleCurrentChange" @handleSizeChange="handleSizeChange"></Table>
+      <Table
+        ref="table"
+        :table-config="tableConfig"
+        :list="list"
+        :total="total"
+        @handleClick="handleClick"
+        @handleCurrentChange="handleCurrentChange"
+        @handleSizeChange="handleSizeChange"
+      ></Table>
     </el-card>
     <!-- 弹窗 -->
-    <Edit ref="editForm" :formConfig="editConfig" :formRules="editRules" :title="formTitle" :formInfo="othersInfo"
-      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog"></Edit>
+    <Edit
+      ref="editForm"
+      :formConfig="editConfig"
+      :formRules="editRules"
+      :title="formTitle"
+      :formInfo="othersInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    ></Edit>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { getUserListApi } from '#/api';
+import { addUserApi, deleteUserApi, editUserApi, getUserListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
@@ -40,6 +55,7 @@ import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 //**************table相关变量**************
+const table = ref();
 let total = ref(10);
 let pageInfo = reactive({
   pageNum: 1,
@@ -62,16 +78,13 @@ const tableConfig = reactive({
     {
       prop: 'sex',
       label: $t('global.user.sex'),
-      dict: [
-        {
-          key: '0',
-          value: '女',
-        },
-        {
-          key: '1',
-          value: '男',
-        },
-      ],
+      filter: (value: any) => {
+        if (value === '0' || !value) {
+          return $t('global.user.woman');
+        } else {
+          return $t('global.user.man');
+        }
+      },
     },
     {
       prop: 'phone',
@@ -84,59 +97,53 @@ const tableConfig = reactive({
     {
       prop: 'identity',
       label: $t('global.user.identity'),
-      dict: [
-        {
-          key: '1',
-          value: '基础用户',
-        },
-        {
-          key: '2',
-          value: 'vip会员',
-        },
-        {
-          key: '3',
-          value: '超级管理员',
-        },
-      ],
+      filter: (value: any) => {
+        if (value === '1') {
+          return $t('global.user.normalUser');
+        } else if (value === '1') {
+          return $t('global.user.vipUser');
+        } else {
+          return $t('global.user.adminUser');
+        }
+      },
     },
     {
-      prop: 'createTime',
+      prop: 'createdTime',
       label: $t('global.user.createTime'),
+      filter: (value: any) => {
+        return value ? value.substring(0, 10) : '';
+      },
     },
     {
-      prop: 'status',
+      prop: 'deleted',
       label: $t('global.user.status'),
-      dict: [
-        {
-          key: '0',
-          value: '正常',
-        },
-        {
-          key: '1',
-          value: '冻结',
-        },
-      ],
+      filter: (value: any) => {
+        if (value) {
+          return $t('global.user.lock');
+        } else {
+          return $t('global.user.normal');
+        }
+      },
     },
     {
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '250px',
+      width: '180px',
       operations: [
         {
           type: 'primary',
           label: $t('global.btn.detail'),
-          show: true,
         },
         {
           type: 'success',
           label: $t('global.btn.unlock'),
-          show: true,
+          isShow: (item: any) => Number(item.deleted) === 1,
         },
         {
           type: 'danger',
           label: $t('global.btn.lock'),
-          show: true,
+          isShow: (item: any) => !item.deleted,
         },
       ],
     },
@@ -333,8 +340,10 @@ const handleClick = (row: any, label: string) => {
     itemVisible.value = true;
     formTitle.value = label;
     othersInfo.value = row;
-  } else if (label === $t('global.btn.delete')) {
+  } else if (label === $t('global.btn.lock')) {
     handleDelete(row);
+  } else if (label === $t('global.btn.unlock')) {
+    handleAlive(row);
   }
 };
 
@@ -358,8 +367,23 @@ const closeDialog = () => {
 };
 
 //确定
-const confirmDialog = () => {
-  itemVisible.value = false;
+const confirmDialog = async (title: string, data: any) => {
+  console.log('title', title);
+  console.log('data', data);
+  try {
+    const res =
+      title === $t('global.btn.add')
+        ? await addUserApi(data)
+        : await editUserApi(data);
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+      getUserList();
+      itemVisible.value = false;
+    }
+  } catch {}
 };
 
 // 新增
@@ -371,23 +395,59 @@ const handleAdd = () => {
 // 删除
 const handleDelete = (row: any) => {
   console.log('row', row);
-  ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
-    confirmButtonText: $t('global.btn.confirm'),
-    cancelButtonText: $t('global.btn.cancel'),
-    type: 'warning',
-  })
-    .then(() => {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: $t('global.message.cancelConfirm'),
-      });
+  try {
+    ElMessageBox.confirm($t('global.message.confirmLock'), $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    }).then(async () => {
+      const res = await deleteUserApi([row.id]);
+      console.log('res', res);
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        getUserList();
+      } else {
+        ElMessage({
+          type: 'error',
+          message: $t('global.message.error'),
+        });
+      }
     });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// 解锁
+const handleAlive = (row: any) => {
+  console.log('row', row);
+  try {
+    ElMessageBox.confirm($t('global.message.confirmUnlock'), $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    }).then(async () => {
+      const res = await editUserApi({ id: row.id, deleted: 0 });
+      console.log('res', res);
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        getUserList();
+      } else {
+        ElMessage({
+          type: 'error',
+          message: $t('global.message.error'),
+        });
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // 获取用户列表
@@ -399,14 +459,18 @@ const getUserList = async (form: any = undefined) => {
   };
   try {
     const res = await getUserListApi(obj);
-    list = res.list;
-    total.value = res.total;
+    if (res.code === 200) {
+      // 正确的方式：先清空数组再添加新数据
+      list.length = 0; // 清空数组但保持响应性
+      list.push(...res.data.list); // 添加新数据
+      total.value = res.data.total;
+    }
   } catch (err) {
     console.log(err);
   }
 };
 
-onMounted(() => { 
+onMounted(() => {
   getUserList();
 });
 </script>

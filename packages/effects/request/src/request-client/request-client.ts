@@ -93,14 +93,22 @@ class RequestClient {
     url: string,
     config?: RequestClientConfig,
   ): Promise<T> {
-    return this.request<T>(url, { ...config, method: 'DELETE' });
+    return this.request<T>(url, {
+      ...config,
+      method: 'DELETE',
+      responseReturn: 'body',
+    });
   }
 
   /**
    * GET请求方法
    */
   public get<T = any>(url: string, config?: RequestClientConfig): Promise<T> {
-    return this.request<T>(url, { ...config, method: 'GET' });
+    return this.request<T>(url, {
+      ...config,
+      method: 'GET',
+      responseReturn: 'body',
+    });
   }
 
   /**
@@ -111,7 +119,12 @@ class RequestClient {
     data?: any,
     config?: RequestClientConfig,
   ): Promise<T> {
-    return this.request<T>(url, { ...config, data, method: 'POST' });
+    return this.request<T>(url, {
+      ...config,
+      data,
+      method: 'POST',
+      responseReturn: 'body',
+    });
   }
 
   /**
@@ -122,7 +135,12 @@ class RequestClient {
     data?: any,
     config?: RequestClientConfig,
   ): Promise<T> {
-    return this.request<T>(url, { ...config, data, method: 'PUT' });
+    return this.request<T>(url, {
+      ...config,
+      data,
+      method: 'PUT',
+      responseReturn: 'body',
+    });
   }
 
   /**
