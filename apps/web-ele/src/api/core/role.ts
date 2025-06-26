@@ -21,7 +21,7 @@ export async function addRoleApi(data: any) {
  * 编辑角色
  */
 export async function editRoleApi(data: any) {
-  return requestClient.put('/role/editRole', data);
+  return requestClient.put('/role/updateRole', data);
 }
 
 /**

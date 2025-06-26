@@ -1,5 +1,5 @@
 <template>
-  <div class="pd5">
+  <div v-loading="isLoading" class="pd5">
     <el-card>
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
@@ -37,7 +37,7 @@
       :formConfig="editConfig"
       :formRules="editRules"
       :title="formTitle"
-      :formInfo="othersInfo"
+      :formInfo="formInfo"
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
@@ -45,6 +45,7 @@
     <!-- 分配用户弹窗 -->
     <SelectPeople
       :visible="userVisible"
+      :selectedUsers="selectedUsers"
       @close="closeUserDialog"
       @confirm="confirmUserDialog"
     ></SelectPeople>
@@ -60,6 +61,8 @@ import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
+const isLoading = ref(false);
+const devideUserId = ref(null);
 //**************table相关变量**************
 let total = ref(10);
 let pageInfo = reactive({
@@ -131,7 +134,7 @@ const formConfig = reactive({
 //**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
 let formTitle = ref(''); //弹窗标题
-let othersInfo = ref({}); //弹窗其他信息
+let formInfo = ref({}); //弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
   roleName: [
@@ -162,7 +165,7 @@ const editConfig = reactive([
 
 //**************分配用户相关变量**************
 let userVisible = ref(false); //是否展示弹窗
-
+const selectedUsers = ref([]); //已选用户
 // 点击展开收起
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
@@ -186,15 +189,24 @@ const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   if (label === $t('global.btn.edit')) {
-    itemVisible.value = true;
+    // 编辑
     formTitle.value = label;
-    othersInfo.value = row;
+    formInfo.value = { ...row }; // 确保是新的对象引用
+    itemVisible.value = true;
   } else if (label === $t('global.btn.delete')) {
+    // 删除
     handleDelete(row);
   } else if (label === $t('global.btn.devideUser')) {
-    console.log('devideUser');
+    // 分配用户
+    console.log('devideUser', JSON.parse(row.userList));
+    devideUserId.value = row.id;
+    selectedUsers.value = [];
+    if (row.userList) {
+      selectedUsers.value.push(...JSON.parse(row.userList));
+    }
     userVisible.value = true;
   } else if (label === $t('global.btn.devideAuth')) {
+    // 分配权限
     console.log('devideAuth');
   }
 };
@@ -234,24 +246,51 @@ const confirmDialog = async (title: string, data: any) => {
       });
       getRoleList();
       itemVisible.value = false;
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
     }
   } catch {}
 };
 
 //关闭分配用户弹窗
 const closeUserDialog = () => {
+  selectedUsers.value = [];
   userVisible.value = false;
 };
 
 //确定分配用户弹窗
-const confirmUserDialog = (val: any) => {
+const confirmUserDialog = async (val: any) => {
   console.log('val', val);
-  userVisible.value = false;
+  try {
+    const res = await editRoleApi({
+      id: devideUserId.value,
+      userList: JSON.stringify(val),
+    });
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+      userVisible.value = false;
+      getRoleList();
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // 新增
 const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
+  formInfo.value = {}; // 清空表单数据
   itemVisible.value = true;
 };
 
@@ -292,13 +331,23 @@ const getRoleList = async (form: any = undefined) => {
     pageSize: pageInfo.pageSize,
   };
   try {
+    isLoading.value = true;
     const res = await getRoleListApi(obj);
     if (res.code === 200) {
-      // 使用 Object.assign 保持响应性
-      Object.assign(list, res.data.list);
+      // 正确的方式：先清空数组再添加新数据
+      list.length = 0; // 清空数组但保持响应性
+      list.push(...res.data.list); // 添加新数据
       total.value = res.data.total;
+      isLoading.value = false;
+    } else {
+      isLoading.value = false;
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.searchError'),
+      });
     }
   } catch (err) {
+    isLoading.value = false;
     console.log(err);
   }
 };

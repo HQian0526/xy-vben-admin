@@ -39,10 +39,11 @@
                 v-if="item.type === 'date'"
                 type="date"
                 :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
-                :readonly="item.readonly ? item.readonly : false"
+                :disabled="item.readonly"
                 v-model="formData[item.name]"
                 style="width: 100%"
-                value-format="yyyy-MM-dd"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
               ></el-date-picker>
               <!--下拉框-->
               <el-select
@@ -133,7 +134,18 @@ const formRef = ref<InstanceType<typeof ElForm>>(); // 表单引用
 const formData = reactive<Record<string, any>>({}); // 表单数据
 // 初始化数据
 const initData = () => {
-  Object.assign(formData, props.formInfo);
+  console.log('初始化表单数据', props.formInfo);
+  // 创建一个新的空对象
+  const newFormData = {};
+  // 遍历 formConfig 初始化所有字段
+  props.formConfig.forEach((item) => {
+    newFormData[item.name] = props.formInfo[item.name] || '';
+  });
+  newFormData.id = props.formInfo.id || '';
+  // 替换整个 formData 对象
+  Object.keys(formData).forEach((key) => delete formData[key]);
+  Object.assign(formData, newFormData);
+  console.log('formData', formData);
 };
 
 // 清除form缓存
@@ -165,18 +177,21 @@ const confirm = async () => {
 
 // 初始化表单数据
 const initFormData = () => {
-  nextTick(() => {
-    clearFormData();
+  nextTick(async () => {
+    await clearFormData();
     initData();
   });
 };
 
 watch(
-  () => props.visible,
-  (val) => {
-    if (val) initFormData();
+  () => [props.visible, props.formInfo],
+  ([visible, formInfo]) => {
+    console.log('visible change', visible);
+    if (visible) {
+      initFormData();
+    }
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 );
 </script>
 

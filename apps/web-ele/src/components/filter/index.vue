@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="formRef" :inline="true" :model="form" class="demo-form-inline">
+  <el-form ref="formRef" :inline="true" :model="form" class="demo-form-inline" @submit.prevent>
     <el-form-item
       v-for="(item, index) in formConfig.list"
       :key="index"
@@ -11,6 +11,7 @@
         v-model="form[item.prop]"
         :placeholder="item.placeholder"
         :clearable="item.clearable || true"
+        @keyup.enter.native="search"
       />
       <!-- select下拉框 -->
       <el-select

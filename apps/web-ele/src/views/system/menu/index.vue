@@ -1,5 +1,5 @@
 <template>
-  <div class="pd5">
+  <div v-loading="isLoading" class="pd5">
     <el-card>
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
@@ -38,7 +38,7 @@
       :formConfig="editConfig"
       :formRules="editRules"
       :title="formTitle"
-      :formInfo="othersInfo"
+      :formInfo="formInfo"
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
@@ -54,6 +54,7 @@ import TreeTable from '#/components/treeTable/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { reactive, ref } from 'vue';
+const isLoading = ref(false);
 //**************table相关变量**************
 let total = ref(10);
 // 表格配置
@@ -130,7 +131,7 @@ const formConfig = reactive({
 //**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
 let formTitle = ref(''); //弹窗标题
-let othersInfo = ref({}); //弹窗其他信息
+let formInfo = ref({}); //弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
   roleName: [
@@ -180,9 +181,9 @@ const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   if (label === $t('global.btn.edit')) {
-    itemVisible.value = true;
     formTitle.value = label;
-    othersInfo.value = row;
+    formInfo.value = { ...row }; // 确保是新的对象引用
+    itemVisible.value = true;
   } else if (label === $t('global.btn.delete')) {
     handleDelete(row);
   }
@@ -211,6 +212,7 @@ const confirmDialog = () => {
 // 新增
 const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
+  formInfo.value = {}; // 清空表单数据
   itemVisible.value = true;
 };
 

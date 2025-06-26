@@ -1,5 +1,5 @@
 <template>
-  <div class="pd5">
+  <div v-loading="isLoading" class="pd5">
     <el-card>
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
@@ -38,8 +38,8 @@
       :formConfig="editConfig"
       :formRules="editRules"
       :title="formTitle"
-      :formInfo="othersInfo"
-      :visible="itemVisible"
+      :formInfo="formInfo"
+      v-model="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
     ></Edit>
@@ -54,6 +54,7 @@ import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
+const isLoading = ref(false);
 //**************table相关变量**************
 const table = ref();
 let total = ref(10);
@@ -95,12 +96,12 @@ const tableConfig = reactive({
       label: $t('global.user.email'),
     },
     {
-      prop: 'identity',
+      prop: 'identityType',
       label: $t('global.user.identity'),
       filter: (value: any) => {
-        if (value === '1') {
+        if (value === 1) {
           return $t('global.user.normalUser');
-        } else if (value === '1') {
+        } else if (value === 2) {
           return $t('global.user.vipUser');
         } else {
           return $t('global.user.adminUser');
@@ -194,7 +195,7 @@ const formConfig = reactive({
 //**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
 let formTitle = ref(''); //弹窗标题
-let othersInfo = ref({}); //弹窗其他信息
+let formInfo = ref({}); //弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
   userName: [
@@ -253,11 +254,11 @@ const editConfig = reactive([
     options: [
       {
         label: '女',
-        value: '0',
+        value: 0,
       },
       {
         label: '男',
-        value: '1',
+        value: 1,
       },
     ],
   },
@@ -281,21 +282,21 @@ const editConfig = reactive([
   },
   {
     label: $t('global.user.identity'),
-    name: 'identity',
+    name: 'identityType',
     type: 'select',
     readonly: false,
     options: [
       {
         label: '基础用户',
-        value: '1',
+        value: 1,
       },
       {
         label: 'vip会员',
-        value: '2',
+        value: 2,
       },
       {
-        label: '超级管理员',
-        value: '3',
+        label: '管理员',
+        value: 3,
       },
     ],
   },
@@ -337,9 +338,9 @@ const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   if (label === $t('global.btn.detail')) {
-    itemVisible.value = true;
     formTitle.value = label;
-    othersInfo.value = row;
+    formInfo.value = row;
+    itemVisible.value = true;
   } else if (label === $t('global.btn.lock')) {
     handleDelete(row);
   } else if (label === $t('global.btn.unlock')) {
@@ -382,6 +383,11 @@ const confirmDialog = async (title: string, data: any) => {
       });
       getUserList();
       itemVisible.value = false;
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
     }
   } catch {}
 };
@@ -389,6 +395,7 @@ const confirmDialog = async (title: string, data: any) => {
 // 新增
 const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
+  formInfo.value = {}; // 清空表单数据
   itemVisible.value = true;
 };
 
@@ -458,14 +465,23 @@ const getUserList = async (form: any = undefined) => {
     pageSize: pageInfo.pageSize,
   };
   try {
+    isLoading.value = true;
     const res = await getUserListApi(obj);
     if (res.code === 200) {
       // 正确的方式：先清空数组再添加新数据
       list.length = 0; // 清空数组但保持响应性
       list.push(...res.data.list); // 添加新数据
       total.value = res.data.total;
+      isLoading.value = false;
+    } else {
+      isLoading.value = false;
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.searchError'),
+      });
     }
   } catch (err) {
+    isLoading.value = false;
     console.log(err);
   }
 };

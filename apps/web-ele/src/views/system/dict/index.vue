@@ -1,5 +1,5 @@
 <template>
-  <div class="pd5">
+  <div v-loading="isLoading" class="pd5">
     <el-card>
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
@@ -37,7 +37,7 @@
       :formConfig="editConfig"
       :formRules="editRules"
       :title="formTitle"
-      :formInfo="othersInfo"
+      :formInfo="formInfo"
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
@@ -45,7 +45,7 @@
       <template #slot>
         <!-- 弹窗内的表格 -->
         <el-button type="primary" @click="editTableAdd">{{
-          $t('global.btn.add')
+          $t('global.btn.addDictItem')
         }}</el-button>
         <Table
           :table-config="editTableConfig"
@@ -58,14 +58,14 @@
 </template>
 
 <script lang="ts" setup>
-import { getDictListApi } from '#/api';
+import { addDictApi, deleteDictApi, editDictApi, getDictListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
-
+const isLoading = ref(false);
 //**************table相关变量**************
 let total = ref(10);
 let pageInfo = reactive({
@@ -138,7 +138,7 @@ const formConfig = reactive({
 //**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
 let formTitle = ref(''); //弹窗标题
-let othersInfo = ref({}); //弹窗其他信息
+let formInfo = ref({}); //弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
   dictName: [
@@ -216,18 +216,7 @@ const editTableConfig = reactive({
   ],
 });
 // 弹窗内表格数据
-let editTableList = reactive([
-  {
-    key: '1',
-    value: '男',
-    remark: '性别字典',
-  },
-  {
-    key: '0',
-    value: '女',
-    remark: '性别字典',
-  },
-]);
+let editTableList = ref([]);
 
 // 点击展开收起
 const toggleCollapse = () => {
@@ -254,10 +243,13 @@ const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   if (label === $t('global.btn.detail')) {
-    itemVisible.value = true;
+    // 详情
     formTitle.value = label;
-    othersInfo.value = row;
+    formInfo.value = { ...row }; // 确保是新的对象引用
+    editTableList.value = JSON.parse(row.dictJson);
+    itemVisible.value = true;
   } else if (label === $t('global.btn.delete')) {
+    // 删除
     handleDelete(row);
   }
 };
@@ -267,7 +259,10 @@ const editTableClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   if (label === $t('global.btn.delete')) {
-    editTableList.splice(editTableList.indexOf(row), 1);
+    const index = editTableList.value.indexOf(row);
+    if (index > -1) {
+      editTableList.value.splice(index, 1);
+    }
   }
 };
 
@@ -287,23 +282,53 @@ const handleSizeChange = (pageSize: number) => {
 
 //关闭弹窗
 const closeDialog = () => {
+  editTableList.value = []; // 使用 ref 时这样清空
+  formInfo.value = {};      // 同时清空表单数据
   itemVisible.value = false;
 };
 
 //确定
-const confirmDialog = () => {
-  itemVisible.value = false;
+const confirmDialog = async (title: string, data: any) => {
+  console.log('title', title);
+  console.log('data', data);
+  try {
+    const res =
+      title === $t('global.btn.add')
+        ? await addDictApi({
+            ...data,
+            ...{ dictJson: JSON.stringify(editTableList.value) },
+          })
+        : await editDictApi({
+            ...data,
+            ...{ dictJson: JSON.stringify(editTableList.value) },
+          });
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+      getDictList();
+      itemVisible.value = false;
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
+    }
+  } catch {}
 };
 
 // 新增
 const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
+  formInfo.value = {};      // 清空表单数据
+  editTableList.value = []; // 明确清空表格数据
   itemVisible.value = true;
 };
 
 // 弹窗内表格新增项
-const editTableAdd = () => {
-  editTableList.push({
+const editTableAdd = async () => {
+  editTableList.value.push({
     key: '',
     value: '',
     remark: '',
@@ -313,23 +338,30 @@ const editTableAdd = () => {
 // 删除
 const handleDelete = (row: any) => {
   console.log('row', row);
-  ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
-    confirmButtonText: $t('global.btn.confirm'),
-    cancelButtonText: $t('global.btn.cancel'),
-    type: 'warning',
-  })
-    .then(() => {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: $t('global.message.cancelConfirm'),
-      });
+  try {
+    ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    }).then(async () => {
+      const res = await deleteDictApi([row.id]);
+      console.log('res', res);
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        getDictList();
+      } else {
+        ElMessage({
+          type: 'error',
+          message: $t('global.message.error'),
+        });
+      }
     });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // 获取字典列表
@@ -340,18 +372,28 @@ const getDictList = async (form: any = undefined) => {
     pageSize: pageInfo.pageSize,
   };
   try {
+    isLoading.value = true;
     const res = await getDictListApi(obj);
     if (res.code === 200) {
-      // 使用 Object.assign 保持响应性
-      Object.assign(list, res.data.list);
+      // 正确的方式：先清空数组再添加新数据
+      list.length = 0; // 清空数组但保持响应性
+      list.push(...res.data.list); // 添加新数据
       total.value = res.data.total;
+      isLoading.value = false;
+    } else {
+      isLoading.value = false;
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.searchError'),
+      });
     }
   } catch (err) {
+    isLoading.value = false;
     console.log(err);
   }
 };
 
-onMounted(() => { 
+onMounted(() => {
   getDictList();
 });
 </script>

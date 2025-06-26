@@ -30,7 +30,7 @@ export async function addUserApi(data: any) {
  * 编辑
  */
 export async function editUserApi(data: any) {
-  return requestClient.put('/user/editUser', data);
+  return requestClient.put('/user/updateUser', data);
 }
 
 /**
