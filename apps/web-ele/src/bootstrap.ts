@@ -12,6 +12,8 @@ import { ElLoading } from 'element-plus';
 
 import { $t, setupI18n } from '#/locales';
 
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css'; // 引入全局样式
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
 import App from './app.vue';
@@ -72,6 +74,8 @@ async function bootstrap(namespace: string) {
       useTitle(pageTitle);
     }
   });
+
+  app.use(ElementPlus);
 
   app.mount('#app');
 }

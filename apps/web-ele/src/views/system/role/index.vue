@@ -59,7 +59,6 @@ import Filter from '#/components/filter/index.vue';
 import SelectPeople from '#/components/selectPeople/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
-import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 const isLoading = ref(false);
 const devideUserId = ref(null);

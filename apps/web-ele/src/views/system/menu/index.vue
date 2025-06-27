@@ -52,7 +52,6 @@ import Filter from '#/components/filter/index.vue';
 // import Table from '#/components/table/index.vue';
 import TreeTable from '#/components/treeTable/index.vue';
 import { $t } from '#/locales';
-import { ElButton, ElCard, ElMessage, ElMessageBox } from 'element-plus';
 import { reactive, ref } from 'vue';
 const isLoading = ref(false);
 //**************table相关变量**************
