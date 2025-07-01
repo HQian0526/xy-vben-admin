@@ -1,6 +1,6 @@
 import type {
   ComponentRecordType,
-  GenerateMenuAndRoutesOptions,
+  GenerateMenuAndRoutesOptions
 } from '@vben/types';
 
 import { generateAccessible } from '@vben/access';
@@ -15,13 +15,16 @@ import { $t } from '#/locales';
 const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
 
 async function generateAccess(options: GenerateMenuAndRoutesOptions) {
+  // 使用 Vite 的 import.meta.glob 动态导入 ../views 目录下所有 Vue 组件文件
   const pageMap: ComponentRecordType = import.meta.glob('../views/**/*.vue');
 
+  // 定义可用的布局组件（如 BasicLayout 用于主框架，IFrameView 用于嵌入 iframe）。
   const layoutMap: ComponentRecordType = {
     BasicLayout,
     IFrameView,
   };
 
+  // “根据角色过滤路由”以及“动态注册路由”
   return await generateAccessible(preferences.app.accessMode, {
     ...options,
     fetchMenuListAsync: async () => {
@@ -29,7 +32,9 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         duration: 1500,
         message: `${$t('common.loadingMenu')}...`,
       });
-      return await getAllMenusApi();
+      return await getAllMenusApi().then((res: any) => {
+        return res.data;
+      });
     },
     // 可以指定没有权限跳转403页面
     forbiddenComponent,

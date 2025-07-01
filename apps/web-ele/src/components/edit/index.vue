@@ -26,6 +26,15 @@
                 :placeholder="`${$t('global.pleaseEnter')}${item.label}`"
                 v-model="formData[item.name]"
               ></el-input>
+              <!--数字输入框-->
+              <el-input-number
+                v-if="item.type === 'number'"
+                v-model="formData[item.name]"
+                :min="item.min ? item.min : 0"
+                :max="item.max ? item.max : 999"
+                :readonly="item.readonly ? item.readonly : false"
+              />
+
               <!--文本域-->
               <el-input
                 v-if="item.type === 'textarea'"
@@ -60,6 +69,14 @@
                   :key="indexSelect"
                 ></el-option>
               </el-select>
+              <!-- 树形下拉框 -->
+              <el-tree-select
+                v-if="item.type === 'tree'"
+                v-model="formData[item.name]"
+                :data="item.treeConfig.options"
+                :render-after-expand="false"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
         </template>
@@ -139,7 +156,7 @@ const initData = () => {
   const newFormData = {};
   // 遍历 formConfig 初始化所有字段
   props.formConfig.forEach((item) => {
-    newFormData[item.name] = props.formInfo[item.name] || '';
+    newFormData[item.name] = props.formInfo[item.name] || null;
   });
   newFormData.id = props.formInfo.id || '';
   // 替换整个 formData 对象

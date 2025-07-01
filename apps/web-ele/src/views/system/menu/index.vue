@@ -1,36 +1,21 @@
 <template>
   <div v-loading="isLoading" class="pd5">
     <el-card>
-      <!-- 头部搜索框 -->
-      <Filter :form-config="formConfig" @search="search" @reset="reset">
-        <template #extra>
-          <el-button link type="primary" @click="toggleCollapse">
-            {{
-              isCollapsed
-                ? $t('global.btn.expandMore')
-                : $t('global.btn.collapseMore')
-            }}
-          </el-button>
-
-          <div v-show="!isCollapsed" class="button-group">
-            <el-button type="success" @click="handleAdd">{{
-              $t('global.btn.add')
-            }}</el-button>
-          </div>
-        </template>
-      </Filter>
+      <div class="button-group">
+        <el-button type="success" @click="handleAdd">{{
+          $t('global.btn.add')
+        }}</el-button>
+      </div>
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-        <!-- <Table
+      <Table
+        :is-tree="true"
+        :pagination="false"
         :table-config="tableConfig"
         :list="list"
-        :total="total"
         @handleClick="handleClick"
-        @handleCurrentChange="handleCurrentChange"
-        @handleSizeChange="handleSizeChange"
-      ></Table> -->
-        <TreeTable></TreeTable>
+      ></Table>
     </el-card>
     <!-- 弹窗 -->
     <Edit
@@ -47,15 +32,13 @@
 </template>
 
 <script lang="ts" setup>
+import { addMenuApi, deleteMenuApi, editMenuApi, getMenuListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
-import Filter from '#/components/filter/index.vue';
-// import Table from '#/components/table/index.vue';
-import TreeTable from '#/components/treeTable/index.vue';
+import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 const isLoading = ref(false);
 //**************table相关变量**************
-let total = ref(10);
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -63,38 +46,55 @@ const tableConfig = reactive({
       prop: 'index',
     },
     {
-      prop: 'roleName',
-      label: $t('global.role.roleName'),
+      prop: 'menuName',
+      label: $t('global.menu.menuName'),
     },
     {
-      prop: 'remark',
-      label: $t('global.role.remark'),
+      prop: 'menuCode',
+      label: $t('global.menu.menuCode'),
+    },
+    {
+      prop: 'menuType',
+      label: $t('global.menu.menuType'),
+      filter: (value: any) => {
+        if (value === 1) {
+          return $t('global.menu.package');
+        } else if (value === 2) {
+          return $t('global.menu.munu');
+        } else {
+          return $t('global.menu.button');
+        }
+      },
+    },
+    {
+      prop: 'linkUrl',
+      label: $t('global.menu.linkUrl'),
+      filter: (value: any) => {
+        return value || '--';
+      },
+    },
+    {
+      prop: 'sort',
+      label: $t('global.menu.sort'),
     },
     {
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '400px',
+      width: '230px',
       operations: [
         {
           type: 'primary',
+          label: $t('global.btn.linkTo'),
+          isShow: (item: any) => item.menuType === 2,
+        },
+        {
+          type: 'primary',
           label: $t('global.btn.edit'),
-          show: true,
-        },
-        {
-          type: 'primary',
-          label: $t('global.btn.devideUser'),
-          show: true,
-        },
-        {
-          type: 'primary',
-          label: $t('global.btn.devideAuth'),
-          show: true,
         },
         {
           type: 'danger',
           label: $t('global.btn.delete'),
-          show: true,
         },
       ],
     },
@@ -103,77 +103,187 @@ const tableConfig = reactive({
 // 表格数据
 let list = reactive([
   {
-    roleName: '系统管理员',
-    remark: '系统管理员',
+    id: 1,
+    menuName: '系统管理',
+    menuCode: 'system_manage',
+    menuType: 1,
+    sort: 1,
+    linkUrl: '',
   },
   {
-    roleName: '基础用户组',
-    remark: '基础用户组',
+    id: 2,
+    menuName: '系统管理',
+    menuCode: 'system_manage',
+    menuType: 1,
+    sort: 2,
+    linkUrl: '',
+  },
+  {
+    id: 3,
+    menuName: '系统管理',
+    menuCode: 'system_manage',
+    menuType: 1,
+    sort: 3,
+    linkUrl: '',
+    children: [
+      {
+        id: 31,
+        menuName: '用户管理',
+        menuCode: 'system_manage',
+        menuType: 2,
+        sort: 1,
+        linkUrl: 'www.baidu.com',
+      },
+      {
+        id: 31,
+        menuName: '角色管理',
+        menuCode: 'system_manage',
+        menuType: 2,
+        sort: 1,
+        linkUrl: 'www.baidu.com',
+      },
+    ],
   },
 ]);
-
-//**************filter相关变量**************
-const isCollapsed = ref(false);
-// 头部搜索框
-const formConfig = reactive({
-  list: [
-    {
-      type: 'input',
-      prop: 'roleName',
-      label: $t('global.role.roleName'),
-      value: '',
-      placeholder: `${$t('global.pleaseEnter')}${$t('global.role.roleName')}`,
-    },
-  ],
-});
 
 //**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
 let formTitle = ref(''); //弹窗标题
 let formInfo = ref({}); //弹窗其他信息
-// 弹窗表单校验规则
-const editRules = reactive({
-  roleName: [
-    {
-      required: true,
-      message: $t('global.role.roleName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-});
 // 弹窗表单配置
 const editConfig = reactive([
   {
-    label: $t('global.role.roleName'),
-    name: 'roleName',
+    label: $t('global.menu.menuName'),
+    name: 'menuName',
     type: 'input',
-    readonly: false,
-    span: 24,
   },
   {
-    label: $t('global.role.remark'),
-    name: 'remark',
-    type: 'textarea',
-    readonly: false,
-    span: 24,
+    label: $t('global.menu.menuCode'),
+    name: 'menuCode',
+    type: 'input',
+  },
+  {
+    label: $t('global.menu.parentId'),
+    name: 'parentId',
+    type: 'tree',
+    treeConfig: {
+      options: [
+        {
+          value: '1',
+          label: 'Level one 1',
+          children: [
+            {
+              value: '1-1',
+              label: 'Level two 1-1',
+              children: [
+                {
+                  value: '1-1-1',
+                  label: 'Level three 1-1-1',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          value: '2',
+          label: 'Level one 2',
+          children: [
+            {
+              value: '2-1',
+              label: 'Level two 2-1',
+              children: [
+                {
+                  value: '2-1-1',
+                  label: 'Level three 2-1-1',
+                },
+              ],
+            },
+            {
+              value: '2-2',
+              label: 'Level two 2-2',
+              children: [
+                {
+                  value: '2-2-1',
+                  label: 'Level three 2-2-1',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    label: $t('global.menu.menuType'),
+    name: 'menuType',
+    type: 'select',
+    options: [
+      {
+        value: 1,
+        label: $t('global.menu.package'),
+      },
+      {
+        value: 2,
+        label: $t('global.menu.munu'),
+      },
+      {
+        value: 3,
+        label: $t('global.menu.button'),
+      },
+    ],
+  },
+  {
+    label: $t('global.menu.iconUrl'),
+    name: 'iconUrl',
+    type: 'input',
+  },
+  {
+    label: $t('global.menu.sort'),
+    name: 'sort',
+    type: 'number',
+  },
+  {
+    label: $t('global.menu.linkUrl'),
+    name: 'linkUrl',
+    type: 'input',
+  },
+  {
+    label: $t('global.menu.componentPath'),
+    name: 'componentPath',
+    type: 'input',
   },
 ]);
-
-// 点击展开收起
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
-
-const search = (form: any) => {
-  console.log('form', form);
-};
-
-const reset = (form: any) => {
-  console.log('form', form);
-  formConfig.list.forEach((item) => {
-    item.value = null;
-  });
-};
+// 弹窗表单校验规则
+const editRules = reactive({
+  menuName: [
+    {
+      required: true,
+      message: $t('global.menu.menuName') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  menuCode: [
+    {
+      required: true,
+      message: $t('global.menu.menuCode') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  menuType: [
+    {
+      required: true,
+      message: $t('global.menu.menuType') + $t('global.required'),
+      trigger: 'change',
+    },
+  ],
+  parentId: [
+    {
+      required: true,
+      message: $t('global.menu.parentId') + $t('global.required'),
+      trigger: 'change',
+    },
+  ],
+});
 
 // 点击操作列按钮
 const handleClick = (row: any, label: string) => {
@@ -188,24 +298,34 @@ const handleClick = (row: any, label: string) => {
   }
 };
 
-// 表格分页
-const handleCurrentChange = (currentPage: number) => {
-  console.log('currentPage', currentPage);
-};
-
-// 表格分页大小
-const handleSizeChange = (pageSize: number) => {
-  console.log('pageSize', pageSize);
-};
-
 //关闭弹窗
 const closeDialog = () => {
   itemVisible.value = false;
 };
 
 //确定
-const confirmDialog = () => {
-  itemVisible.value = false;
+const confirmDialog = async (title: string, data: any) => {
+  console.log('title', title);
+  console.log('data', data);
+  try {
+    const res =
+      title === $t('global.btn.add')
+        ? await addMenuApi(data)
+        : await editMenuApi(data);
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+      getMenuList();
+      itemVisible.value = false;
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
+    }
+  } catch {}
 };
 
 // 新增
@@ -218,24 +338,61 @@ const handleAdd = () => {
 // 删除
 const handleDelete = (row: any) => {
   console.log('row', row);
-  ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
-    confirmButtonText: $t('global.btn.confirm'),
-    cancelButtonText: $t('global.btn.cancel'),
-    type: 'warning',
-  })
-    .then(() => {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: $t('global.message.cancelConfirm'),
-      });
+  try {
+    ElMessageBox.confirm($t('global.message.confirmLock'), $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    }).then(async () => {
+      const res = await deleteMenuApi([row.id]);
+      console.log('res', res);
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        getMenuList();
+      } else {
+        ElMessage({
+          type: 'error',
+          message: $t('global.message.error'),
+        });
+      }
     });
+  } catch (err) {
+    console.log(err);
+  }
 };
+
+// 获取菜单列表
+const getMenuList = async (form: any = undefined) => {
+  let obj = {
+    ...form,
+  };
+  try {
+    isLoading.value = true;
+    const res = await getMenuListApi(obj);
+    if (res.code === 200) {
+      // 正确的方式：先清空数组再添加新数据
+      list.length = 0; // 清空数组但保持响应性
+      list.push(...res.data); // 添加新数据
+      isLoading.value = false;
+    } else {
+      isLoading.value = false;
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.searchError'),
+      });
+    }
+  } catch (err) {
+    isLoading.value = false;
+    console.log(err);
+  }
+};
+
+onMounted(() => {
+  getMenuList();
+});
 </script>
 
 <style lang="scss" scoped>

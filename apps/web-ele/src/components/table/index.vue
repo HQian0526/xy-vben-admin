@@ -3,6 +3,7 @@
     <el-table
       :data="props.list"
       :stripe="props.stripe ? props.stripe : false"
+      :row-key="props.isTree ? 'id' : undefined"
       style="width: 100%; height: 100%"
     >
       <template
@@ -17,6 +18,7 @@
           :prop="item.prop"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
         >
           <template #default="scope">
             <div style="display: flex; align-items: center">
@@ -30,6 +32,7 @@
           :prop="item.prop"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
         >
           <template #default="scope">
             <el-input v-model="scope.row[item.prop]" />
@@ -41,11 +44,14 @@
           :fixed="item.fixed ? item.fixed : false"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
         >
           <template #default="scope">
             <template v-for="(op, ind) in item.operations" :key="ind">
               <el-button
-                :style="{display: op.isShow && !op.isShow(scope.row) ? 'none' : ''}"
+                :style="{
+                  display: op.isShow && !op.isShow(scope.row) ? 'none' : '',
+                }"
                 :type="op.type !== 'text' ? op.type : 'primary'"
                 :link="op.type === 'text' ? true : false"
                 @click="handleClick(scope.row, op.label)"
@@ -60,12 +66,13 @@
           :prop="item.prop"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
         />
       </template>
     </el-table>
     <!-- 分页 -->
     <div
-      v-if="props.tableConfig.pagination === false ? false : true"
+      v-if="props.pagination === false ? false : true"
       class="table-pagination"
     >
       <el-pagination
@@ -106,6 +113,14 @@ const props = defineProps({
   total: {
     type: Number,
     default: 20,
+  },
+  isTree: {
+    type: Boolean,
+    default: false,
+  },
+  pagination: {
+    type: Boolean,
+    default: true,
   },
 });
 

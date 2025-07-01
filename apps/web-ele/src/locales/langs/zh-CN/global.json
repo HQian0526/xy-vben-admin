@@ -58,7 +58,8 @@
     "detail": "详情",
     "devideUser": "分配用户",
     "devideAuth": "分配权限",
-    "addDictItem": "添加字典项"
+    "addDictItem": "添加字典项",
+    "linkTo": "跳转"
   },
   "user": {
     "userName": "用户号",
@@ -91,5 +92,19 @@
   "role": {
     "roleName": "角色名称",
     "remark": "备注"
+  },
+  "menu": {
+    "menuName": "菜单名称",
+    "menuCode": "菜单编码",
+    "menuType": "菜单类型",
+    "iconUrl": "图标路径",
+    "sort": "排序",
+    "parentId": "父级菜单",
+    "path": "节点路径",
+    "linkUrl": "访问地址",
+    "package": "文件夹",
+    "munu": "菜单",
+    "button": "按钮",
+    "componentPath": "组件路径"
   }
 }

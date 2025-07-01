@@ -48,6 +48,7 @@
           $t('global.btn.addDictItem')
         }}</el-button>
         <Table
+          :pagination="false"
           :table-config="editTableConfig"
           :list="editTableList"
           @handleClick="editTableClick"
@@ -179,7 +180,6 @@ const editConfig = reactive([
 ]);
 // 弹窗内表格配置
 const editTableConfig = reactive({
-  pagination: false,
   list: [
     {
       prop: 'index',
@@ -282,7 +282,7 @@ const handleSizeChange = (pageSize: number) => {
 //关闭弹窗
 const closeDialog = () => {
   editTableList.value = []; // 使用 ref 时这样清空
-  formInfo.value = {};      // 同时清空表单数据
+  formInfo.value = {}; // 同时清空表单数据
   itemVisible.value = false;
 };
 
@@ -320,7 +320,7 @@ const confirmDialog = async (title: string, data: any) => {
 // 新增
 const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
-  formInfo.value = {};      // 清空表单数据
+  formInfo.value = {}; // 清空表单数据
   editTableList.value = []; // 明确清空表格数据
   itemVisible.value = true;
 };

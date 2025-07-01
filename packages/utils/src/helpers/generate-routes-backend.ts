@@ -2,8 +2,7 @@ import type { RouteRecordRaw } from 'vue-router';
 
 import type {
   ComponentRecordType,
-  GenerateMenuAndRoutesOptions,
-  RouteRecordStringComponent,
+  GenerateMenuAndRoutesOptions
 } from '@vben-core/typings';
 
 import { mapTree } from '@vben-core/shared/utils';
@@ -22,6 +21,7 @@ async function generateRoutesByBackend(
       return [];
     }
 
+    // 标准化pageMap键值（兼容.vue后缀和目录格式）
     const normalizePageMap: ComponentRecordType = {};
 
     for (const [key, value] of Object.entries(pageMap)) {
@@ -49,7 +49,6 @@ function convertRoutes(
     if (!name) {
       console.error('route name is required', route);
     }
-
     // layout转换
     if (component && layoutMap[component]) {
       route.component = layoutMap[component];

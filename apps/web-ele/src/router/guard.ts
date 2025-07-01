@@ -41,7 +41,7 @@ function setupCommonGuard(router: Router) {
 }
 
 /**
- * 权限访问守卫配置
+ * 权限访问守卫配置（返回true才放行，返回false则会重定向到403页面）
  * @param router
  */
 function setupAccessGuard(router: Router) {
@@ -49,8 +49,9 @@ function setupAccessGuard(router: Router) {
     const accessStore = useAccessStore();
     const userStore = useUserStore();
     const authStore = useAuthStore();
-
-    // 基本路由，这些路由不需要进入权限拦截
+    // 1.如果url中带有白名单页面，则直接放行
+    // 基本路由，这些路由不需要进入权限拦截(登录页、修改密码页等相关的页面)
+    // coreRouteNames 登录页、修改密码页等相关的页面的名称name
     if (coreRouteNames.includes(to.name as string)) {
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
         return decodeURIComponent(
@@ -62,13 +63,16 @@ function setupAccessGuard(router: Router) {
       return true;
     }
 
+    // 2.如果没有登录的情况下，除非白名单否则都回登录页
     // accessToken 检查
     if (!accessStore.accessToken) {
       // 明确声明忽略权限访问权限，则可以访问
+      // 若在meta中配置了ignoreAccess: true，则表示白名单
       if (to.meta.ignoreAccess) {
         return true;
       }
 
+      // 未登录的情况下只要不是访问登录页，都会记录这个重定向页面后跳回登录页
       // 没有访问权限，跳转登录页面
       if (to.fullPath !== LOGIN_PATH) {
         return {
@@ -82,27 +86,27 @@ function setupAccessGuard(router: Router) {
           replace: true,
         };
       }
+      // 剩下的情况就是访问登录页了，则直接放行访问
       return to;
     }
 
-    // 是否已经生成过动态路由
+    // 3.登录了的，且已经生成过动态路由
     if (accessStore.isAccessChecked) {
       return true;
     }
 
-    // 生成路由表
+    // 4.刚登录成功还未生成过动态路由，生成路由表
     // 当前登录用户拥有的角色标识列表
     const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
     const userRoles = userInfo.roles ?? [];
 
     // 生成菜单和路由
     const { accessibleMenus, accessibleRoutes } = await generateAccess({
-      roles: userRoles,
-      router,
+      roles: userRoles, // 登录接口成功后会立马查询该用户的权限list存入vuex
+      router, // Vue Router 实例不用管
       // 则会在菜单中显示，但是访问会被重定向到403
-      routes: accessRoutes,
+      routes: accessRoutes, //./modules/下的所有路由
     });
-
     // 保存菜单信息和路由信息
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);

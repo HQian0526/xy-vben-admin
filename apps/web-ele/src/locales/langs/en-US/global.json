@@ -58,7 +58,8 @@
     "detail": "detail",
     "devideUser": "devide user",
     "devideAuth": "devide auth",
-    "addDictItem": "add dict item"
+    "addDictItem": "add dict item",
+    "linkTo": "link to"
   },
   "user": {
     "userName": "account",
@@ -91,5 +92,19 @@
   "role": {
     "roleName": "role name",
     "remark": "remark"
+  },
+  "menu": {
+    "menuName": "menu name",
+    "menuCode": "menu code",
+    "menuType": "menu type",
+    "iconUrl": "icon url",
+    "sort": "sort",
+    "parentId": "parent menu",
+    "path": "node path",
+    "linkUrl": "visit url",
+    "package": "package",
+    "munu": "munu",
+    "button": "button",
+    "componentPath": "component path"
   }
 }
