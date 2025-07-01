@@ -48,6 +48,7 @@ function convertRoutes(
 
     if (!name) {
       console.error('route name is required', route);
+      return route; // 保留路由，但可能无法正常渲染
     }
     // layout转换
     if (component && layoutMap[component]) {
@@ -62,10 +63,11 @@ function convertRoutes(
         route.component = pageMap[pageKey];
       } else {
         console.error(`route component is invalid: ${pageKey}`, route);
-        route.component = pageMap['/_core/fallback/not-found.vue'];
+        // route.component = pageMap['/_core/fallback/not-found.vue'];
+        // return null; // 跳过无效路由（component 错误）
       }
     }
-
+    console.log('pageKey', pageMap);
     return route;
   });
 }

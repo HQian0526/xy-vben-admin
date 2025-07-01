@@ -62,10 +62,17 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "Vue.volar",
+    "editor.formatOnSave": false, // 显式关闭
+    "volar.action.autoFormat": false // 禁用 Volar 的自动格式化
   },
   // extensions
   "extensions.ignoreRecommendations": true,
+  // 全局禁用保存时格式化
+  "editor.formatOnSave": false,
+  // 禁用 Prettier 的自动化行为
+  "prettier.requireConfig": true,
+  "prettier.disableLanguages": ["vue"],
 
   // terminal
   "terminal.integrated.cursorBlinking": true,

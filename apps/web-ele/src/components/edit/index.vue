@@ -75,6 +75,7 @@
                 v-model="formData[item.name]"
                 :data="item.treeConfig.options"
                 :render-after-expand="false"
+                :check-strictly = "item.treeConfig.checkStrictly ? item.treeConfig.checkStrictly : false"
                 style="width: 100%"
               />
             </el-form-item>

@@ -9,25 +9,12 @@
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :is-tree="true"
-        :pagination="false"
-        :table-config="tableConfig"
-        :list="list"
-        @handleClick="handleClick"
-      ></Table>
+      <Table :is-tree="true" :pagination="false" :table-config="tableConfig" :list="list" @handleClick="handleClick">
+      </Table>
     </el-card>
     <!-- 弹窗 -->
-    <Edit
-      ref="editForm"
-      :formConfig="editConfig"
-      :formRules="editRules"
-      :title="formTitle"
-      :formInfo="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    ></Edit>
+    <Edit ref="editForm" :formConfig="editConfig" :formRules="editRules" :title="formTitle" :formInfo="formInfo"
+      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog"></Edit>
   </div>
 </template>
 
@@ -36,7 +23,10 @@ import { addMenuApi, deleteMenuApi, editMenuApi, getMenuListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 const isLoading = ref(false);
 //**************table相关变量**************
 // 表格配置
@@ -101,50 +91,7 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-let list = reactive([
-  {
-    id: 1,
-    menuName: '系统管理',
-    menuCode: 'system_manage',
-    menuType: 1,
-    sort: 1,
-    linkUrl: '',
-  },
-  {
-    id: 2,
-    menuName: '系统管理',
-    menuCode: 'system_manage',
-    menuType: 1,
-    sort: 2,
-    linkUrl: '',
-  },
-  {
-    id: 3,
-    menuName: '系统管理',
-    menuCode: 'system_manage',
-    menuType: 1,
-    sort: 3,
-    linkUrl: '',
-    children: [
-      {
-        id: 31,
-        menuName: '用户管理',
-        menuCode: 'system_manage',
-        menuType: 2,
-        sort: 1,
-        linkUrl: 'www.baidu.com',
-      },
-      {
-        id: 31,
-        menuName: '角色管理',
-        menuCode: 'system_manage',
-        menuType: 2,
-        sort: 1,
-        linkUrl: 'www.baidu.com',
-      },
-    ],
-  },
-]);
+let list = reactive([]);
 
 //**************edit相关变量**************
 let itemVisible = ref(false); //是否展示弹窗
@@ -167,50 +114,8 @@ const editConfig = reactive([
     name: 'parentId',
     type: 'tree',
     treeConfig: {
-      options: [
-        {
-          value: '1',
-          label: 'Level one 1',
-          children: [
-            {
-              value: '1-1',
-              label: 'Level two 1-1',
-              children: [
-                {
-                  value: '1-1-1',
-                  label: 'Level three 1-1-1',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          value: '2',
-          label: 'Level one 2',
-          children: [
-            {
-              value: '2-1',
-              label: 'Level two 2-1',
-              children: [
-                {
-                  value: '2-1-1',
-                  label: 'Level three 2-1-1',
-                },
-              ],
-            },
-            {
-              value: '2-2',
-              label: 'Level two 2-2',
-              children: [
-                {
-                  value: '2-2-1',
-                  label: 'Level three 2-2-1',
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      checkStrictly: true,
+      options: [],
     },
   },
   {
@@ -244,7 +149,7 @@ const editConfig = reactive([
   },
   {
     label: $t('global.menu.linkUrl'),
-    name: 'linkUrl',
+    name: 'path',
     type: 'input',
   },
   {
@@ -293,6 +198,8 @@ const handleClick = (row: any, label: string) => {
     formTitle.value = label;
     formInfo.value = { ...row }; // 确保是新的对象引用
     itemVisible.value = true;
+  } else if (label === $t('global.btn.linkTo')) {
+    router.push(row.path);
   } else if (label === $t('global.btn.delete')) {
     handleDelete(row);
   }
@@ -317,15 +224,16 @@ const confirmDialog = async (title: string, data: any) => {
         type: 'success',
         message: $t('global.message.success'),
       });
-      getMenuList();
-      itemVisible.value = false;
+      // getMenuList();
+      window.location.reload();
+      // itemVisible.value = false;
     } else {
       ElMessage({
         type: 'error',
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 新增
@@ -339,12 +247,12 @@ const handleAdd = () => {
 const handleDelete = (row: any) => {
   console.log('row', row);
   try {
-    ElMessageBox.confirm($t('global.message.confirmLock'), $t('global.tip'), {
+    ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
       confirmButtonText: $t('global.btn.confirm'),
       cancelButtonText: $t('global.btn.cancel'),
       type: 'warning',
     }).then(async () => {
-      const res = await deleteMenuApi([row.id]);
+      const res = await deleteMenuApi([String(row.id)]);
       console.log('res', res);
       if (res.code === 200) {
         ElMessage({
@@ -364,6 +272,22 @@ const handleDelete = (row: any) => {
   }
 };
 
+// 接口数据转换为树形结构
+const convertToTreeStructure = (originalData: any[]) => {
+  return originalData.map(item => {
+    const node = {
+      value: item.id,
+      label: item.menuName,
+    };
+
+    if (item.children && item.children.length > 0) {
+      node.children = convertToTreeStructure(item.children);
+    }
+
+    return node;
+  });
+}
+
 // 获取菜单列表
 const getMenuList = async (form: any = undefined) => {
   let obj = {
@@ -376,6 +300,11 @@ const getMenuList = async (form: any = undefined) => {
       // 正确的方式：先清空数组再添加新数据
       list.length = 0; // 清空数组但保持响应性
       list.push(...res.data); // 添加新数据
+      editConfig.forEach((item) => {
+        if (item.name === 'parentId') {
+          item.treeConfig.options = convertToTreeStructure(res.data);
+        }
+      });
       isLoading.value = false;
     } else {
       isLoading.value = false;
@@ -400,6 +329,7 @@ onMounted(() => {
   height: calc(100vh - 180px);
   overflow-y: auto;
 }
+
 .button-group {
   display: inline-flex;
   margin-left: 10px;

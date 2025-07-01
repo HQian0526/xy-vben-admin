@@ -35,6 +35,12 @@ function useNavigation() {
   const navigation = async (path: string) => {
     try {
       const route = routeMetaMap.get(path);
+      // 检查路由是否存在或有效
+      if (!route || !route.components) {
+        console.error(`Route not found or invalid: ${path}`);
+        await router.push({ name: 'FallbackNotFound' }); // 跳转到 404 页面
+        return;
+      }
       const { openInNewWindow = false, query = {} } = route?.meta ?? {};
 
       if (isHttpUrl(path)) {
@@ -49,6 +55,7 @@ function useNavigation() {
       }
     } catch (error) {
       console.error('Navigation failed:', error);
+      router.push({ name: 'FallbackNotFound' }); // 跳转到 404 页面
       throw error;
     }
   };

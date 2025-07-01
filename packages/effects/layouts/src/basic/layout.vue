@@ -3,15 +3,11 @@ import type { SetupContext } from 'vue';
 
 import type { MenuRecordRaw } from '@vben/types';
 
-import { computed, useSlots, watch } from 'vue';
+import { computed, defineProps, useSlots, watch } from 'vue';
 
 import { useRefresh } from '@vben/hooks';
 import { $t, i18n } from '@vben/locales';
-import {
-  preferences,
-  updatePreferences,
-  usePreferences,
-} from '@vben/preferences';
+import { preferences, updatePreferences, usePreferences } from '@vben/preferences';
 import { useAccessStore } from '@vben/stores';
 import { cloneDeep, mapTree } from '@vben/utils';
 
@@ -24,15 +20,23 @@ import { Copyright } from './copyright';
 import { LayoutFooter } from './footer';
 import { LayoutHeader } from './header';
 import {
-  LayoutExtraMenu,
-  LayoutMenu,
-  LayoutMixedMenu,
-  useExtraMenu,
-  useMixedMenu,
+LayoutExtraMenu,
+LayoutMenu,
+LayoutMixedMenu,
+useExtraMenu,
+useMixedMenu
 } from './menu';
 import { LayoutTabbar } from './tabbar';
 
 defineOptions({ name: 'BasicLayout' });
+
+const props = defineProps({
+  //系统logo
+  logo: {
+    type: String,
+    default: preferences.logo.source,
+  },
+} as {});
 
 const emit = defineEmits<{ clearPreferencesAndLogout: []; clickLogo: [] }>();
 
@@ -237,7 +241,7 @@ const headerSlots = computed(() => {
         :fit="preferences.logo.fit"
         :class="logoClass"
         :collapsed="logoCollapsed"
-        :src="preferences.logo.source"
+        :src="props.logo"
         :text="preferences.app.name"
         :theme="showHeaderNav ? headerTheme : theme"
         @click="clickLogo"

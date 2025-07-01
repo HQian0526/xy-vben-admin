@@ -3,15 +3,16 @@ import type { NotificationItem } from '@vben/layouts';
 
 import { computed, ref, watch } from 'vue';
 
+import logoUrl from '#/assets/logo.png';
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
 import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
 import { BookOpenText, CircleHelp, MdiGithub } from '@vben/icons';
 import {
-  BasicLayout,
-  LockScreen,
-  Notification,
-  UserDropdown,
+BasicLayout,
+LockScreen,
+Notification,
+UserDropdown
 } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
@@ -123,30 +124,16 @@ watch(
 </script>
 
 <template>
-  <BasicLayout @clear-preferences-and-logout="handleLogout">
+  <BasicLayout :logo="logoUrl" @clear-preferences-and-logout="handleLogout">
     <template #user-dropdown>
-      <UserDropdown
-        :avatar
-        :menus
-        :text="userStore.userInfo?.realName"
-        description="ann.vben@gmail.com"
-        tag-text="Pro"
-        @logout="handleLogout"
-      />
+      <UserDropdown :avatar :menus :text="userStore.userInfo?.realName" description="ann.vben@gmail.com" tag-text="Pro"
+        @logout="handleLogout" />
     </template>
     <template #notification>
-      <Notification
-        :dot="showDot"
-        :notifications="notifications"
-        @clear="handleNoticeClear"
-        @make-all="handleMakeAll"
-      />
+      <Notification :dot="showDot" :notifications="notifications" @clear="handleNoticeClear" @make-all="handleMakeAll" />
     </template>
     <template #extra>
-      <AuthenticationLoginExpiredModal
-        v-model:open="accessStore.loginExpired"
-        :avatar
-      >
+      <AuthenticationLoginExpiredModal v-model:open="accessStore.loginExpired" :avatar>
         <LoginForm />
       </AuthenticationLoginExpiredModal>
     </template>
