@@ -32,3 +32,17 @@ export async function deleteRoleApi(data: any) {
     data: data,
   });
 }
+
+/**
+ * 角色权限分配
+ */
+export async function assignPerms(data: any) {
+  return requestClient.post('/role/assignPerms', data);
+}
+
+/**
+ * 角色权限分配
+ */
+export async function getRoleMenuTree(roleId: any) {
+  return requestClient.get(`/role/menu-tree/${roleId}`);
+}

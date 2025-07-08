@@ -39,7 +39,7 @@
       :formRules="editRules"
       :title="formTitle"
       :formInfo="formInfo"
-      v-model="itemVisible"
+      :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
     ></Edit>
@@ -338,7 +338,7 @@ const handleClick = (row: any, label: string) => {
   console.log('label', label);
   if (label === $t('global.btn.detail')) {
     formTitle.value = label;
-    formInfo.value = row;
+    formInfo.value = { ...row }; // 确保是新的对象引用
     itemVisible.value = true;
   } else if (label === $t('global.btn.lock')) {
     handleDelete(row);

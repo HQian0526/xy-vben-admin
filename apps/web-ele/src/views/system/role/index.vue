@@ -7,8 +7,8 @@
           <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
-                ? $t('global.btn.expandMore')
-                : $t('global.btn.collapseMore')
+              ? $t('global.btn.expandMore')
+              : $t('global.btn.collapseMore')
             }}
           </el-button>
 
@@ -22,43 +22,32 @@
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handleClick="handleClick"
-        @handleCurrentChange="handleCurrentChange"
-        @handleSizeChange="handleSizeChange"
-      ></Table>
+      <Table :table-config="tableConfig" :list="list" :total="total" @handleClick="handleClick"
+        @handleCurrentChange="handleCurrentChange" @handleSizeChange="handleSizeChange"></Table>
     </el-card>
     <!-- 编辑弹窗 -->
-    <Edit
-      ref="editForm"
-      :formConfig="editConfig"
-      :formRules="editRules"
-      :title="formTitle"
-      :formInfo="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    ></Edit>
+    <Edit ref="editForm" :formConfig="editConfig" :formRules="editRules" :title="formTitle" :formInfo="formInfo"
+      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog"></Edit>
     <!-- 分配用户弹窗 -->
-    <SelectPeople
-      :visible="userVisible"
-      :selectedUsers="selectedUsers"
-      @close="closeUserDialog"
-      @confirm="confirmUserDialog"
-    ></SelectPeople>
+    <SelectPeople :visible="userVisible" :selectedUsers="selectedUsers" @close="closeUserDialog"
+      @confirm="confirmUserDialog"></SelectPeople>
+    <!-- 分配权限弹窗 -->
+    <Dialog :visible="authVisible" :title="$t('global.devideAuth')" @close="closeAuthDialog" @confirm="confirmAuthDialog">
+      <AuthTree :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected"/>
+    </Dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { addRoleApi, deleteRoleApi, editRoleApi, getRoleListApi } from '#/api';
+import { addRoleApi, assignPerms, deleteRoleApi, editRoleApi, getMenuListApi, getRoleListApi, getRoleMenuTree } from '#/api';
+import Dialog from '#/components/dialog/index.vue';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import SelectPeople from '#/components/selectPeople/index.vue';
 import Table from '#/components/table/index.vue';
+import AuthTree from '#/components/tree/index.vue';
 import { $t } from '#/locales';
+import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 const isLoading = ref(false);
 const devideUserId = ref(null);
@@ -165,6 +154,12 @@ const editConfig = reactive([
 //**************分配用户相关变量**************
 let userVisible = ref(false); //是否展示弹窗
 const selectedUsers = ref([]); //已选用户
+
+//**************分配权限相关变量**************
+let authVisible = ref(false); //是否展示弹窗
+let treeData = ref([]); //权限树形结构数据
+let roleId = ref(null); //角色id
+let menuIds = ref([]); //已选菜单id
 // 点击展开收起
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
@@ -207,6 +202,8 @@ const handleClick = (row: any, label: string) => {
   } else if (label === $t('global.btn.devideAuth')) {
     // 分配权限
     console.log('devideAuth');
+    roleId.value = row.id;
+    getRoleMenuChecked(row.id);
   }
 };
 
@@ -251,7 +248,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 //关闭分配用户弹窗
@@ -351,8 +348,122 @@ const getRoleList = async (form: any = undefined) => {
   }
 };
 
+// 关闭分配权限弹窗
+const closeAuthDialog = () => {
+  authVisible.value = false;
+};
+
+// 确定分配权限弹窗
+const confirmAuthDialog = async () => {
+  console.log('confirmAuthDialog');
+  let obj = {
+    roleId: roleId.value,
+    menuIds: menuIds.value,
+  };
+  try {
+    isLoading.value = true;
+    const res = await assignPerms(obj);
+    if (res.code === 200) {
+      isLoading.value = false;
+      ElMessage({
+        type: 'success',
+        message: res.msg,
+      });
+      authVisible.value = false;
+    } else {
+      isLoading.value = false;
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
+    }
+  } catch (err) {
+    isLoading.value = false;
+    console.log(err);
+  }
+};
+
+// 获取选中权限
+const authSelected = (currentData: any, selectedData: any) => {
+  menuIds.value = []; // 清空数组但保持响应性
+  menuIds.value.push(...selectedData.checkedKeys); // 添加新数据
+}
+
+// 获取菜单列表
+const getMenuList = async () => {
+  try {
+    const res = await getMenuListApi();
+    if (res.code === 200) {
+      treeData.value = convertToTreeStructure(res.data);
+    } else {
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.getMenuError'),
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// 接口数据转换为树形结构
+const convertToTreeStructure = (originalData: any[]) => {
+  return originalData.map(item => {
+    const node = {
+      id: item.id,
+      label: item.menuName,
+    };
+
+    if (item.children && item.children.length > 0) {
+      node.children = convertToTreeStructure(item.children);
+    }
+
+    return node;
+  });
+}
+
+// 递归获取所有checked为true的ID数组
+const getCheckedIds = (treeData) => {
+  let checkedIds = [];
+
+  treeData.forEach(node => {
+    if (node.checked) {
+      checkedIds.push(node.id);
+    }
+
+    if (node.children && node.children.length > 0) {
+      checkedIds = checkedIds.concat(getCheckedIds(node.children));
+    }
+  });
+
+  return checkedIds;
+}
+
+// 获取角色已选权限
+const getRoleMenuChecked = async (roleId: number) => {
+  try {
+    isLoading.value = true;
+    const res = await getRoleMenuTree(roleId);
+    if (res.code === 200) {
+      menuIds.value = getCheckedIds(res.data);
+      isLoading.value = false;
+      authVisible.value = true;
+    } else {
+      isLoading.value = false;
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.getMenuError'),
+      });
+    }
+  } catch (err) {
+    isLoading.value = false;
+    console.log(err);
+  }
+}
+
 onMounted(() => {
-  getRoleList();
+  getRoleList(); // 获取角色列表
+  getMenuList(); // 获取菜单列表
 });
 </script>
 
@@ -361,6 +472,7 @@ onMounted(() => {
   height: calc(100vh - 180px);
   overflow-y: auto;
 }
+
 .button-group {
   display: inline-flex;
   margin-left: 10px;

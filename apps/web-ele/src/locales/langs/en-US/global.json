@@ -12,6 +12,11 @@
   "choosePeople": "choose people",
   "allPeople": "all people",
   "choicePeople": "choice people",
+  "devideAuth": "devide auth",
+  "home": {
+    "title": "​Corporate Site",
+    "logo": "company logo"
+  },
   "message": {
     "success": "success",
     "error": "error",
@@ -27,7 +32,9 @@
     "confirmSetting": "confirm setting?",
     "confirmDeleteSelected": "confirm delete?",
     "cancelConfirm": "cancel confirm",
-    "searchError": "search error"
+    "searchError": "search error",
+    "noPermission": "no permission",
+    "getMenuError": "get menu error"
   },
   "btn": {
     "add": "add",

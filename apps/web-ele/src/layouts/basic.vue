@@ -5,9 +5,7 @@ import { computed, ref, watch } from 'vue';
 
 import logoUrl from '#/assets/logo.png';
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
-import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
-import { BookOpenText, CircleHelp, MdiGithub } from '@vben/icons';
 import {
 BasicLayout,
 LockScreen,
@@ -16,9 +14,7 @@ UserDropdown
 } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
-import { openWindow } from '@vben/utils';
 
-import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
@@ -60,36 +56,50 @@ const { destroyWatermark, updateWatermark } = useWatermark();
 const showDot = computed(() =>
   notifications.value.some((item) => !item.isRead),
 );
+const getTag = computed(() => {
+  if (userStore.userInfo && userStore.userInfo.identityType) {
+    console.log('identity', userStore.userInfo.identityType);
+    if (Number(userStore.userInfo.identityType) === 1) {
+      return '基础用户';
+    } else if (Number(userStore.userInfo.identityType) === 2) {
+      return 'vip用户';
+    } else {
+      return '管理员';
+    }
+  } else {
+    return '基础用户';
+  }
+});
 
-const menus = computed(() => [
-  {
-    handler: () => {
-      openWindow(VBEN_DOC_URL, {
-        target: '_blank',
-      });
-    },
-    icon: BookOpenText,
-    text: $t('ui.widgets.document'),
-  },
-  {
-    handler: () => {
-      openWindow(VBEN_GITHUB_URL, {
-        target: '_blank',
-      });
-    },
-    icon: MdiGithub,
-    text: 'GitHub',
-  },
-  {
-    handler: () => {
-      openWindow(`${VBEN_GITHUB_URL}/issues`, {
-        target: '_blank',
-      });
-    },
-    icon: CircleHelp,
-    text: $t('ui.widgets.qa'),
-  },
-]);
+// const menus = computed(() => [
+//   {
+//     handler: () => {
+//       openWindow(VBEN_DOC_URL, {
+//         target: '_blank',
+//       });
+//     },
+//     icon: BookOpenText,
+//     text: $t('ui.widgets.document'),
+//   },
+//   {
+//     handler: () => {
+//       openWindow(VBEN_GITHUB_URL, {
+//         target: '_blank',
+//       });
+//     },
+//     icon: MdiGithub,
+//     text: 'GitHub',
+//   },
+//   {
+//     handler: () => {
+//       openWindow(`${VBEN_GITHUB_URL}/issues`, {
+//         target: '_blank',
+//       });
+//     },
+//     icon: CircleHelp,
+//     text: $t('ui.widgets.qa'),
+//   },
+// ]);
 
 const avatar = computed(() => {
   return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
@@ -126,7 +136,8 @@ watch(
 <template>
   <BasicLayout :logo="logoUrl" @clear-preferences-and-logout="handleLogout">
     <template #user-dropdown>
-      <UserDropdown :avatar :menus :text="userStore.userInfo?.realName" description="ann.vben@gmail.com" tag-text="Pro"
+      <!-- 需要额外下拉可传:menus -->
+      <UserDropdown :avatar :text="userStore.userInfo?.realName" :description="userStore.userInfo?.userName" :tag-text="getTag"
         @logout="handleLogout" />
     </template>
     <template #notification>

@@ -92,6 +92,15 @@ const coreRoutes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    component: () => import('#/views/home/index.vue'),
+    meta: {
+      hideInBreadcrumb: true,
+      title: $t('global.home.title'),
+    },
+    name: '​CorporateSite',
+    path: '/home',
+  },
 ];
 
 export { coreRoutes, fallbackNotFoundRoute };

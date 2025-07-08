@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { VbenFormSchema } from '@vben/common-ui';
-import type { BasicOption } from '@vben/types';
 
 import { computed, markRaw } from 'vue';
 
@@ -13,20 +12,20 @@ defineOptions({ name: 'Login' });
 
 const authStore = useAuthStore();
 
-const MOCK_USER_OPTIONS: BasicOption[] = [
-  {
-    label: 'Super',
-    value: 'huangqian',
-  },
-  {
-    label: 'Admin',
-    value: 'admin',
-  },
-  {
-    label: 'User',
-    value: 'jack',
-  },
-];
+// const MOCK_USER_OPTIONS: BasicOption[] = [
+//   {
+//     label: 'Super',
+//     value: 'huangqian',
+//   },
+//   {
+//     label: 'Admin',
+//     value: 'admin',
+//   },
+//   {
+//     label: 'User',
+//     value: 'jack',
+//   },
+// ];
 
 const formSchema = computed((): VbenFormSchema[] => {
   return [

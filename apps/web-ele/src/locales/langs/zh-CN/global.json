@@ -12,6 +12,11 @@
   "choosePeople": "选择人员",
   "allPeople": "全部人员",
   "choicePeople": "已选人员",
+  "devideAuth": "分配权限",
+  "home": {
+    "title": "官网",
+    "logo": "公司logo"
+  },
   "message": {
     "success": "操作成功",
     "error": "操作失败",
@@ -27,7 +32,9 @@
     "confirmSetting": "确认设置？",
     "confirmDeleteSelected": "确认删除选中项？",
     "cancelConfirm": "已取消操作",
-    "searchError": "查询数据失败"
+    "searchError": "查询数据失败",
+    "noPermission": "无权限访问",
+    "getMenuError": "获取菜单失败"
   },
   "btn": {
     "add": "添加",
