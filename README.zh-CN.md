@@ -63,6 +63,7 @@ git clone https://github.com/vbenjs/vue-vben-admin.git
 2. 安装依赖
 
 ```bash
+node: v20.15.1
 cd vue-vben-admin
 npm i -g corepack
 pnpm install
