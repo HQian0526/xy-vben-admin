@@ -5,9 +5,11 @@ import { requestClient } from '#/api/request';
 /**
  * 获取用户所有菜单
  */
-export async function getAllMenusApi() {
+export async function getAllMenusApi(param: any) {
   // return requestClient.get<RouteRecordStringComponent[]>('/menu/all');
-  return requestClient.get<RouteRecordStringComponent[]>('/menu/getMenuRoute');
+  return requestClient.get<RouteRecordStringComponent[]>('/menu/getMenuRoute', {
+    params: param,
+  });
 }
 
 /**

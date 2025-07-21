@@ -32,7 +32,7 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         duration: 1500,
         message: `${$t('common.loadingMenu')}...`,
       });
-      return await getAllMenusApi().then((res: any) => {
+      return await getAllMenusApi({ roleIds: 1 }).then((res: any) => {
         return res.data;
       });
     },

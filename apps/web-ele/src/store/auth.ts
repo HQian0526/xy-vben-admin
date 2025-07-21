@@ -41,13 +41,13 @@ export const useAuthStore = defineStore('auth', () => {
         // 获取用户信息并存储到 accessStore 中
         const [fetchUserInfoResult, accessCodes] = await Promise.all([
           fetchUserInfo(),
-          getAccessCodes(),
+          // getAccessCodes(),
         ]);
         
         userInfo = fetchUserInfoResult;
 
         userStore.setUserInfo(userInfo);
-        accessStore.setAccessCodes(accessCodes);
+        // accessStore.setAccessCodes(accessCodes);
 
         if (accessStore.loginExpired) {
           accessStore.setLoginExpired(false);
