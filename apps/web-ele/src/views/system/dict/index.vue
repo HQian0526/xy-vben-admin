@@ -1,74 +1,18 @@
-<template>
-  <div v-loading="isLoading" class="pd5">
-    <el-card>
-      <!-- 头部搜索框 -->
-      <Filter :form-config="formConfig" @search="search" @reset="reset">
-        <template #extra>
-          <el-button link type="primary" @click="toggleCollapse">
-            {{
-              isCollapsed
-                ? $t('global.btn.expandMore')
-                : $t('global.btn.collapseMore')
-            }}
-          </el-button>
-
-          <div v-show="!isCollapsed" class="button-group">
-            <el-button type="success" @click="handleAdd">{{
-              $t('global.btn.add')
-            }}</el-button>
-          </div>
-        </template>
-      </Filter>
-    </el-card>
-    <el-card class="table-box mgt5">
-      <!-- 表格 -->
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handleClick="handleClick"
-        @handleCurrentChange="handleCurrentChange"
-        @handleSizeChange="handleSizeChange"
-      ></Table>
-    </el-card>
-    <!-- 弹窗 -->
-    <Edit
-      ref="editForm"
-      :formConfig="editConfig"
-      :formRules="editRules"
-      :title="formTitle"
-      :formInfo="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    >
-      <template #slot>
-        <!-- 弹窗内的表格 -->
-        <el-button type="primary" @click="editTableAdd">{{
-          $t('global.btn.addDictItem')
-        }}</el-button>
-        <Table
-          :pagination="false"
-          :table-config="editTableConfig"
-          :list="editTableList"
-          @handleClick="editTableClick"
-        ></Table>
-      </template>
-    </Edit>
-  </div>
-</template>
-
 <script lang="ts" setup>
+import { onMounted, reactive, ref } from 'vue';
+
+import { ElMessage, ElMessageBox } from 'element-plus';
+
 import { addDictApi, deleteDictApi, editDictApi, getDictListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
-import { onMounted, reactive, ref } from 'vue';
+
 const isLoading = ref(false);
-//**************table相关变量**************
-let total = ref(10);
-let pageInfo = reactive({
+//* *************table相关变量**************
+const total = ref(10);
+const pageInfo = reactive({
   pageNum: 1,
   pageSize: 10,
 });
@@ -111,9 +55,9 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-let list = reactive([]);
+const list = reactive([]);
 
-//**************filter相关变量**************
+//* *************filter相关变量**************
 const isCollapsed = ref(false);
 // 头部搜索框
 const formConfig = reactive({
@@ -135,10 +79,10 @@ const formConfig = reactive({
   ],
 });
 
-//**************edit相关变量**************
-let itemVisible = ref(false); //是否展示弹窗
-let formTitle = ref(''); //弹窗标题
-let formInfo = ref({}); //弹窗其他信息
+//* *************edit相关变量**************
+const itemVisible = ref(false); // 是否展示弹窗
+const formTitle = ref(''); // 弹窗标题
+const formInfo = ref({}); // 弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
   dictName: [
@@ -215,7 +159,7 @@ const editTableConfig = reactive({
   ],
 });
 // 弹窗内表格数据
-let editTableList = ref([]);
+const editTableList = ref([]);
 
 // 点击展开收起
 const toggleCollapse = () => {
@@ -259,7 +203,7 @@ const editTableClick = (row: any, label: string) => {
   console.log('label', label);
   if (label === $t('global.btn.delete')) {
     const index = editTableList.value.indexOf(row);
-    if (index > -1) {
+    if (index !== -1) {
       editTableList.value.splice(index, 1);
     }
   }
@@ -279,14 +223,14 @@ const handleSizeChange = (pageSize: number) => {
   getDictList();
 };
 
-//关闭弹窗
+// 关闭弹窗
 const closeDialog = () => {
   editTableList.value = []; // 使用 ref 时这样清空
   formInfo.value = {}; // 同时清空表单数据
   itemVisible.value = false;
 };
 
-//确定
+// 确定
 const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
@@ -295,11 +239,11 @@ const confirmDialog = async (title: string, data: any) => {
       title === $t('global.btn.add')
         ? await addDictApi({
             ...data,
-            ...{ dictJson: JSON.stringify(editTableList.value) },
+            dictJson: JSON.stringify(editTableList.value),
           })
         : await editDictApi({
             ...data,
-            ...{ dictJson: JSON.stringify(editTableList.value) },
+            dictJson: JSON.stringify(editTableList.value),
           });
     if (res.code === 200) {
       ElMessage({
@@ -358,14 +302,14 @@ const handleDelete = (row: any) => {
         });
       }
     });
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
 };
 
 // 获取字典列表
 const getDictList = async (form: any = undefined) => {
-  let obj = {
+  const obj = {
     ...form,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
@@ -386,9 +330,9 @@ const getDictList = async (form: any = undefined) => {
         message: $t('global.message.searchError'),
       });
     }
-  } catch (err) {
+  } catch (error) {
     isLoading.value = false;
-    console.log(err);
+    console.log(error);
   }
 };
 
@@ -397,11 +341,72 @@ onMounted(() => {
 });
 </script>
 
+<template>
+  <div v-loading="isLoading" class="pd5">
+    <el-card>
+      <!-- 头部搜索框 -->
+      <Filter :form-config="formConfig" @search="search" @reset="reset">
+        <template #extra>
+          <el-button link type="primary" @click="toggleCollapse">
+            {{
+              isCollapsed
+                ? $t('global.btn.expandMore')
+                : $t('global.btn.collapseMore')
+            }}
+          </el-button>
+
+          <div v-show="!isCollapsed" class="button-group">
+            <el-button type="success" @click="handleAdd">
+              {{ $t('global.btn.add') }}
+            </el-button>
+          </div>
+        </template>
+      </Filter>
+    </el-card>
+    <el-card class="table-box mgt5">
+      <!-- 表格 -->
+      <Table
+        :table-config="tableConfig"
+        :list="list"
+        :total="total"
+        @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange"
+        @handle-size-change="handleSizeChange"
+      />
+    </el-card>
+    <!-- 弹窗 -->
+    <Edit
+      ref="editForm"
+      :form-config="editConfig"
+      :form-rules="editRules"
+      :title="formTitle"
+      :form-info="formInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    >
+      <template #slot>
+        <!-- 弹窗内的表格 -->
+        <el-button type="primary" @click="editTableAdd">
+          {{ $t('global.btn.addDictItem') }}
+        </el-button>
+        <Table
+          :pagination="false"
+          :table-config="editTableConfig"
+          :list="editTableList"
+          @handle-click="editTableClick"
+        />
+      </template>
+    </Edit>
+  </div>
+</template>
+
 <style lang="scss" scoped>
 .table-box {
   height: calc(100vh - 180px);
   overflow-y: auto;
 }
+
 .button-group {
   display: inline-flex;
   margin-left: 10px;

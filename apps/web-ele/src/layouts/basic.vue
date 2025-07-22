@@ -3,18 +3,18 @@ import type { NotificationItem } from '@vben/layouts';
 
 import { computed, ref, watch } from 'vue';
 
-import logoUrl from '#/assets/logo.png';
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
 import { useWatermark } from '@vben/hooks';
 import {
-BasicLayout,
-LockScreen,
-Notification,
-UserDropdown
+  BasicLayout,
+  LockScreen,
+  Notification,
+  UserDropdown,
 } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
+import logoUrl from '#/assets/logo.png';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
@@ -137,14 +137,27 @@ watch(
   <BasicLayout :logo="logoUrl" @clear-preferences-and-logout="handleLogout">
     <template #user-dropdown>
       <!-- 需要额外下拉可传:menus -->
-      <UserDropdown :avatar :text="userStore.userInfo?.realName" :description="userStore.userInfo?.userName" :tag-text="getTag"
-        @logout="handleLogout" />
+      <UserDropdown
+        :avatar
+        :text="userStore.userInfo?.realName"
+        :description="userStore.userInfo?.userName"
+        :tag-text="getTag"
+        @logout="handleLogout"
+      />
     </template>
     <template #notification>
-      <Notification :dot="showDot" :notifications="notifications" @clear="handleNoticeClear" @make-all="handleMakeAll" />
+      <Notification
+        :dot="showDot"
+        :notifications="notifications"
+        @clear="handleNoticeClear"
+        @make-all="handleMakeAll"
+      />
     </template>
     <template #extra>
-      <AuthenticationLoginExpiredModal v-model:open="accessStore.loginExpired" :avatar>
+      <AuthenticationLoginExpiredModal
+        v-model:open="accessStore.loginExpired"
+        :avatar
+      >
         <LoginForm />
       </AuthenticationLoginExpiredModal>
     </template>

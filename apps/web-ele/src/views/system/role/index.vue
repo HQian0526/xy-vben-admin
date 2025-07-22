@@ -1,45 +1,19 @@
-<template>
-  <div v-loading="isLoading" class="pd5">
-    <el-card>
-      <!-- 头部搜索框 -->
-      <Filter :form-config="formConfig" @search="search" @reset="reset">
-        <template #extra>
-          <el-button link type="primary" @click="toggleCollapse">
-            {{
-              isCollapsed
-              ? $t('global.btn.expandMore')
-              : $t('global.btn.collapseMore')
-            }}
-          </el-button>
-
-          <div v-show="!isCollapsed" class="button-group">
-            <el-button type="success" @click="handleAdd">{{
-              $t('global.btn.add')
-            }}</el-button>
-          </div>
-        </template>
-      </Filter>
-    </el-card>
-    <el-card class="table-box mgt5">
-      <!-- 表格 -->
-      <Table :table-config="tableConfig" :list="list" :total="total" @handleClick="handleClick"
-        @handleCurrentChange="handleCurrentChange" @handleSizeChange="handleSizeChange"></Table>
-    </el-card>
-    <!-- 编辑弹窗 -->
-    <Edit ref="editForm" :formConfig="editConfig" :formRules="editRules" :title="formTitle" :formInfo="formInfo"
-      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog"></Edit>
-    <!-- 分配用户弹窗 -->
-    <SelectPeople :visible="userVisible" :selectedUsers="selectedUsers" @close="closeUserDialog"
-      @confirm="confirmUserDialog"></SelectPeople>
-    <!-- 分配权限弹窗 -->
-    <Dialog :visible="authVisible" :title="$t('global.devideAuth')" @close="closeAuthDialog" @confirm="confirmAuthDialog">
-      <AuthTree :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected"/>
-    </Dialog>
-  </div>
-</template>
-
 <script lang="ts" setup>
-import { addRoleApi, assignPerms, deleteRoleApi, editRoleApi, getMenuListApi, getRoleListApi, getRoleMenuTree } from '#/api';
+import { onMounted, reactive, ref } from 'vue';
+
+import { ElMessage, ElMessageBox } from 'element-plus';
+
+import {
+  addRoleApi,
+  assignPerms,
+  assignRoles,
+  deleteRoleApi,
+  editRoleApi,
+  getMenuListApi,
+  getRoleListApi,
+  getRoleMenuTree,
+  getUsersByRoleId,
+} from '#/api';
 import Dialog from '#/components/dialog/index.vue';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
@@ -47,13 +21,12 @@ import SelectPeople from '#/components/selectPeople/index.vue';
 import Table from '#/components/table/index.vue';
 import AuthTree from '#/components/tree/index.vue';
 import { $t } from '#/locales';
-import { ElMessage } from 'element-plus';
-import { onMounted, reactive, ref } from 'vue';
+
 const isLoading = ref(false);
 const devideUserId = ref(null);
-//**************table相关变量**************
-let total = ref(10);
-let pageInfo = reactive({
+//* *************table相关变量**************
+const total = ref(10);
+const pageInfo = reactive({
   pageNum: 1,
   pageSize: 10,
 });
@@ -102,9 +75,9 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-let list = reactive([]);
+const list = reactive([]);
 
-//**************filter相关变量**************
+//* *************filter相关变量**************
 const isCollapsed = ref(false);
 // 头部搜索框
 const formConfig = reactive({
@@ -119,10 +92,10 @@ const formConfig = reactive({
   ],
 });
 
-//**************edit相关变量**************
-let itemVisible = ref(false); //是否展示弹窗
-let formTitle = ref(''); //弹窗标题
-let formInfo = ref({}); //弹窗其他信息
+//* *************edit相关变量**************
+const itemVisible = ref(false); // 是否展示弹窗
+const formTitle = ref(''); // 弹窗标题
+const formInfo = ref({}); // 弹窗其他信息
 // 弹窗表单校验规则
 const editRules = reactive({
   roleName: [
@@ -151,15 +124,15 @@ const editConfig = reactive([
   },
 ]);
 
-//**************分配用户相关变量**************
-let userVisible = ref(false); //是否展示弹窗
-const selectedUsers = ref([]); //已选用户
+//* *************分配用户相关变量**************
+const userVisible = ref(false); // 是否展示弹窗
+const selectedUsers = ref([]); // 已选用户
 
-//**************分配权限相关变量**************
-let authVisible = ref(false); //是否展示弹窗
-let treeData = ref([]); //权限树形结构数据
-let roleId = ref(null); //角色id
-let menuIds = ref([]); //已选菜单id
+//* *************分配权限相关变量**************
+const authVisible = ref(false); // 是否展示弹窗
+const treeData = ref([]); // 权限树形结构数据
+const roleId = ref(null); // 角色id
+const menuIds = ref([]); // 已选菜单id
 // 点击展开收起
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
@@ -182,28 +155,38 @@ const reset = (form: any) => {
 const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
-  if (label === $t('global.btn.edit')) {
-    // 编辑
-    formTitle.value = label;
-    formInfo.value = { ...row }; // 确保是新的对象引用
-    itemVisible.value = true;
-  } else if (label === $t('global.btn.delete')) {
-    // 删除
-    handleDelete(row);
-  } else if (label === $t('global.btn.devideUser')) {
-    // 分配用户
-    console.log('devideUser', JSON.parse(row.userList));
-    devideUserId.value = row.id;
-    selectedUsers.value = [];
-    if (row.userList) {
-      selectedUsers.value.push(...JSON.parse(row.userList));
+  switch (label) {
+    case $t('global.btn.delete'): {
+      // 删除
+      handleDelete(row);
+
+      break;
     }
-    userVisible.value = true;
-  } else if (label === $t('global.btn.devideAuth')) {
-    // 分配权限
-    console.log('devideAuth');
-    roleId.value = row.id;
-    getRoleMenuChecked(row.id);
+    case $t('global.btn.devideAuth'): {
+      // 分配权限
+      console.log('devideAuth');
+      roleId.value = row.id;
+      getRoleMenuChecked(row.id);
+
+      break;
+    }
+    case $t('global.btn.devideUser'): {
+      // 分配用户
+      console.log('devideUser', JSON.parse(row.userList));
+      devideUserId.value = row.id;
+      getUserListByRoleId(row.id);
+
+      break;
+    }
+    case $t('global.btn.edit'): {
+      // 编辑
+      formTitle.value = label;
+      formInfo.value = { ...row }; // 确保是新的对象引用
+      itemVisible.value = true;
+
+      break;
+    }
+    // No default
   }
 };
 
@@ -221,12 +204,12 @@ const handleSizeChange = (pageSize: number) => {
   getRoleList();
 };
 
-//关闭编辑弹窗
+// 关闭编辑弹窗
 const closeDialog = () => {
   itemVisible.value = false;
 };
 
-//确定编辑弹窗
+// 确定编辑弹窗
 const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
@@ -248,22 +231,22 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch { }
+  } catch {}
 };
 
-//关闭分配用户弹窗
+// 关闭分配用户弹窗
 const closeUserDialog = () => {
   selectedUsers.value = [];
   userVisible.value = false;
 };
 
-//确定分配用户弹窗
+// 确定分配用户弹窗
 const confirmUserDialog = async (val: any) => {
   console.log('val', val);
   try {
-    const res = await editRoleApi({
-      id: devideUserId.value,
-      userList: JSON.stringify(val),
+    const res = await assignRoles({
+      roleId: devideUserId.value,
+      userIds: val.map((item: any) => item.userId),
     });
     if (res.code === 200) {
       ElMessage({
@@ -278,8 +261,8 @@ const confirmUserDialog = async (val: any) => {
         message: res.msg,
       });
     }
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -314,14 +297,14 @@ const handleDelete = (row: any) => {
         });
       }
     });
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
 };
 
 // 获取角色列表
 const getRoleList = async (form: any = undefined) => {
-  let obj = {
+  const obj = {
     ...form,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
@@ -342,9 +325,9 @@ const getRoleList = async (form: any = undefined) => {
         message: $t('global.message.searchError'),
       });
     }
-  } catch (err) {
+  } catch (error) {
     isLoading.value = false;
-    console.log(err);
+    console.log(error);
   }
 };
 
@@ -355,8 +338,7 @@ const closeAuthDialog = () => {
 
 // 确定分配权限弹窗
 const confirmAuthDialog = async () => {
-  console.log('confirmAuthDialog');
-  let obj = {
+  const obj = {
     roleId: roleId.value,
     menuIds: menuIds.value,
   };
@@ -377,9 +359,9 @@ const confirmAuthDialog = async () => {
         message: res.msg,
       });
     }
-  } catch (err) {
+  } catch (error) {
     isLoading.value = false;
-    console.log(err);
+    console.log(error);
   }
 };
 
@@ -387,7 +369,7 @@ const confirmAuthDialog = async () => {
 const authSelected = (currentData: any, selectedData: any) => {
   menuIds.value = []; // 清空数组但保持响应性
   menuIds.value.push(...selectedData.checkedKeys); // 添加新数据
-}
+};
 
 // 获取菜单列表
 const getMenuList = async () => {
@@ -401,14 +383,14 @@ const getMenuList = async () => {
         message: $t('global.message.getMenuError'),
       });
     }
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
 };
 
 // 接口数据转换为树形结构
 const convertToTreeStructure = (originalData: any[]) => {
-  return originalData.map(item => {
+  return originalData.map((item) => {
     const node = {
       id: item.id,
       label: item.menuName,
@@ -420,13 +402,13 @@ const convertToTreeStructure = (originalData: any[]) => {
 
     return node;
   });
-}
+};
 
 // 递归获取所有checked为true的ID数组
 const getCheckedIds = (treeData) => {
   let checkedIds = [];
 
-  treeData.forEach(node => {
+  treeData.forEach((node) => {
     if (node.checked) {
       checkedIds.push(node.id);
     }
@@ -437,7 +419,7 @@ const getCheckedIds = (treeData) => {
   });
 
   return checkedIds;
-}
+};
 
 // 获取角色已选权限
 const getRoleMenuChecked = async (roleId: number) => {
@@ -455,17 +437,105 @@ const getRoleMenuChecked = async (roleId: number) => {
         message: $t('global.message.getMenuError'),
       });
     }
-  } catch (err) {
+  } catch (error) {
     isLoading.value = false;
-    console.log(err);
+    console.log(error);
   }
-}
+};
+
+// 获取角色对应的用户列表
+const getUserListByRoleId = async (roleId: number) => {
+  try {
+    selectedUsers.value = [];
+    const res = await getUsersByRoleId(roleId);
+    if (res.code === 200) {
+      selectedUsers.value = res.data;
+      userVisible.value = true;
+    } else {
+      userVisible.value = false;
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.getUserInfoErr'),
+      });
+    }
+  } catch (error) {
+    userVisible.value = false;
+    console.log(error);
+  }
+};
 
 onMounted(() => {
   getRoleList(); // 获取角色列表
   getMenuList(); // 获取菜单列表
 });
 </script>
+
+<template>
+  <div v-loading="isLoading" class="pd5">
+    <el-card>
+      <!-- 头部搜索框 -->
+      <Filter :form-config="formConfig" @search="search" @reset="reset">
+        <template #extra>
+          <el-button link type="primary" @click="toggleCollapse">
+            {{
+              isCollapsed
+                ? $t('global.btn.expandMore')
+                : $t('global.btn.collapseMore')
+            }}
+          </el-button>
+
+          <div v-show="!isCollapsed" class="button-group">
+            <el-button type="success" @click="handleAdd">
+              {{ $t('global.btn.add') }}
+            </el-button>
+          </div>
+        </template>
+      </Filter>
+    </el-card>
+    <el-card class="table-box mgt5">
+      <!-- 表格 -->
+      <Table
+        :table-config="tableConfig"
+        :list="list"
+        :total="total"
+        @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange"
+        @handle-size-change="handleSizeChange"
+      />
+    </el-card>
+    <!-- 编辑弹窗 -->
+    <Edit
+      ref="editForm"
+      :form-config="editConfig"
+      :form-rules="editRules"
+      :title="formTitle"
+      :form-info="formInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    />
+    <!-- 分配用户弹窗 -->
+    <SelectPeople
+      :visible="userVisible"
+      :selected-users="selectedUsers"
+      @close="closeUserDialog"
+      @confirm="confirmUserDialog"
+    />
+    <!-- 分配权限弹窗 -->
+    <Dialog
+      :visible="authVisible"
+      :title="$t('global.devideAuth')"
+      @close="closeAuthDialog"
+      @confirm="confirmAuthDialog"
+    >
+      <AuthTree
+        :tree-data="treeData"
+        :default-checked-keys="menuIds"
+        @selected="authSelected"
+      />
+    </Dialog>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .table-box {

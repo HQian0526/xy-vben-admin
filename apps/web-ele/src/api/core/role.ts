@@ -1,4 +1,3 @@
-
 import { requestClient } from '#/api/request';
 
 /**
@@ -29,7 +28,7 @@ export async function editRoleApi(data: any) {
  */
 export async function deleteRoleApi(data: any) {
   return requestClient.delete('/role/deleteRole', {
-    data: data,
+    data,
   });
 }
 
@@ -52,4 +51,18 @@ export async function getRoleMenuTree(roleId: any) {
  */
 export async function getRoleList(userId: any) {
   return requestClient.get(`/role/getRoleList/${userId}`);
+}
+
+/**
+ * 用户分配角色
+ */
+export async function assignRoles(data: any) {
+  return requestClient.post('/role/assignRoles', data);
+}
+
+/**
+ * 根据角色id获取对应用户列表
+ */
+export async function getUsersByRoleId(roleId: any) {
+  return requestClient.get(`role/getUsersList/${roleId}`);
 }

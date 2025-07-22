@@ -15,7 +15,7 @@ export async function getUserInfoApi() {
  */
 export async function getUserListApi(param: any) {
   return requestClient.get('/user/findUser', {
-    params: param
+    params: param,
   });
 }
 
@@ -38,7 +38,6 @@ export async function editUserApi(data: any) {
  */
 export async function deleteUserApi(data: any) {
   return requestClient.delete('/user/deleteUser', {
-    data: data,
+    data,
   });
 }
-

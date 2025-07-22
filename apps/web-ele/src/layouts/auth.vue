@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import logoUrl from '#/assets/logo.png';
 import { computed } from 'vue';
 
 import { AuthPageLayout } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 
+import logoUrl from '#/assets/logo.png';
 import { $t } from '#/locales';
 
 const appName = computed(() => preferences.app.name);

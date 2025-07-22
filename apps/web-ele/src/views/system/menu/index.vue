@@ -1,34 +1,17 @@
-<template>
-  <div v-loading="isLoading" class="pd5">
-    <el-card>
-      <div class="button-group">
-        <el-button type="success" @click="handleAdd">{{
-          $t('global.btn.add')
-        }}</el-button>
-      </div>
-    </el-card>
-    <el-card class="table-box mgt5">
-      <!-- 表格 -->
-      <Table :is-tree="true" :pagination="false" :table-config="tableConfig" :list="list" @handleClick="handleClick">
-      </Table>
-    </el-card>
-    <!-- 弹窗 -->
-    <Edit ref="editForm" :formConfig="editConfig" :formRules="editRules" :title="formTitle" :formInfo="formInfo"
-      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog"></Edit>
-  </div>
-</template>
-
 <script lang="ts" setup>
+import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { ElMessage, ElMessageBox } from 'element-plus';
+
 import { addMenuApi, deleteMenuApi, editMenuApi, getMenuListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+
 const router = useRouter();
 const isLoading = ref(false);
-//**************table相关变量**************
+//* *************table相关变量**************
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -91,12 +74,12 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-let list = reactive([]);
+const list = reactive([]);
 
-//**************edit相关变量**************
-let itemVisible = ref(false); //是否展示弹窗
-let formTitle = ref(''); //弹窗标题
-let formInfo = ref({}); //弹窗其他信息
+//* *************edit相关变量**************
+const itemVisible = ref(false); // 是否展示弹窗
+const formTitle = ref(''); // 弹窗标题
+const formInfo = ref({}); // 弹窗其他信息
 // 弹窗表单配置
 const editConfig = reactive([
   {
@@ -194,23 +177,34 @@ const editRules = reactive({
 const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
-  if (label === $t('global.btn.edit')) {
-    formTitle.value = label;
-    formInfo.value = { ...row }; // 确保是新的对象引用
-    itemVisible.value = true;
-  } else if (label === $t('global.btn.linkTo')) {
-    router.push(row.path);
-  } else if (label === $t('global.btn.delete')) {
-    handleDelete(row);
+  switch (label) {
+    case $t('global.btn.delete'): {
+      handleDelete(row);
+
+      break;
+    }
+    case $t('global.btn.edit'): {
+      formTitle.value = label;
+      formInfo.value = { ...row }; // 确保是新的对象引用
+      itemVisible.value = true;
+
+      break;
+    }
+    case $t('global.btn.linkTo'): {
+      router.push(row.path);
+
+      break;
+    }
+    // No default
   }
 };
 
-//关闭弹窗
+// 关闭弹窗
 const closeDialog = () => {
   itemVisible.value = false;
 };
 
-//确定
+// 确定
 const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
@@ -233,7 +227,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch { }
+  } catch {}
 };
 
 // 新增
@@ -267,14 +261,14 @@ const handleDelete = (row: any) => {
         });
       }
     });
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
 };
 
 // 接口数据转换为树形结构
 const convertToTreeStructure = (originalData: any[]) => {
-  return originalData.map(item => {
+  return originalData.map((item) => {
     const node = {
       value: item.id,
       label: item.menuName,
@@ -286,11 +280,11 @@ const convertToTreeStructure = (originalData: any[]) => {
 
     return node;
   });
-}
+};
 
 // 获取菜单列表
 const getMenuList = async (form: any = undefined) => {
-  let obj = {
+  const obj = {
     ...form,
   };
   try {
@@ -313,9 +307,9 @@ const getMenuList = async (form: any = undefined) => {
         message: $t('global.message.searchError'),
       });
     }
-  } catch (err) {
+  } catch (error) {
     isLoading.value = false;
-    console.log(err);
+    console.log(error);
   }
 };
 
@@ -323,6 +317,39 @@ onMounted(() => {
   getMenuList();
 });
 </script>
+
+<template>
+  <div v-loading="isLoading" class="pd5">
+    <el-card>
+      <div class="button-group">
+        <el-button type="success" @click="handleAdd">
+          {{ $t('global.btn.add') }}
+        </el-button>
+      </div>
+    </el-card>
+    <el-card class="table-box mgt5">
+      <!-- 表格 -->
+      <Table
+        :is-tree="true"
+        :pagination="false"
+        :table-config="tableConfig"
+        :list="list"
+        @handle-click="handleClick"
+      />
+    </el-card>
+    <!-- 弹窗 -->
+    <Edit
+      ref="editForm"
+      :form-config="editConfig"
+      :form-rules="editRules"
+      :title="formTitle"
+      :form-info="formInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    />
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .table-box {

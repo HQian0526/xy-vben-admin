@@ -1,117 +1,45 @@
-<template>
-  <el-form ref="formRef" :inline="true" :model="form" class="demo-form-inline" @submit.prevent>
-    <el-form-item
-      v-for="(item, index) in formConfig.list"
-      :key="index"
-      :label="item.label"
-    >
-      <!-- input输入框 -->
-      <el-input
-        v-if="item.type === 'input'"
-        v-model="form[item.prop]"
-        :placeholder="item.placeholder"
-        :clearable="item.clearable || true"
-        @keyup.enter.native="search"
-      />
-      <!-- select下拉框 -->
-      <el-select
-        v-if="item.type === 'select'"
-        v-model="form[item.prop]"
-        :placeholder="item.placeholder"
-        :clearable="item.clearable || true"
-      >
-        <el-option
-          v-for="(it, ind) in item.options"
-          :key="ind"
-          :label="it.label"
-          :value="it.value"
-        ></el-option>
-      </el-select>
-      <!-- date-picker日期选择器 -->
-      <el-date-picker
-        v-if="item.type === 'date'"
-        v-model="form[item.prop]"
-        type="date"
-        :placeholder="item.placeholder"
-        :clearable="item.clearable || true"
-      />
-      <!-- checkbox-group多选框 -->
-      <el-checkbox-group
-        v-if="item.type === 'checkbox'"
-        v-model="form[item.prop]"
-      >
-        <el-checkbox
-          v-for="(it, ind) in item.options"
-          :key="ind"
-          :value="it.value"
-          name="type"
-        >
-          {{ it.value }}
-        </el-checkbox>
-      </el-checkbox-group>
-      <!-- radio-group单选框 -->
-      <el-radio-group v-if="item.type === 'radio'" v-model="form[item.prop]">
-        <el-radio
-          v-for="(it, ind) in item.options"
-          :key="ind"
-          :value="it.value"
-          >{{ it.value }}</el-radio
-        >
-      </el-radio-group>
-    </el-form-item>
-    <el-form-item v-if="formConfig.showBtn ? formConfig.showBtn : true">
-      <el-button type="primary" @click="search">{{
-        $t('global.btn.search')
-      }}</el-button>
-      <el-button type="primary" @click="reset">{{
-        $t('global.btn.reset')
-      }}</el-button>
-      <slot name="extra"></slot>
-    </el-form-item>
-  </el-form>
-</template>
-
 <script lang="ts" setup>
-import { $t } from '#/locales';
-import {
-ElButton,
-ElCheckbox,
-ElCheckboxGroup,
-ElDatePicker,
-ElForm,
-ElFormItem,
-ElInput,
-ElOption,
-ElRadio,
-ElRadioGroup,
-ElSelect
-} from 'element-plus';
 import { defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
 
-let form = reactive({});
-const formRef = ref(); // 添加表单引用
+import {
+  ElButton,
+  ElCheckbox,
+  ElCheckboxGroup,
+  ElDatePicker,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElOption,
+  ElRadio,
+  ElRadioGroup,
+  ElSelect,
+} from 'element-plus';
+
+import { $t } from '#/locales';
+
+// 添加表单引用
 
 const props = defineProps({
   formConfig: {
     type: Object,
     default: () => ({
       list: [] as Array<{
-        type: string;
-        prop: string;
-        label: string;
-        value: any;
-        placeholder: string;
         clearable: boolean;
+        label: string;
+        placeholder: string;
+        prop: string;
+        type: string;
+        value: any;
       }>,
     }),
   },
 });
-
 const emit = defineEmits<{
   (e: 'search', obj: Record<string, any>): void;
   (e: 'reset', obj: Record<string, any>): void;
 }>();
-
+const form = reactive({});
+const formRef = ref();
 const search = () => {
   emit('search', form);
 };
@@ -143,10 +71,87 @@ onMounted(() => {
 watch(() => props.formConfig.list, initFormData, { deep: true });
 </script>
 
+<template>
+  <ElForm
+    ref="formRef"
+    :inline="true"
+    :model="form"
+    class="demo-form-inline"
+    @submit.prevent
+  >
+    <ElFormItem
+      v-for="(item, index) in formConfig.list"
+      :key="index"
+      :label="item.label"
+    >
+      <!-- input输入框 -->
+      <ElInput
+        v-if="item.type === 'input'"
+        v-model="form[item.prop]"
+        :placeholder="item.placeholder"
+        :clearable="item.clearable || true"
+        @keyup.enter.native="search"
+      />
+      <!-- select下拉框 -->
+      <ElSelect
+        v-if="item.type === 'select'"
+        v-model="form[item.prop]"
+        :placeholder="item.placeholder"
+        :clearable="item.clearable || true"
+      >
+        <ElOption
+          v-for="(it, ind) in item.options"
+          :key="ind"
+          :label="it.label"
+          :value="it.value"
+        />
+      </ElSelect>
+      <!-- date-picker日期选择器 -->
+      <ElDatePicker
+        v-if="item.type === 'date'"
+        v-model="form[item.prop]"
+        type="date"
+        :placeholder="item.placeholder"
+        :clearable="item.clearable || true"
+      />
+      <!-- checkbox-group多选框 -->
+      <ElCheckboxGroup
+        v-if="item.type === 'checkbox'"
+        v-model="form[item.prop]"
+      >
+        <ElCheckbox
+          v-for="(it, ind) in item.options"
+          :key="ind"
+          :value="it.value"
+          name="type"
+        >
+          {{ it.value }}
+        </ElCheckbox>
+      </ElCheckboxGroup>
+      <!-- radio-group单选框 -->
+      <ElRadioGroup v-if="item.type === 'radio'" v-model="form[item.prop]">
+        <ElRadio v-for="(it, ind) in item.options" :key="ind" :value="it.value">
+          {{ it.value }}
+        </ElRadio>
+      </ElRadioGroup>
+    </ElFormItem>
+    <ElFormItem v-if="formConfig.showBtn ? formConfig.showBtn : true">
+      <ElButton type="primary" @click="search">
+        {{ $t('global.btn.search') }}
+      </ElButton>
+      <ElButton type="primary" @click="reset">
+        {{ $t('global.btn.reset') }}
+      </ElButton>
+      <slot name="extra"></slot>
+    </ElFormItem>
+  </ElForm>
+</template>
+
 <style>
 .demo-form-inline {
   height: 32px;
 }
+
 .demo-form-inline .el-input {
   --el-input-width: 160px;
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { VbenAvatar } from '../avatar';
+
 interface Props {
   /**
    * @zh_CN 是否收起文本

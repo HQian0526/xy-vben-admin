@@ -1,17 +1,17 @@
 import type {
   ComponentRecordType,
-  GenerateMenuAndRoutesOptions
+  GenerateMenuAndRoutesOptions,
 } from '@vben/types';
 
 import { generateAccessible } from '@vben/access';
 import { preferences } from '@vben/preferences';
+import { useUserStore } from '@vben/stores';
 
 import { ElMessage } from 'element-plus';
 
 import { getAllMenusApi, getRoleList } from '#/api';
 import { BasicLayout, IFrameView } from '#/layouts';
 import { $t } from '#/locales';
-import { useUserStore } from '@vben/stores';
 
 const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
 
@@ -33,10 +33,10 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         duration: 1500,
         message: `${$t('common.loadingMenu')}...`,
       });
-      
+
       // 先获取当前用户的角色id列表
       const userStore = useUserStore();
-      let res = getRoleList(userStore.userInfo.id).then((res: any) => {
+      const res = getRoleList(userStore.userInfo.id).then((res: any) => {
         if (res.code === 200) {
           // 再根据该用户的角色获取对应的菜单
           return getAllMenusApi({ roleIds: res.data.join(',') }).then(

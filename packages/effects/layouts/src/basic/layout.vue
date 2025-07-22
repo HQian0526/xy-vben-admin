@@ -7,7 +7,11 @@ import { computed, defineProps, useSlots, watch } from 'vue';
 
 import { useRefresh } from '@vben/hooks';
 import { $t, i18n } from '@vben/locales';
-import { preferences, updatePreferences, usePreferences } from '@vben/preferences';
+import {
+  preferences,
+  updatePreferences,
+  usePreferences,
+} from '@vben/preferences';
 import { useAccessStore } from '@vben/stores';
 import { cloneDeep, mapTree } from '@vben/utils';
 
@@ -20,18 +24,18 @@ import { Copyright } from './copyright';
 import { LayoutFooter } from './footer';
 import { LayoutHeader } from './header';
 import {
-LayoutExtraMenu,
-LayoutMenu,
-LayoutMixedMenu,
-useExtraMenu,
-useMixedMenu
+  LayoutExtraMenu,
+  LayoutMenu,
+  LayoutMixedMenu,
+  useExtraMenu,
+  useMixedMenu,
 } from './menu';
 import { LayoutTabbar } from './tabbar';
 
 defineOptions({ name: 'BasicLayout' });
 
 const props = defineProps({
-  //系统logo
+  // 系统logo
   logo: {
     type: String,
     default: preferences.logo.source,

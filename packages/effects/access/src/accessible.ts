@@ -3,7 +3,7 @@ import type { Component, DefineComponent } from 'vue';
 import type {
   AccessModeType,
   GenerateMenuAndRoutesOptions,
-  RouteRecordRaw
+  RouteRecordRaw,
 } from '@vben/types';
 
 import { defineComponent, h } from 'vue';
@@ -15,7 +15,7 @@ import {
   generateRoutesByFrontend,
   isFunction,
   isString,
-  mapTree
+  mapTree,
 } from '@vben/utils';
 
 async function generateAccessible(

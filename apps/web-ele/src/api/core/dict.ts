@@ -28,6 +28,6 @@ export async function editDictApi(data: any) {
  */
 export async function deleteDictApi(data: any) {
   return requestClient.delete('/dict/deleteDict', {
-    data: data,
+    data,
   });
 }

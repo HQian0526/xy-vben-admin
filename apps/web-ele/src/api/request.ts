@@ -9,7 +9,7 @@ import {
   authenticateResponseInterceptor,
   defaultResponseInterceptor,
   errorMessageResponseInterceptor,
-  RequestClient
+  RequestClient,
 } from '@vben/request';
 import { useAccessStore } from '@vben/stores';
 

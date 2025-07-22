@@ -1,33 +1,12 @@
-<template>
-  <el-dialog v-model="props.visible" :title="$t('global.choosePeople')" :before-close="closeDialog" top="10%"
-    width="750px" :append-to-body="true" :close-on-click-modal="false" @close="closeDialog">
-    <!-- 选人穿梭框 -->
-    <div class="transfer-wrapper">
-      <el-transfer v-model="value" filterable :filter-method="filterMethod"
-        :filter-placeholder="$t('global.choosePeople')" :data="data"
-        :titles="[$t('global.allPeople'), $t('global.choicePeople')]" style="width: 100%" />
-    </div>
-    <!-- 底部按钮 -->
-    <div class="bottom-item">
-      <div class="button">
-        <div class="cancel">
-          <el-button @click="closeDialog">取消</el-button>
-        </div>
-        <div class="confirm">
-          <el-button type="primary" plain @click="confirm">确定</el-button>
-        </div>
-      </div>
-    </div>
-  </el-dialog>
-</template>
-
 <script lang="ts" setup>
-import { $t } from '#/locales';
-import { ElButton, ElDialog, ElTransfer } from 'element-plus';
 import { defineEmits, defineProps, ref } from 'vue';
 
+import { ElButton, ElDialog, ElTransfer } from 'element-plus';
+
+import { $t } from '#/locales';
+
 const props = defineProps({
-  //是否展示弹窗
+  // 是否展示弹窗
   visible: {
     type: Boolean,
     default: false,
@@ -38,17 +17,17 @@ const emit = defineEmits<{
   // 关闭弹窗
   (e: 'close'): void;
   // 确认提交
-  (e: 'confirm', users: Array<{ userName: string, realName: string }>): void;
+  (e: 'confirm', users: Array<{ realName: string; userName: string }>): void;
 }>();
 
 interface Option {
-  key: number
-  label: string
-  initial: string
+  key: number;
+  label: string;
+  initial: string;
 }
 
 const generateData = () => {
-  const data: Option[] = []
+  const data: Option[] = [];
   const states = [
     {
       userName: 'zhangsan',
@@ -72,17 +51,17 @@ const generateData = () => {
       label: item.realName,
       key: index,
       initial: item.userName,
-    })
-  })
-  return data
-}
+    });
+  });
+  return data;
+};
 
-const data = ref<Option[]>(generateData())
-const value = ref([])
+const data = ref<Option[]>(generateData());
+const value = ref([]);
 
 const filterMethod = (query, item) => {
-  return item.initial.toLowerCase().includes(query.toLowerCase())
-}
+  return item.initial.toLowerCase().includes(query.toLowerCase());
+};
 
 // 关闭弹窗
 const closeDialog = async () => {
@@ -93,15 +72,52 @@ const closeDialog = async () => {
 const confirm = async () => {
   // 获取选中的用户信息
   const selectedUsers = data.value
-    .filter(item => value.value.includes(item.key))
-    .map(item => ({
+    .filter((item) => value.value.includes(item.key))
+    .map((item) => ({
       userName: item.initial, // 对应原始数据中的userName
-      realName: item.label    // 对应原始数据中的realName
+      realName: item.label, // 对应原始数据中的realName
     }));
 
   emit('confirm', selectedUsers);
 };
 </script>
+
+<template>
+  <ElDialog
+    v-model="props.visible"
+    :title="$t('global.choosePeople')"
+    :before-close="closeDialog"
+    top="10%"
+    width="750px"
+    :append-to-body="true"
+    :close-on-click-modal="false"
+    @close="closeDialog"
+  >
+    <!-- 选人穿梭框 -->
+    <div class="transfer-wrapper">
+      <ElTransfer
+        v-model="value"
+        filterable
+        :filter-method="filterMethod"
+        :filter-placeholder="$t('global.choosePeople')"
+        :data="data"
+        :titles="[$t('global.allPeople'), $t('global.choicePeople')]"
+        style="width: 100%"
+      />
+    </div>
+    <!-- 底部按钮 -->
+    <div class="bottom-item">
+      <div class="button">
+        <div class="cancel">
+          <ElButton @click="closeDialog">取消</ElButton>
+        </div>
+        <div class="confirm">
+          <ElButton type="primary" plain @click="confirm">确定</ElButton>
+        </div>
+      </div>
+    </div>
+  </ElDialog>
+</template>
 
 <style lang="scss" scoped>
 .transfer-wrapper {
@@ -117,11 +133,11 @@ const confirm = async () => {
     }
 
     .el-transfer__buttons {
-      width: 10%;
-      padding: 0 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      width: 10%;
+      padding: 0 10px;
 
       .el-button {
         display: block;
@@ -136,9 +152,9 @@ const confirm = async () => {
   margin-top: 20px;
 
   .button {
-    margin: 0 auto;
     display: flex;
     justify-content: center;
+    margin: 0 auto;
   }
 
   .cancel {
@@ -149,9 +165,9 @@ const confirm = async () => {
     margin-left: 10px;
 
     .el-button--primary {
+      color: #fff;
       background: #2278e9 !important;
       border-color: #2278e9 !important;
-      color: #fff;
     }
 
     .el-button--primary:hover {

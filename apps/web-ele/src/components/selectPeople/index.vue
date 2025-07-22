@@ -1,48 +1,13 @@
-<template>
-  <el-dialog
-    v-model="props.visible"
-    :title="$t('global.choosePeople')"
-    :before-close="closeDialog"
-    top="10%"
-    width="750px"
-    :append-to-body="true"
-    :close-on-click-modal="false"
-    @close="closeDialog"
-  >
-    <!-- 选人穿梭框 -->
-    <div class="transfer-wrapper">
-      <el-transfer
-        v-model="value"
-        filterable
-        :filter-method="filterMethod"
-        :filter-placeholder="$t('global.choosePeople')"
-        :data="data"
-        :titles="[$t('global.allPeople'), $t('global.choicePeople')]"
-        style="width: 100%"
-      />
-    </div>
-    <!-- 底部按钮 -->
-    <div class="bottom-item">
-      <div class="button">
-        <div class="cancel">
-          <el-button @click="closeDialog">取消</el-button>
-        </div>
-        <div class="confirm">
-          <el-button type="primary" plain @click="confirm">确定</el-button>
-        </div>
-      </div>
-    </div>
-  </el-dialog>
-</template>
-
 <script lang="ts" setup>
-import { getUserListApi } from '#/api';
-import { $t } from '#/locales';
-import { ElButton, ElDialog, ElMessage, ElTransfer } from 'element-plus';
 import { defineEmits, defineProps, ref, watch } from 'vue';
 
+import { ElButton, ElDialog, ElMessage, ElTransfer } from 'element-plus';
+
+import { getUserListApi } from '#/api';
+import { $t } from '#/locales';
+
 const props = defineProps({
-  //是否展示弹窗
+  // 是否展示弹窗
   visible: {
     type: Boolean,
     default: false,
@@ -58,22 +23,30 @@ const emit = defineEmits<{
   // 关闭弹窗
   (e: 'close'): void;
   // 确认提交
-  (e: 'confirm', users: Array<{ userName: string; realName: string }>): void;
+  (
+    e: 'confirm',
+    users: Array<{ id: String; realName: string; userName: string }>,
+  ): void;
 }>();
 
 interface Option {
-  key: number;
+  key: string;
   label: string;
-  initial: string;
+  userName: string;
 }
 
 const generateData = async () => {
   const data: Option[] = [];
   try {
-    const res = await getUserListApi({ pageNum: 1, pageSize: 10000 });
+    const res = await getUserListApi({
+      deleted: 0,
+      pageNum: 1,
+      pageSize: 10_000,
+    });
     if (res.code === 200) {
       const states = res.data.list.map((item, index) => {
         return {
+          id: item.id,
           realName: item.realName,
           userName: item.userName,
         };
@@ -81,8 +54,8 @@ const generateData = async () => {
       states.forEach((item, index) => {
         data.push({
           label: item.realName,
-          key: item.userName,
-          initial: item.userName,
+          key: item.id,
+          userName: item.userName,
         });
       });
     } else {
@@ -91,8 +64,8 @@ const generateData = async () => {
         message: $t('global.message.searchError'),
       });
     }
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
   return data;
 };
@@ -101,7 +74,7 @@ const data = ref<Option[]>();
 const value = ref([]);
 
 const filterMethod = (query, item) => {
-  return item.initial.toLowerCase().includes(query.toLowerCase());
+  return item.userName.toLowerCase().includes(query.toLowerCase());
 };
 
 // 关闭弹窗
@@ -116,7 +89,8 @@ const confirm = async () => {
   const selectedUsers = data.value
     .filter((item) => value.value.includes(item.key))
     .map((item) => ({
-      userName: item.initial, // 对应原始数据中的userName
+      userId: item.key,
+      userName: item.userName, // 对应原始数据中的userName
       realName: item.label, // 对应原始数据中的realName
     }));
 
@@ -130,9 +104,14 @@ watch(
     if (val) {
       // 获取总用户列表数据
       data.value = await generateData();
-      if (data.value &&data.value.length > 0 && props.selectedUsers && props.selectedUsers.length > 0) {
+      if (
+        data.value &&
+        data.value.length > 0 &&
+        props.selectedUsers &&
+        props.selectedUsers.length > 0
+      ) {
         // 获取已选中的用户
-        value.value = props.selectedUsers.map((item) => item.userName);
+        value.value = props.selectedUsers.map((item) => item.userId);
         console.log('已选中的用户：', value.value);
       } else {
         value.value = []; // 确保没有选中用户时清空
@@ -143,6 +122,43 @@ watch(
   { immediate: true },
 );
 </script>
+
+<template>
+  <ElDialog
+    v-model="props.visible"
+    :title="$t('global.choosePeople')"
+    :before-close="closeDialog"
+    top="10%"
+    width="750px"
+    :append-to-body="true"
+    :close-on-click-modal="false"
+    @close="closeDialog"
+  >
+    <!-- 选人穿梭框 -->
+    <div class="transfer-wrapper">
+      <ElTransfer
+        v-model="value"
+        filterable
+        :filter-method="filterMethod"
+        :filter-placeholder="$t('global.choosePeople')"
+        :data="data"
+        :titles="[$t('global.allPeople'), $t('global.choicePeople')]"
+        style="width: 100%"
+      />
+    </div>
+    <!-- 底部按钮 -->
+    <div class="bottom-item">
+      <div class="button">
+        <div class="cancel">
+          <ElButton @click="closeDialog">取消</ElButton>
+        </div>
+        <div class="confirm">
+          <ElButton type="primary" plain @click="confirm">确定</ElButton>
+        </div>
+      </div>
+    </div>
+  </ElDialog>
+</template>
 
 <style lang="scss" scoped>
 .transfer-wrapper {
@@ -158,11 +174,11 @@ watch(
     }
 
     .el-transfer__buttons {
-      width: 10%;
-      padding: 0 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      width: 10%;
+      padding: 0 10px;
 
       .el-button {
         display: block;
@@ -177,9 +193,9 @@ watch(
   margin-top: 20px;
 
   .button {
-    margin: 0 auto;
     display: flex;
     justify-content: center;
+    margin: 0 auto;
   }
 
   .cancel {
@@ -190,9 +206,9 @@ watch(
     margin-left: 10px;
 
     .el-button--primary {
+      color: #fff;
       background: #2278e9 !important;
       border-color: #2278e9 !important;
-      color: #fff;
     }
 
     .el-button--primary:hover {

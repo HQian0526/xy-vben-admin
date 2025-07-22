@@ -40,7 +40,7 @@ export async function editMenuApi(data: any) {
  */
 export async function deleteMenuApi(data: any) {
   return requestClient.delete('/menu/deleteMenu', {
-    data: data,
+    data,
   });
 }
 
@@ -48,7 +48,7 @@ export interface Menu {
   id?: number;
   name: string;
   menuCode: string;
-  parentId?: number | null;
+  parentId?: null | number;
   nodeType: number; // 1-文件夹 2-页面 3-按钮
   iconUrl?: string;
   sort: number;

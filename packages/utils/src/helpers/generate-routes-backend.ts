@@ -2,7 +2,7 @@ import type { RouteRecordRaw } from 'vue-router';
 
 import type {
   ComponentRecordType,
-  GenerateMenuAndRoutesOptions
+  GenerateMenuAndRoutesOptions,
 } from '@vben-core/typings';
 
 import { mapTree } from '@vben-core/shared/utils';

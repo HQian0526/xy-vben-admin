@@ -105,7 +105,7 @@ function setupAccessGuard(router: Router) {
       roles: userRoles, // 登录接口成功后会立马查询该用户的权限list存入vuex
       router, // Vue Router 实例不用管
       // 则会在菜单中显示，但是访问会被重定向到403
-      routes: accessRoutes, //./modules/下的所有路由
+      routes: accessRoutes, // ./modules/下的所有路由
     });
     // 保存菜单信息和路由信息
     accessStore.setAccessMenus(accessibleMenus);
