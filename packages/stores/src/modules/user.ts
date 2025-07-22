@@ -3,6 +3,10 @@ import { acceptHMRUpdate, defineStore } from 'pinia';
 interface BasicUserInfo {
   [key: string]: any;
   /**
+   * 用户id
+   */
+  id: string;
+  /**
    * 头像
    */
   avatar: string;

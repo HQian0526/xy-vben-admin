@@ -41,8 +41,15 @@ export async function assignPerms(data: any) {
 }
 
 /**
- * 角色权限分配
+ * 获取角色对应菜单
  */
 export async function getRoleMenuTree(roleId: any) {
   return requestClient.get(`/role/menu-tree/${roleId}`);
+}
+
+/**
+ * 获取用户对应权限列表
+ */
+export async function getRoleList(userId: any) {
+  return requestClient.get(`/role/getRoleList/${userId}`);
 }

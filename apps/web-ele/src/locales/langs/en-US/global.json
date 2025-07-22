@@ -34,7 +34,8 @@
     "cancelConfirm": "cancel confirm",
     "searchError": "search error",
     "noPermission": "no permission",
-    "getMenuError": "get menu error"
+    "getMenuError": "get menu error",
+    "getUserInfoErr": "get user info error"
   },
   "btn": {
     "add": "add",

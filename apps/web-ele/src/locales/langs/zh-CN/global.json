@@ -34,7 +34,8 @@
     "cancelConfirm": "已取消操作",
     "searchError": "查询数据失败",
     "noPermission": "无权限访问",
-    "getMenuError": "获取菜单失败"
+    "getMenuError": "获取菜单失败",
+    "getUserInfoErr": "获取用户信息失败"
   },
   "btn": {
     "add": "添加",
