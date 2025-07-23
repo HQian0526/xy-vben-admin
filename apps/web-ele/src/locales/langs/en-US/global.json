@@ -67,7 +67,8 @@
     "devideUser": "devide user",
     "devideAuth": "devide auth",
     "addDictItem": "add dict item",
-    "linkTo": "link to"
+    "linkTo": "link to",
+    "refresh": "fresh"
   },
   "user": {
     "userName": "account",
@@ -113,6 +114,7 @@
     "package": "package",
     "munu": "munu",
     "button": "button",
-    "componentPath": "component path"
+    "componentPath": "component path",
+    "copyIcon": "choose icon"
   }
 }

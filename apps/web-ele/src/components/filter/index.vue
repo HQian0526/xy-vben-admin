@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import { defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
-
+import { Refresh, Search } from '@element-plus/icons-vue';
 import {
-  ElButton,
-  ElCheckbox,
-  ElCheckboxGroup,
-  ElDatePicker,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElOption,
-  ElRadio,
-  ElRadioGroup,
-  ElSelect,
+ElButton,
+ElCheckbox,
+ElCheckboxGroup,
+ElDatePicker,
+ElForm,
+ElFormItem,
+ElInput,
+ElOption,
+ElRadio,
+ElRadioGroup,
+ElSelect
 } from 'element-plus';
+import { defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
 
 import { $t } from '#/locales';
 
@@ -136,10 +136,10 @@ watch(() => props.formConfig.list, initFormData, { deep: true });
       </ElRadioGroup>
     </ElFormItem>
     <ElFormItem v-if="formConfig.showBtn ? formConfig.showBtn : true">
-      <ElButton type="primary" @click="search">
+      <ElButton type="primary" :icon="Search" @click="search">
         {{ $t('global.btn.search') }}
       </ElButton>
-      <ElButton type="primary" @click="reset">
+      <ElButton type="primary" :icon="Refresh" @click="reset">
         {{ $t('global.btn.reset') }}
       </ElButton>
       <slot name="extra"></slot>

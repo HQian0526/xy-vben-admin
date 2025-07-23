@@ -1,18 +1,18 @@
 <script lang="ts" setup>
+import { Plus } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 
-import { ElMessage, ElMessageBox } from 'element-plus';
-
 import {
-  addRoleApi,
-  assignPerms,
-  assignRoles,
-  deleteRoleApi,
-  editRoleApi,
-  getMenuListApi,
-  getRoleListApi,
-  getRoleMenuTree,
-  getUsersByRoleId,
+addRoleApi,
+assignPerms,
+assignRoles,
+deleteRoleApi,
+editRoleApi,
+getMenuListApi,
+getRoleListApi,
+getRoleMenuTree,
+getUsersByRoleId
 } from '#/api';
 import Dialog from '#/components/dialog/index.vue';
 import Edit from '#/components/edit/index.vue';
@@ -231,7 +231,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 关闭分配用户弹窗
@@ -479,13 +479,13 @@ onMounted(() => {
           <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
-                ? $t('global.btn.expandMore')
-                : $t('global.btn.collapseMore')
+              ? $t('global.btn.expandMore')
+              : $t('global.btn.collapseMore')
             }}
           </el-button>
 
           <div v-show="!isCollapsed" class="button-group">
-            <el-button type="success" @click="handleAdd">
+            <el-button type="success" :icon="Plus" @click="handleAdd">
               {{ $t('global.btn.add') }}
             </el-button>
           </div>
@@ -494,45 +494,18 @@ onMounted(() => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange"
-        @handle-size-change="handleSizeChange"
-      />
+      <Table :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
     </el-card>
     <!-- 编辑弹窗 -->
-    <Edit
-      ref="editForm"
-      :form-config="editConfig"
-      :form-rules="editRules"
-      :title="formTitle"
-      :form-info="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    />
+    <Edit ref="editForm" :form-config="editConfig" :form-rules="editRules" :title="formTitle" :form-info="formInfo"
+      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog" />
     <!-- 分配用户弹窗 -->
-    <SelectPeople
-      :visible="userVisible"
-      :selected-users="selectedUsers"
-      @close="closeUserDialog"
-      @confirm="confirmUserDialog"
-    />
+    <SelectPeople :visible="userVisible" :selected-users="selectedUsers" @close="closeUserDialog"
+      @confirm="confirmUserDialog" />
     <!-- 分配权限弹窗 -->
-    <Dialog
-      :visible="authVisible"
-      :title="$t('global.devideAuth')"
-      @close="closeAuthDialog"
-      @confirm="confirmAuthDialog"
-    >
-      <AuthTree
-        :tree-data="treeData"
-        :default-checked-keys="menuIds"
-        @selected="authSelected"
-      />
+    <Dialog :visible="authVisible" :title="$t('global.devideAuth')" @close="closeAuthDialog" @confirm="confirmAuthDialog">
+      <AuthTree :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected" />
     </Dialog>
   </div>
 </template>

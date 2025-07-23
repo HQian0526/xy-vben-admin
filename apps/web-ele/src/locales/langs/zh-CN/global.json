@@ -67,7 +67,8 @@
     "devideUser": "分配用户",
     "devideAuth": "分配权限",
     "addDictItem": "添加字典项",
-    "linkTo": "跳转"
+    "linkTo": "跳转",
+    "refresh": "刷新"
   },
   "user": {
     "userName": "用户号",
@@ -113,6 +114,7 @@
     "package": "文件夹",
     "munu": "菜单",
     "button": "按钮",
-    "componentPath": "组件路径"
+    "componentPath": "组件路径",
+    "copyIcon": "选择图标"
   }
 }

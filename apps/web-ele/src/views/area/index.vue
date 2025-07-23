@@ -231,7 +231,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 新增
@@ -332,8 +332,8 @@ onMounted(() => {
     <el-card>
       <div class="button-group">
         <el-button type="success" :icon="Refresh" @click="handleRefresh">
-            {{ $t('global.btn.refresh') }}
-          </el-button>
+          {{ $t('global.btn.refresh') }}
+        </el-button>
         <el-button type="success" :icon="Plus" @click="handleAdd">
           {{ $t('global.btn.add') }}
         </el-button>
@@ -341,25 +341,11 @@ onMounted(() => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :is-tree="true"
-        :pagination="false"
-        :table-config="tableConfig"
-        :list="list"
-        @handle-click="handleClick"
-      />
+      <Table :is-tree="true" :pagination="false" :table-config="tableConfig" :list="list" @handle-click="handleClick" />
     </el-card>
     <!-- 弹窗 -->
-    <Edit
-      ref="editForm"
-      :form-config="editConfig"
-      :form-rules="editRules"
-      :title="formTitle"
-      :form-info="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    />
+    <Edit ref="editForm" :form-config="editConfig" :form-rules="editRules" :title="formTitle" :form-info="formInfo"
+      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog" />
   </div>
 </template>
 

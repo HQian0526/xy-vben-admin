@@ -2,11 +2,11 @@
 import { defineEmits, defineProps, reactive } from 'vue';
 
 import {
-  ElButton,
-  ElInput,
-  ElPagination,
-  ElTable,
-  ElTableColumn,
+ElButton,
+ElInput,
+ElPagination,
+ElTable,
+ElTableColumn
 } from 'element-plus';
 
 const props = defineProps({

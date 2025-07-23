@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue';
 
-import { ElMessage, ElMessageBox } from 'element-plus';
-
 import { addUserApi, deleteUserApi, editUserApi, getUserListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
+import { Plus } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const isLoading = ref(false);
 //* *************table相关变量**************
@@ -466,7 +466,7 @@ onMounted(() => {
           </el-button>
 
           <div v-show="!isCollapsed" class="button-group">
-            <el-button type="success" @click="handleAdd">
+            <el-button type="success" :icon="Plus" @click="handleAdd">
               {{ $t('global.btn.add') }}
             </el-button>
           </div>
