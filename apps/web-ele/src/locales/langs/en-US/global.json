@@ -116,5 +116,19 @@
     "button": "button",
     "componentPath": "component path",
     "copyIcon": "choose icon"
+  },
+  "store": {
+    "storeName": "Store Name",
+    "storeCode": "Code",
+    "storeType": "Type",
+    "storeStatus": "Status",
+    "storeDesc": "remark",
+    "storeAddress": "Address",
+    "storePhone": "Phone",
+    "storeEmail": "Email",
+    "storeManager": "Manager",
+    "identityFont": "Front ID Card",
+    "identityBack": "Back ID Card",
+    "lawName": "Business Entity Name"
   }
 }

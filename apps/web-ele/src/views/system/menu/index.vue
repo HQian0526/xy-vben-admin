@@ -17,6 +17,7 @@ const tableConfig = reactive({
   list: [
     {
       prop: 'index',
+      label: 'id',
     },
     {
       prop: 'menuName',

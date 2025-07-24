@@ -116,5 +116,19 @@
     "button": "按钮",
     "componentPath": "组件路径",
     "copyIcon": "选择图标"
+  },
+  "store": {
+    "storeName": "商户名称",
+    "storeCode": "商户编码",
+    "storeType": "商户类型",
+    "storeStatus": "商户状态",
+    "storeDesc": "商户描述",
+    "storeAddress": "商户地址",
+    "storePhone": "商户电话",
+    "storeEmail": "商户邮箱",
+    "storeManager": "负责人",
+    "identityFont": "身份证正面",
+    "identityBack": "身份证反面",
+    "lawName": "营业执照名称"
   }
 }
