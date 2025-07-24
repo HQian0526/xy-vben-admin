@@ -129,6 +129,17 @@
     "storeManager": "Manager",
     "identityFont": "Front ID Card",
     "identityBack": "Back ID Card",
-    "lawName": "Business Entity Name"
+    "lawName": "Business Entity Name",
+    "forever": "forever",
+    "rent": "rent",
+    "normal": "normal",
+    "lock": "lock",
+    "bussinessOwner": "bussiness owner",
+    "bussinessName": "bussiness name",
+    "idCardNo": "id card no",
+    "expirationTime": "expiration time",
+    "businessLicense": "Business License",
+    "remark": "remark",
+    "idCard": "idCard"
   }
 }

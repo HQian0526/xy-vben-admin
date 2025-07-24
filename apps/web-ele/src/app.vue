@@ -1,3 +1,5 @@
+<!-- eslint-disable unicorn/prefer-spread -->
+<!-- eslint-disable no-console -->
 <script lang="ts" setup>
 import { useElementPlusDesignTokens } from '@vben/hooks';
 

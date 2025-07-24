@@ -1,16 +1,19 @@
+<!-- eslint-disable no-console -->
 <script lang="ts" setup>
 import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
 
+import { Plus } from '@element-plus/icons-vue';
 import {
-ElButton,
-ElCol, ElDatePicker,
-ElDialog,
-ElForm,
-ElFormItem,
-ElInput,
-ElOption,
-ElRow,
-ElSelect
+  ElButton,
+  ElCol,
+  ElDatePicker,
+  ElDialog,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElOption,
+  ElRow,
+  ElSelect,
 } from 'element-plus';
 
 import { $t } from '#/locales';
@@ -41,6 +44,11 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  // 表单左侧文字宽度
+  labelWidth: {
+    type: String,
+    default: '',
+  },
 });
 
 const emit = defineEmits<{
@@ -52,6 +60,10 @@ const emit = defineEmits<{
 
 const formRef = ref<InstanceType<typeof ElForm>>(); // 表单引用
 const formData = reactive<Record<string, any>>({}); // 表单数据
+// 图片上传相关
+const fileList = ref<UploadUserFile[]>([]);
+const dialogImageUrl = ref(''); // 图片预览地址
+const dialogVisible = ref(false); // 图片预览弹窗
 // 初始化数据
 const initData = () => {
   console.log('初始化表单数据', props.formInfo);
@@ -110,6 +122,17 @@ const linkTo = (item: any) => {
   }
 };
 
+// 删除图片
+const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+  console.log(uploadFile, uploadFiles);
+};
+
+// 图片预览
+const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
+  dialogImageUrl.value = uploadFile.url!;
+  dialogVisible.value = true;
+};
+
 watch(
   () => [props.visible, props.formInfo],
   ([visible, formInfo]) => {
@@ -123,45 +146,109 @@ watch(
 </script>
 
 <template>
-  <ElDialog v-model="props.visible" :title="props.title" top="10%" width="750px" :append-to-body="true"
-    :close-on-click-modal="false" @close="closeDialog">
-    <ElForm ref="formRef" :model="formData" label-width="80px" :rules="props.formRules">
+  <ElDialog
+    v-model="props.visible"
+    :title="props.title"
+    top="10%"
+    width="750px"
+    :append-to-body="true"
+    :close-on-click-modal="false"
+    @close="closeDialog"
+  >
+    <ElForm
+      ref="formRef"
+      :model="formData"
+      :label-width="labelWidth ? labelWidth : '80px'"
+      :rules="props.formRules"
+    >
       <ElRow :gutter="20">
         <template v-for="(item, index) in props.formConfig" :key="index">
           <!-- 每行显示两个表单项 -->
           <ElCol :span="item.span ? item.span : 12">
             <ElFormItem :label="item.label" :prop="item.name">
               <!--输入框-->
-              <ElInput v-if="item.type === 'input'" :readonly="item.readonly ? item.readonly : false"
-                :placeholder="`${$t('global.pleaseEnter')}${item.label}`" v-model="formData[item.name]">
+              <ElInput
+                v-if="item.type === 'input'"
+                :readonly="item.readonly ? item.readonly : false"
+                :placeholder="`${$t('global.pleaseEnter')}${item.label}`"
+                v-model="formData[item.name]"
+              >
                 <template v-if="item.append" #append>
                   <div @click="linkTo(item)">{{ item.append.label }}</div>
                 </template>
               </ElInput>
               <!--数字输入框-->
-              <el-input-number v-if="item.type === 'number'" v-model="formData[item.name]" :min="item.min ? item.min : 0"
-                :max="item.max ? item.max : 999" :readonly="item.readonly ? item.readonly : false" />
+              <el-input-number
+                v-if="item.type === 'number'"
+                v-model="formData[item.name]"
+                :min="item.min ? item.min : 0"
+                :max="item.max ? item.max : 999"
+                :readonly="item.readonly ? item.readonly : false"
+              />
 
               <!--文本域-->
-              <ElInput v-if="item.type === 'textarea'" type="textarea" :readonly="item.readonly ? item.readonly : false"
-                :placeholder="`${$t('global.pleaseEnter')}${item.label}`" v-model="formData[item.name]" />
-              <!--日期选择器-->
-              <ElDatePicker v-if="item.type === 'date'" type="date"
-                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" :disabled="item.readonly"
-                v-model="formData[item.name]" style="width: 100%" value-format="YYYY-MM-DD" format="YYYY-MM-DD" />
-              <!--下拉框-->
-              <ElSelect v-if="item.type === 'select'" v-model="formData[item.name]"
+              <ElInput
+                v-if="item.type === 'textarea'"
+                type="textarea"
                 :readonly="item.readonly ? item.readonly : false"
-                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" style="width: 100%">
-                <ElOption v-for="(itemSelect, indexSelect) in item.options" :label="itemSelect.label"
-                  :value="itemSelect.value" :key="indexSelect" />
+                :placeholder="`${$t('global.pleaseEnter')}${item.label}`"
+                v-model="formData[item.name]"
+              />
+              <!--日期选择器-->
+              <ElDatePicker
+                v-if="item.type === 'date'"
+                type="date"
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
+                :disabled="item.readonly"
+                v-model="formData[item.name]"
+                style="width: 100%"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
+              />
+              <!--下拉框-->
+              <ElSelect
+                v-if="item.type === 'select'"
+                v-model="formData[item.name]"
+                :readonly="item.readonly ? item.readonly : false"
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
+                style="width: 100%"
+              >
+                <ElOption
+                  v-for="(itemSelect, indexSelect) in item.options"
+                  :label="itemSelect.label"
+                  :value="itemSelect.value"
+                  :key="indexSelect"
+                />
               </ElSelect>
               <!-- 树形下拉框 -->
-              <el-tree-select v-if="item.type === 'tree'" v-model="formData[item.name]" :data="item.treeConfig.options"
-                :render-after-expand="false" :check-strictly="item.treeConfig.checkStrictly
-                  ? item.treeConfig.checkStrictly
-                  : false
-                  " style="width: 100%" />
+              <el-tree-select
+                v-if="item.type === 'tree'"
+                v-model="formData[item.name]"
+                :data="item.treeConfig.options"
+                :render-after-expand="false"
+                :check-strictly="
+                  item.treeConfig.checkStrictly
+                    ? item.treeConfig.checkStrictly
+                    : false
+                "
+                style="width: 100%"
+              />
+              <!-- 图片上传 -->
+              <template v-if="item.type === 'uploadImg'">
+                <el-upload
+                  v-model:file-list="fileList"
+                  action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                  list-type="picture-card"
+                  :on-preview="handlePictureCardPreview"
+                  :on-remove="handleRemove"
+                >
+                  <el-icon><Plus /></el-icon>
+                </el-upload>
+
+                <ElDialog v-model="dialogVisible">
+                  <img w-full :src="dialogImageUrl" alt="Preview Image" />
+                </ElDialog>
+              </template>
             </ElFormItem>
           </ElCol>
         </template>
