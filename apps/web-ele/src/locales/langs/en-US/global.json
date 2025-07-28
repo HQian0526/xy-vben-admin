@@ -13,6 +13,14 @@
   "allPeople": "all people",
   "choicePeople": "choice people",
   "devideAuth": "devide auth",
+  "file": {
+    "limitSize": "file size should not exceed",
+    "limitNum": "file number should not exceed",
+    "uploadError": "upload error",
+    "uploadSuccess": "upload success",
+    "uploading": "uploading",
+    "onlyImage": "only image"
+  },
   "home": {
     "title": "​Corporate Site",
     "logo": "company logo"

@@ -12,6 +12,5 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/router/routes/modules/route.mts"
   ]
 }

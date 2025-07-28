@@ -13,6 +13,14 @@
   "allPeople": "全部人员",
   "choicePeople": "已选人员",
   "devideAuth": "分配权限",
+  "file": {
+    "limitSize": "文件大小超过最大限制",
+    "limitNum": "上传文件数超过限制",
+    "uploadError": "上传失败，请重试",
+    "uploadSuccess": "上传成功",
+    "uploading": "上传中",
+    "onlyImage": "只能上传图片"
+  },
   "home": {
     "title": "官网",
     "logo": "公司logo"

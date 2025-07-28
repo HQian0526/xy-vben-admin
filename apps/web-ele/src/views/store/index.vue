@@ -8,10 +8,10 @@ import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
-  addStoreApi,
-  deleteStoreApi,
-  editStoreApi,
-  getStoreListApi,
+addStoreApi,
+deleteStoreApi,
+editStoreApi,
+getStoreListApi
 } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
@@ -269,14 +269,16 @@ const editConfig = reactive([
     name: 'businessLicense',
     type: 'uploadImg',
     readonly: false,
-    span: 24,
+    span: 8,
+    limit: 1,
   },
   {
     label: $t('global.store.idCard'),
     name: 'identityFont',
     type: 'uploadImg',
     readonly: false,
-    span: 24,
+    span: 16,
+    limit: 2,
   },
 ]);
 // 弹窗表单校验规则

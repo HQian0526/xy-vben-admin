@@ -1,20 +1,20 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
-
 import { Plus } from '@element-plus/icons-vue';
 import {
-  ElButton,
-  ElCol,
-  ElDatePicker,
-  ElDialog,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElOption,
-  ElRow,
-  ElSelect,
+ElButton,
+ElCol,
+ElDatePicker,
+ElDialog,
+ElForm,
+ElFormItem,
+ElInput,
+ElMessage,
+ElOption,
+ElRow,
+ElSelect
 } from 'element-plus';
+import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
 
 import { $t } from '#/locales';
 
@@ -61,17 +61,23 @@ const emit = defineEmits<{
 const formRef = ref<InstanceType<typeof ElForm>>(); // 表单引用
 const formData = reactive<Record<string, any>>({}); // 表单数据
 // 图片上传相关
-const fileList = ref<UploadUserFile[]>([]);
 const dialogImageUrl = ref(''); // 图片预览地址
 const dialogVisible = ref(false); // 图片预览弹窗
+const token = ref(localStorage.getItem('token')); // 从存储中获取token
+// 上传配置
+const uploadAction = import.meta.env.VITE_API_BASE + '/api/file/upload'; // 根据环境变量配置
+
 // 初始化数据
 const initData = () => {
   console.log('初始化表单数据', props.formInfo);
   // 创建一个新的空对象
-  const newFormData = {};
+  const newFormData: Record<string, any> = {};
   // 遍历 formConfig 初始化所有字段
-  props.formConfig.forEach((item) => {
-    newFormData[item.name] = props.formInfo[item.name] || null;
+  props.formConfig.forEach((item: any) => {
+    newFormData[item.name] =
+      item.type === 'uploadImg'
+        ? props.formInfo[item.name] || [] // 优先用传入值，否则空数组
+        : (props.formInfo[item.name] ?? null);
   });
   newFormData.id = props.formInfo.id || '';
   // 替换整个 formData 对象
@@ -129,8 +135,44 @@ const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
 
 // 图片预览
 const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
-  dialogImageUrl.value = uploadFile.url!;
+  dialogImageUrl.value = uploadFile.url;
   dialogVisible.value = true;
+};
+
+// 文件上传前校验
+const beforeUpload = (file) => {
+  const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+  const isLt20M = file.size / 1024 / 1024 < 20;
+
+  if (!isImage) {
+    ElMessage.error($t('global.file.onlyImage'));
+    return false;
+  }
+  if (!isLt20M) {
+    ElMessage.error($t('global.file.limitSize'));
+    return false;
+  }
+  return true;
+};
+
+// 上传成功处理
+const handleSuccess = (response: any, file: any, item: any) => {
+  console.log('response', response);
+  console.log('file', file);
+  if (response.data) {
+    ElMessage.success('上传成功');
+    file.url = import.meta.env.VITE_API_BASE + '/api' + response.data; // 将返回的URL绑定到文件对象
+  }
+};
+
+// 上传失败处理
+const handleError = () => {
+  ElMessage.error('上传失败，请重试');
+};
+
+// 文件数超出限制
+const handleExceed = () => {
+  ElMessage.warning($t('global.file.limitNum'));
 };
 
 watch(
@@ -236,11 +278,20 @@ watch(
               <!-- 图片上传 -->
               <template v-if="item.type === 'uploadImg'">
                 <el-upload
-                  v-model:file-list="fileList"
-                  action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                  v-model:file-list="formData[item.name]"
+                  :class="formData[item.name]?.length === item.limit ? 'hide' : ''"
+                  :action="uploadAction"
+                  :headers="{ Authorization: token }"
                   list-type="picture-card"
+                  :limit="item.limit"
                   :on-preview="handlePictureCardPreview"
                   :on-remove="handleRemove"
+                  :on-exceed="handleExceed"
+                  :before-upload="beforeUpload"
+                  @success="
+                    (response, file) => handleSuccess(response, file, item)
+                  "
+                  :on-error="handleError"
                 >
                   <el-icon><Plus /></el-icon>
                 </el-upload>
@@ -303,5 +354,10 @@ watch(
 <style scoped>
 ::v-deep .el-input-group__append {
   cursor: pointer;
+}
+.hide {
+  :deep(.el-upload--picture-card) {
+    display: none;
+  }
 }
 </style>
