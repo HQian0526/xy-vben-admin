@@ -1,6 +1,7 @@
 {
   "pleaseEnter": "please enter ",
   "pleaseSelect": "please select ",
+  "select": "select",
   "operation": "operation",
   "required": "required",
   "errorFormat": "error format",
@@ -43,7 +44,8 @@
     "searchError": "search error",
     "noPermission": "no permission",
     "getMenuError": "get menu error",
-    "getUserInfoErr": "get user info error"
+    "getUserInfoErr": "get user info error",
+    "onlyOneUser": "only choose one user"
   },
   "btn": {
     "add": "add",

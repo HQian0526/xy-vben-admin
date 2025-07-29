@@ -127,7 +127,9 @@ const editConfig = reactive([
     type: 'input',
     append: {
       label: $t('global.menu.copyIcon'),
-      url: 'https://icones.js.org/',
+      filter: () => {
+        window.open('https://icones.js.org/');
+      },
     }
   },
   {

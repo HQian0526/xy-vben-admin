@@ -1,5 +1,7 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
+import SelectPeople from '#/components/selectPeople/index.vue';
+import { $t } from '#/locales';
 import { Plus } from '@element-plus/icons-vue';
 import {
 ElButton,
@@ -15,8 +17,6 @@ ElRow,
 ElSelect
 } from 'element-plus';
 import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
-
-import { $t } from '#/locales';
 
 const props = defineProps({
   // 是否展示弹窗
@@ -66,6 +66,11 @@ const dialogVisible = ref(false); // 图片预览弹窗
 const token = ref(localStorage.getItem('token')); // 从存储中获取token
 // 上传配置
 const uploadAction = import.meta.env.VITE_API_BASE + '/api/file/upload'; // 根据环境变量配置
+
+//* *************选择用户相关变量**************
+const selectPeopleVisible = ref(false); // 是否展示弹窗
+const selectedUsers = ref([]); // 已选用户
+const selectPeopleKey = ref(''); // 弹窗标识
 
 // 初始化数据
 const initData = () => {
@@ -121,13 +126,6 @@ const initFormData = () => {
   });
 };
 
-// 链接到其他页面
-const linkTo = (item: any) => {
-  if (item.append.url) {
-    window.open(item.append.url, '_blank');
-  }
-};
-
 // 删除图片
 const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles);
@@ -175,6 +173,26 @@ const handleExceed = () => {
   ElMessage.warning($t('global.file.limitNum'));
 };
 
+// 打开选择用户弹窗
+const openSelectPeopleDialog = (key: String) => {
+  selectPeopleKey.value = key;
+  selectPeopleVisible.value = true;
+};
+
+// 关闭选择用户弹窗
+const closeUserDialog = () => {
+  selectedUsers.value = [];
+  selectPeopleVisible.value = false;
+};
+
+// 确定选择用户弹窗
+const confirmUserDialog = async (val: any) => {
+  console.log('val', val);
+  selectedUsers.value = val;
+  selectPeopleVisible.value = false;
+  formData[selectPeopleKey.value] = val.map((item: any) => item.realName);
+};
+
 watch(
   () => [props.visible, props.formInfo],
   ([visible, formInfo]) => {
@@ -216,7 +234,11 @@ watch(
                 v-model="formData[item.name]"
               >
                 <template v-if="item.append" #append>
-                  <div @click="linkTo(item)">{{ item.append.label }}</div>
+                  <div
+                    @click="item.append.filter ? item.append.filter() : null"
+                  >
+                    {{ item.append.label }}
+                  </div>
                 </template>
               </ElInput>
               <!--数字输入框-->
@@ -275,11 +297,32 @@ watch(
                 "
                 style="width: 100%"
               />
+              <!-- 选人弹窗 -->
+              <ElInput
+                v-if="item.type === 'selectPeople'"
+                readonly
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
+                v-model="formData[item.name]"
+              >
+                <template v-if="item.append" #append>
+                  <div
+                    @click="
+                      item.append.filter
+                        ? item.append.filter()
+                        : openSelectPeopleDialog(item.name)
+                    "
+                  >
+                    {{ item.append.label }}
+                  </div>
+                </template>
+              </ElInput>
               <!-- 图片上传 -->
               <template v-if="item.type === 'uploadImg'">
                 <el-upload
                   v-model:file-list="formData[item.name]"
-                  :class="formData[item.name]?.length === item.limit ? 'hide' : ''"
+                  :class="
+                    formData[item.name]?.length === item.limit ? 'hide' : ''
+                  "
                   :action="uploadAction"
                   :headers="{ Authorization: token }"
                   list-type="picture-card"
@@ -318,6 +361,16 @@ watch(
       </div>
     </div>
   </ElDialog>
+
+  <!-- 选择用户弹窗 -->
+  <SelectPeople
+    :key="selectPeopleKey"
+    :visible="selectPeopleVisible"
+    :selected-users="selectedUsers"
+    :select-more="false"
+    @close="closeUserDialog"
+    @confirm="confirmUserDialog"
+  />
 </template>
 
 <style lang="scss" scoped>

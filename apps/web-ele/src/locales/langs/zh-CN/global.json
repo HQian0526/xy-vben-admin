@@ -1,6 +1,7 @@
 {
   "pleaseEnter": "请输入",
   "pleaseSelect": "请选择",
+  "select": "选择",
   "operation": "操作",
   "required": "必填项",
   "errorFormat": "格式错误",
@@ -43,7 +44,8 @@
     "searchError": "查询数据失败",
     "noPermission": "无权限访问",
     "getMenuError": "获取菜单失败",
-    "getUserInfoErr": "获取用户信息失败"
+    "getUserInfoErr": "获取用户信息失败",
+    "onlyOneUser": "只能选择一个用户"
   },
   "btn": {
     "add": "添加",

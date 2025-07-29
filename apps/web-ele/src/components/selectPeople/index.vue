@@ -17,6 +17,11 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // 单选/多选 true多选 false单选
+  selectMore: {
+    type: Boolean,
+    default: true,
+  }
 });
 
 const emit = defineEmits<{
@@ -85,6 +90,12 @@ const closeDialog = async () => {
 
 // 确定
 const confirm = async () => {
+  if (!props.selectMore && value.value && value.value.length > 1) {
+    return ElMessage({
+      type: 'warning',
+      message: $t('global.message.onlyOneUser'),
+    });
+  }
   // 获取选中的用户信息
   const selectedUsers = data.value
     .filter((item) => value.value.includes(item.key))

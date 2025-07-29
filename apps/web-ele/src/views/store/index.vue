@@ -173,8 +173,11 @@ const editConfig = reactive([
   {
     label: $t('global.store.storeManager'),
     name: 'userName',
-    type: 'input',
+    type: 'selectPeople',
     readonly: false,
+    append: {
+      label: $t('global.select'),
+    }
   },
   {
     label: $t('global.store.storePhone'),
