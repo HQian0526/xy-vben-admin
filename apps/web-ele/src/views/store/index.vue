@@ -8,10 +8,10 @@ import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
-addStoreApi,
-deleteStoreApi,
-editStoreApi,
-getStoreListApi
+  addStoreApi,
+  deleteStoreApi,
+  editStoreApi,
+  getStoreListApi,
 } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
@@ -33,7 +33,7 @@ const tableConfig = reactive({
       label: $t('global.store.storeCode'),
     },
     {
-      prop: 'name',
+      prop: 'storeName',
       label: $t('global.store.storeName'),
     },
     {
@@ -41,7 +41,7 @@ const tableConfig = reactive({
       label: $t('global.store.storeAddress'),
     },
     {
-      prop: 'identityName',
+      prop: 'realName',
       label: $t('global.store.storeManager'),
     },
     {
@@ -72,12 +72,10 @@ const tableConfig = reactive({
       },
     },
     {
-      prop: 'status',
+      prop: 'deleted',
       label: $t('global.store.storeStatus'),
       filter: (value: any) => {
-        return value === 1
-          ? $t('global.store.normal')
-          : $t('global.store.lock');
+        return value ? $t('global.store.lock') : $t('global.store.normal');
       },
     },
     {
@@ -92,9 +90,14 @@ const tableConfig = reactive({
           isShow: () => true,
         },
         {
+          type: 'success',
+          label: $t('global.btn.unlock'),
+          isShow: (item: any) => Number(item.deleted) === 1,
+        },
+        {
           type: 'danger',
-          label: $t('global.btn.delete'),
-          isShow: () => true,
+          label: $t('global.btn.lock'),
+          isShow: (item: any) => !item.deleted,
         },
       ],
     },
@@ -110,7 +113,7 @@ const formConfig = reactive({
   list: [
     {
       type: 'input',
-      prop: 'name',
+      prop: 'storeName',
       label: $t('global.store.storeName'),
       value: '',
       placeholder: `${$t('global.pleaseEnter')}${$t('global.store.storeName')}`,
@@ -134,24 +137,28 @@ const formConfig = reactive({
     },
     {
       type: 'select',
-      prop: 'status',
+      prop: 'deleted',
       label: $t('global.store.storeStatus'),
       value: '',
       placeholder: `${$t('global.pleaseSelect')}${$t('global.store.storeStatus')}`,
       options: [
         {
           label: $t('global.store.normal'),
-          value: '1',
+          value: '0',
         },
         {
           label: $t('global.store.lock'),
-          value: '2',
+          value: '1',
         },
       ],
     },
   ],
 });
-
+// 选人相关
+const selectedUsers = reactive({}); // 选人组件回调
+const selectedPeople = ref({
+  realName: [],
+}); // 传给选人组件
 //* *************edit相关变量**************
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
@@ -166,18 +173,19 @@ const editConfig = reactive([
   },
   {
     label: $t('global.store.storeName'),
-    name: 'name',
+    name: 'storeName',
     type: 'input',
     readonly: false,
   },
   {
     label: $t('global.store.storeManager'),
-    name: 'userName',
+    name: 'realName',
     type: 'selectPeople',
     readonly: false,
     append: {
       label: $t('global.select'),
-    }
+    },
+    options: selectedPeople.value.realName,
   },
   {
     label: $t('global.store.storePhone'),
@@ -217,17 +225,17 @@ const editConfig = reactive([
   },
   {
     label: $t('global.store.storeStatus'),
-    name: 'status',
+    name: 'deleted',
     type: 'select',
     readonly: false,
     options: [
       {
         label: $t('global.store.normal'),
-        value: 1,
+        value: 0,
       },
       {
         label: $t('global.store.lock'),
-        value: 2,
+        value: 1,
       },
     ],
   },
@@ -293,10 +301,17 @@ const editRules = reactive({
       trigger: 'blur',
     },
   ],
-  name: [
+  storeName: [
     {
       required: true,
       message: $t('global.store.storeName') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  realName: [
+    {
+      required: true,
+      message: $t('global.store.storeManager') + $t('global.required'),
       trigger: 'blur',
     },
   ],
@@ -315,9 +330,6 @@ const editRules = reactive({
     },
   ],
 });
-
-// 选人相关
-const selectedUsers = reactive({});
 
 // 点击展开收起
 const toggleCollapse = () => {
@@ -342,17 +354,33 @@ const handleClick = (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   switch (label) {
-    case $t('global.btn.delete'): {
-      // 删除
-      handleDelete(row);
-      break;
-    }
+    // 编辑
     case $t('global.btn.edit'): {
       // 编辑
       formTitle.value = label;
-      formInfo.value = { ...row }; // 确保是新的对象引用
+      // 处理选人逻辑
+      selectedPeople.value.realName = [];
+      selectedPeople.value.realName.push({
+        userId: row.userId,
+        userName: row.userName,
+        realName: row.realName,
+      });
+      selectedUsers.realName = selectedPeople.value.realName;
+      formInfo.value = {
+        ...row,
+        selectedUsers: { realName: selectedPeople.value.realName },
+      }; // 确保是新的对象引用
       itemVisible.value = true;
-
+      break;
+    }
+    // 冻结
+    case $t('global.btn.lock'): {
+      handleDelete(row);
+      break;
+    }
+    // 解冻
+    case $t('global.btn.unlock'): {
+      handleAlive(row);
       break;
     }
     // No default
@@ -379,22 +407,28 @@ const closeDialog = () => {
 };
 
 // 确定编辑弹窗
-const confirmDialog = async (title: string, data: any, ) => {
+const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
-  let obj = {
+  const obj = {
     // 营业执照
-    businessLicense: data.businessLicense.map((item: any) => item.url).join(','),
+    businessLicense: data.businessLicense
+      .map((item: any) => item.url)
+      .join(','),
     // 负责人
-    userId: selectedUsers.userName.map((item: any) => item.userId).join(','),
+    userId: selectedUsers.realName.map((item: any) => item.userId).join(','),
     // 身份证正面
     identityPhoto: data.identityPhoto.map((item: any) => item.url).join(','),
+    userName: null,
+    realName: Array.isArray(data.realName)
+      ? data.realName.join(',')
+      : data.realName,
   };
   try {
     const res =
       title === $t('global.btn.add')
         ? await addStoreApi({ ...data, ...obj })
-        : await editStoreApi(data);
+        : await editStoreApi({ ...data, ...obj });
     if (res.code === 200) {
       ElMessage({
         type: 'success',
@@ -416,6 +450,35 @@ const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
   formInfo.value = {}; // 清空表单数据
   itemVisible.value = true;
+};
+
+// 解锁
+const handleAlive = (row: any) => {
+  console.log('row', row);
+  try {
+    ElMessageBox.confirm($t('global.message.confirmUnlock'), $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    }).then(async () => {
+      const res = await editStoreApi({ id: row.id, deleted: 0 });
+      console.log('res', res);
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        getStoreList();
+      } else {
+        ElMessage({
+          type: 'error',
+          message: $t('global.message.error'),
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 // 删除
@@ -481,7 +544,7 @@ const selectedUser = (key: string, value: any) => {
   console.log('key', key);
   console.log('value', value);
   selectedUsers[key] = value;
-}
+};
 
 onMounted(() => {
   getStoreList(); // 获取商户列表
@@ -532,7 +595,7 @@ onMounted(() => {
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
-      @selectedUser="selectedUser"
+      @selected-user="selectedUser"
     />
   </div>
 </template>

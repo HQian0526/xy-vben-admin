@@ -1,22 +1,24 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import SelectPeople from '#/components/selectPeople/index.vue';
-import { $t } from '#/locales';
+import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
+
 import { Plus } from '@element-plus/icons-vue';
 import {
-ElButton,
-ElCol,
-ElDatePicker,
-ElDialog,
-ElForm,
-ElFormItem,
-ElInput,
-ElMessage,
-ElOption,
-ElRow,
-ElSelect
+  ElButton,
+  ElCol,
+  ElDatePicker,
+  ElDialog,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElMessage,
+  ElOption,
+  ElRow,
+  ElSelect,
 } from 'element-plus';
-import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
+
+import SelectPeople from '#/components/selectPeople/index.vue';
+import { $t } from '#/locales';
 
 const props = defineProps({
   // 是否展示弹窗
@@ -67,11 +69,16 @@ const dialogImageUrl = ref(''); // 图片预览地址
 const dialogVisible = ref(false); // 图片预览弹窗
 const token = ref(localStorage.getItem('token')); // 从存储中获取token
 // 上传配置
-const uploadAction = import.meta.env.VITE_API_BASE + '/api/file/upload'; // 根据环境变量配置
+const uploadAction = `${import.meta.env.VITE_API_BASE}/api/file/upload`; // 根据环境变量配置
 
 //* *************选择用户相关变量**************
 const selectPeopleVisible = ref(false); // 是否展示弹窗
-const selectedUsers = ref([]); // 已选用户
+interface User {
+  userId: any;
+  userName: any;
+  realName: any;
+}
+const selectedUsers = ref<User[]>([]); // 已选用户
 const selectPeopleKey = ref(''); // 弹窗标识
 
 // 初始化数据
@@ -81,12 +88,40 @@ const initData = () => {
   const newFormData: Record<string, any> = {};
   // 遍历 formConfig 初始化所有字段
   props.formConfig.forEach((item: any) => {
-    newFormData[item.name] =
-      item.type === 'uploadImg'
-        ? props.formInfo[item.name] || [] // 优先用传入值，否则空数组
-        : (props.formInfo[item.name] ?? null);
+    // 处理上传图片回显
+    if (item.type === 'uploadImg') {
+      if (Array.isArray(props.formInfo[item.name])) {
+        // 已经是数组格式
+        newFormData[item.name] = props.formInfo[item.name].map((url: any) => ({
+          url: url.startsWith('http')
+            ? url
+            : `${import.meta.env.VITE_API_BASE}${url}`,
+          status: 'success',
+          name: url.split('/').pop(),
+        }));
+      } else if (props.formInfo[item.name]) {
+        // 字符串逗号格式
+        newFormData[item.name] = props.formInfo[item.name]
+          .split(',')
+          .map((url: any) => ({
+            url: url.startsWith('http')
+              ? url
+              : `${import.meta.env.VITE_API_BASE}${url}`,
+            status: 'success',
+            name: url.split('/').pop(),
+          }));
+      } else {
+        newFormData[item.name] = [];
+      }
+    } else {
+      newFormData[item.name] = props.formInfo[item.name] ?? null;
+    }
   });
   newFormData.id = props.formInfo.id || '';
+  // 确保 selectedUsers 被正确赋值
+  if (props.formInfo.selectedUsers) {
+    newFormData.selectedUsers = props.formInfo.selectedUsers;
+  }
   // 替换整个 formData 对象
   Object.keys(formData).forEach((key) => delete formData[key]);
   Object.assign(formData, newFormData);
@@ -105,6 +140,7 @@ const clearFormData = async () => {
 // 关闭弹窗
 const closeDialog = async () => {
   await clearFormData();
+  dialogImageUrl.value = '';
   emit('close');
 };
 
@@ -113,7 +149,7 @@ const confirm = async () => {
   try {
     const valid = await formRef.value.validate();
     if (valid) {
-      //回调返回： 标题、表单数据
+      // 回调返回： 标题、表单数据
       emit('confirm', props.title, formData);
     }
   } catch (error) {
@@ -162,8 +198,9 @@ const handleSuccess = (response: any, file: any, item: any) => {
   console.log('file', file);
   if (response.data) {
     ElMessage.success('上传成功');
-    file.url = import.meta.env.VITE_API_BASE + '/api' + response.data; // 将返回的URL绑定到文件对象
+    file.url = `${import.meta.env.VITE_API_BASE}/api${response.data}`; // 将返回的URL绑定到文件对象
   }
+  console.log('yyyy', formData);
 };
 
 // 上传失败处理
@@ -177,8 +214,11 @@ const handleExceed = () => {
 };
 
 // 打开选择用户弹窗
-const openSelectPeopleDialog = (key: String) => {
+const openSelectPeopleDialog = (key: string) => {
   selectPeopleKey.value = key;
+  if (formData.selectedUsers) {
+    selectedUsers.value = formData.selectedUsers[key];
+  }
   selectPeopleVisible.value = true;
 };
 
@@ -194,7 +234,7 @@ const confirmUserDialog = async (val: any) => {
   selectedUsers.value = val;
   selectPeopleVisible.value = false;
   formData[selectPeopleKey.value] = val.map((item: any) => item.realName);
-  //回调返回：字段名、已选用户
+  // 回调返回：字段名、已选用户
   emit('selectedUser', selectPeopleKey.value, selectedUsers.value);
 };
 
