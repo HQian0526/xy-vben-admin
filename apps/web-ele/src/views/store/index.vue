@@ -212,7 +212,7 @@ const editConfig = reactive([
   {
     label: $t('global.createdTime'),
     name: 'createdTime',
-    type: 'input',
+    type: 'date',
     readonly: false,
   },
   {
@@ -250,7 +250,7 @@ const editConfig = reactive([
   {
     label: $t('global.store.expirationTime'),
     name: 'storeTime',
-    type: 'input',
+    type: 'date',
     readonly: false,
   },
   {
@@ -277,7 +277,7 @@ const editConfig = reactive([
   },
   {
     label: $t('global.store.idCard'),
-    name: 'identityFont',
+    name: 'identityPhoto',
     type: 'uploadImg',
     readonly: false,
     span: 16,
@@ -315,6 +315,10 @@ const editRules = reactive({
     },
   ],
 });
+
+// 选人相关
+const selectedUsers = reactive({});
+
 // 点击展开收起
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
@@ -375,13 +379,21 @@ const closeDialog = () => {
 };
 
 // 确定编辑弹窗
-const confirmDialog = async (title: string, data: any) => {
+const confirmDialog = async (title: string, data: any, ) => {
   console.log('title', title);
   console.log('data', data);
+  let obj = {
+    // 营业执照
+    businessLicense: data.businessLicense.map((item: any) => item.url).join(','),
+    // 负责人
+    userId: selectedUsers.userName.map((item: any) => item.userId).join(','),
+    // 身份证正面
+    identityPhoto: data.identityPhoto.map((item: any) => item.url).join(','),
+  };
   try {
     const res =
       title === $t('global.btn.add')
-        ? await addStoreApi(data)
+        ? await addStoreApi({ ...data, ...obj })
         : await editStoreApi(data);
     if (res.code === 200) {
       ElMessage({
@@ -464,6 +476,13 @@ const getStoreList = async (form: any = undefined) => {
   }
 };
 
+// 获取弹窗已选用户列表
+const selectedUser = (key: string, value: any) => {
+  console.log('key', key);
+  console.log('value', value);
+  selectedUsers[key] = value;
+}
+
 onMounted(() => {
   getStoreList(); // 获取商户列表
 });
@@ -513,6 +532,7 @@ onMounted(() => {
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
+      @selectedUser="selectedUser"
     />
   </div>
 </template>

@@ -56,6 +56,8 @@ const emit = defineEmits<{
   (e: 'close'): void;
   // 确认提交
   (e: 'confirm', title: string, formData: any): void;
+  // 选择用户
+  (e: 'selectedUser', key: string, val: any): void;
 }>();
 
 const formRef = ref<InstanceType<typeof ElForm>>(); // 表单引用
@@ -111,6 +113,7 @@ const confirm = async () => {
   try {
     const valid = await formRef.value.validate();
     if (valid) {
+      //回调返回： 标题、表单数据
       emit('confirm', props.title, formData);
     }
   } catch (error) {
@@ -191,6 +194,8 @@ const confirmUserDialog = async (val: any) => {
   selectedUsers.value = val;
   selectPeopleVisible.value = false;
   formData[selectPeopleKey.value] = val.map((item: any) => item.realName);
+  //回调返回：字段名、已选用户
+  emit('selectedUser', selectPeopleKey.value, selectedUsers.value);
 };
 
 watch(
