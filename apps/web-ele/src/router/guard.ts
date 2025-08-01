@@ -100,16 +100,27 @@ function setupAccessGuard(router: Router) {
     const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
     const userRoles = userInfo.roles ?? [];
 
-    // 生成菜单和路由
-    const { accessibleMenus, accessibleRoutes } = await generateAccess({
-      roles: userRoles, // 登录接口成功后会立马查询该用户的权限list存入vuex
-      router, // Vue Router 实例不用管
-      // 则会在菜单中显示，但是访问会被重定向到403
-      routes: accessRoutes, // ./modules/下的所有路由
-    });
-    // 保存菜单信息和路由信息
-    accessStore.setAccessMenus(accessibleMenus);
-    accessStore.setAccessRoutes(accessibleRoutes);
+    if (!accessStore.isAccessChecked) {
+      // 清除旧路由
+      const currentRoutes = router.getRoutes();
+      currentRoutes.forEach((route) => {
+        if (route.name && !coreRouteNames.includes(route.name as string)) {
+          router.removeRoute(route.name);
+        }
+      });
+      // 再生成新路由和菜单
+      const { accessibleMenus, accessibleRoutes } = await generateAccess({
+        roles: userRoles, // 登录接口成功后会立马查询该用户的权限list存入vuex
+        router, // Vue Router 实例不用管
+        // 则会在菜单中显示，但是访问会被重定向到403
+        routes: accessRoutes, // ./modules/下的所有路由
+      });
+
+      // 保存菜单信息和路由信息
+      accessStore.setAccessMenus(accessibleMenus);
+      accessStore.setAccessRoutes(accessibleRoutes);
+    }
+
     accessStore.setIsAccessChecked(true);
     const redirectPath = (from.query.redirect ??
       (to.path === preferences.app.defaultHomePath
