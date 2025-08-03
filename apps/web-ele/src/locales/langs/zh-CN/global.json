@@ -69,6 +69,7 @@
     "exitfullscreen": "退出全屏",
     "lock": "冻结",
     "unlock": "解冻",
+    "normal": "正常",
     "expand": "展开",
     "collapse": "收起",
     "expandMore": "展开更多功能",
@@ -151,5 +152,13 @@
     "businessLicense": "营业执照",
     "remark": "备注",
     "idCard": "身份证"
+  },
+  "area": {
+    "areaName": "区域名称",
+    "areaCode": "编码",
+    "areaStatus": "状态",
+    "remark": "备注",
+    "areaPhoto": "区域照片",
+    "useCompany": "对应商户"
   }
 }

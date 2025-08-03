@@ -69,6 +69,7 @@
     "exitfullscreen": "exitfullscreen",
     "lock": "lock",
     "unlock": "unlock",
+    "normal": "normal",
     "expand": "expand",
     "collapse": "collapse",
     "expandMore": "expand more",
@@ -151,5 +152,13 @@
     "businessLicense": "Business License",
     "remark": "remark",
     "idCard": "idCard"
+  },
+  "area": {
+    "areaName": "area name",
+    "areaCode": "code",
+    "areaStatus": "status",
+    "remark": "remark",
+    "areaPhoto": "aream photo",
+    "useCompany": "using store"
   }
 }

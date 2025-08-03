@@ -325,7 +325,7 @@ watch(
                 <ElOption
                   v-for="(itemSelect, indexSelect) in item.options"
                   :label="itemSelect.label"
-                  :value="itemSelect.value"
+                  :value="Number(itemSelect.value)"
                   :key="indexSelect"
                 />
               </ElSelect>

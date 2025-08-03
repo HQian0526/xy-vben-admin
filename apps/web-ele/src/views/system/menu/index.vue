@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { Plus, Refresh } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+
+import { Plus, Refresh } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { addMenuApi, deleteMenuApi, editMenuApi, getMenuListApi } from '#/api';
 import Edit from '#/components/edit/index.vue';
@@ -41,7 +42,7 @@ const tableConfig = reactive({
       },
     },
     {
-      prop: 'linkUrl',
+      prop: 'path',
       label: $t('global.menu.linkUrl'),
       filter: (value: any) => {
         return value || '--';
@@ -130,7 +131,7 @@ const editConfig = reactive([
       filter: () => {
         window.open('https://icones.js.org/');
       },
-    }
+    },
   },
   {
     label: $t('global.menu.sort'),
@@ -335,8 +336,8 @@ onMounted(() => {
     <el-card>
       <div class="button-group">
         <el-button type="success" :icon="Refresh" @click="handleRefresh">
-            {{ $t('global.btn.refresh') }}
-          </el-button>
+          {{ $t('global.btn.refresh') }}
+        </el-button>
         <el-button type="success" :icon="Plus" @click="handleAdd">
           {{ $t('global.btn.add') }}
         </el-button>

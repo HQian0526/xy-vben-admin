@@ -8,10 +8,9 @@ import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
-  addAreaApi,
-  deleteAreaApi,
-  editAreaApi,
-  getAreaListApi,
+  addStoreApi,
+  deleteStoreApi,
+  editStoreApi,
   getStoreListApi,
 } from '#/api';
 import Edit from '#/components/edit/index.vue';
@@ -30,20 +29,24 @@ const pageInfo = reactive({
 const tableConfig = reactive({
   list: [
     {
-      prop: 'areaId',
-      label: $t('global.area.areaCode'),
-    },
-    {
-      prop: 'areaName',
-      label: $t('global.area.areaName'),
+      prop: 'storeId',
+      label: $t('global.store.storeCode'),
     },
     {
       prop: 'storeName',
-      label: $t('global.area.useCompany'),
+      label: $t('global.store.storeName'),
     },
     {
-      prop: 'remark',
-      label: $t('global.area.remark'),
+      prop: 'address',
+      label: $t('global.store.storeAddress'),
+    },
+    {
+      prop: 'realName',
+      label: $t('global.store.storeManager'),
+    },
+    {
+      prop: 'identityPhone',
+      label: $t('global.store.storePhone'),
     },
     {
       prop: 'createdTime',
@@ -53,8 +56,24 @@ const tableConfig = reactive({
       },
     },
     {
+      prop: 'storeTime',
+      label: $t('global.store.expirationTime'),
+      filter: (value: any) => {
+        return value ? value.slice(0, 10) : '';
+      },
+    },
+    {
+      prop: 'storeType',
+      label: $t('global.store.storeType'),
+      filter: (value: any) => {
+        return value === 1
+          ? $t('global.store.forever')
+          : $t('global.store.rent');
+      },
+    },
+    {
       prop: 'deleted',
-      label: $t('global.area.areaStatus'),
+      label: $t('global.store.storeStatus'),
       filter: (value: any) => {
         return value ? $t('global.store.lock') : $t('global.store.normal');
       },
@@ -94,90 +113,219 @@ const formConfig = reactive({
   list: [
     {
       type: 'input',
-      prop: 'areaName',
-      label: $t('global.area.areaName'),
+      prop: 'storeName',
+      label: $t('global.store.storeName'),
       value: '',
-      placeholder: `${$t('global.pleaseEnter')}${$t('global.area.areaName')}`,
+      placeholder: `${$t('global.pleaseEnter')}${$t('global.store.storeName')}`,
     },
     {
-      type: 'input',
-      prop: 'remark',
-      label: $t('global.area.remark'),
+      type: 'select',
+      prop: 'storeType',
+      label: $t('global.store.storeType'),
       value: '',
-      placeholder: `${$t('global.pleaseEnter')}${$t('global.area.remark')}`,
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.store.storeType')}`,
+      options: [
+        {
+          label: $t('global.store.forever'),
+          value: '1',
+        },
+        {
+          label: $t('global.store.rent'),
+          value: '2',
+        },
+      ],
     },
     {
       type: 'select',
       prop: 'deleted',
-      label: $t('global.area.areaStatus'),
+      label: $t('global.store.storeStatus'),
       value: '',
-      placeholder: `${$t('global.pleaseSelect')}${$t('global.area.areaStatus')}`,
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.store.storeStatus')}`,
       options: [
         {
-          label: $t('global.btn.normal'),
+          label: $t('global.store.normal'),
           value: '0',
         },
         {
-          label: $t('global.btn.lock'),
+          label: $t('global.store.lock'),
           value: '1',
         },
       ],
     },
   ],
 });
+// 选人相关
+const selectedUsers = reactive({}); // 选人组件回调
+const selectedPeople = ref({
+  realName: [],
+}); // 传给选人组件
 //* *************edit相关变量**************
-const storeDict = ref([]); // 商户下拉
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
 const formInfo = ref({}); // 弹窗其他信息
 // 弹窗表单配置
 const editConfig = reactive([
   {
-    label: $t('global.area.areaCode'),
-    name: 'areaId',
-    type: 'input',
-    span: 24,
-  },
-  {
-    label: $t('global.area.areaName'),
-    name: 'areaName',
-    type: 'input',
-    span: 24,
-  },
-  {
-    label: $t('global.area.useCompany'),
+    label: $t('global.store.storeCode'),
     name: 'storeId',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.storeName'),
+    name: 'storeName',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.storeManager'),
+    name: 'realName',
+    type: 'selectPeople',
+    readonly: false,
+    append: {
+      label: $t('global.select'),
+    },
+    options: selectedPeople.value.realName,
+  },
+  {
+    label: $t('global.store.storePhone'),
+    name: 'identityPhone',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.businessName'),
+    name: 'identityCompanyName',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.storeEmail'),
+    name: 'identityEmail',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.businessOwner'),
+    name: 'identityName',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.idCardNo'),
+    name: 'identityNo',
+    type: 'input',
+    readonly: false,
+  },
+  {
+    label: $t('global.createdTime'),
+    name: 'createdTime',
+    type: 'date',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.storeStatus'),
+    name: 'deleted',
     type: 'select',
-    options: storeDict,
+    readonly: false,
+    options: [
+      {
+        label: $t('global.store.normal'),
+        value: 0,
+      },
+      {
+        label: $t('global.store.lock'),
+        value: 1,
+      },
+    ],
+  },
+  {
+    label: $t('global.store.storeType'),
+    name: 'storeType',
+    type: 'select',
+    readonly: false,
+    options: [
+      {
+        label: $t('global.store.forever'),
+        value: 1,
+      },
+      {
+        label: $t('global.store.rent'),
+        value: 2,
+      },
+    ],
+  },
+  {
+    label: $t('global.store.expirationTime'),
+    name: 'storeTime',
+    type: 'date',
+    readonly: false,
+  },
+  {
+    label: $t('global.store.storeAddress'),
+    name: 'address',
+    type: 'textarea',
+    readonly: false,
     span: 24,
   },
   {
-    label: $t('global.area.remark'),
+    label: $t('global.store.remark'),
     name: 'remark',
     type: 'textarea',
+    readonly: false,
     span: 24,
   },
   {
-    label: $t('global.area.areaPhoto'),
-    name: 'areaPhoto',
+    label: $t('global.store.businessLicense'),
+    name: 'businessLicense',
     type: 'uploadImg',
-    span: 24,
+    readonly: false,
+    span: 8,
     limit: 1,
+  },
+  {
+    label: $t('global.store.idCard'),
+    name: 'identityPhoto',
+    type: 'uploadImg',
+    readonly: false,
+    span: 16,
+    limit: 2,
   },
 ]);
 // 弹窗表单校验规则
 const editRules = reactive({
-  areaId: [
+  storeId: [
     {
       required: true,
-      message: $t('global.area.areaCode') + $t('global.required'),
+      message: $t('global.store.storeCode') + $t('global.required'),
       trigger: 'blur',
     },
   ],
-  areaName: [
+  storeName: [
     {
       required: true,
-      message: $t('global.area.areaName') + $t('global.required'),
+      message: $t('global.store.storeName') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  realName: [
+    {
+      required: true,
+      message: $t('global.store.storeManager') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  identityNo: [
+    {
+      required: true,
+      message: $t('global.store.idCardNo') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  address: [
+    {
+      required: true,
+      message: $t('global.store.storeAddress') + $t('global.required'),
       trigger: 'blur',
     },
   ],
@@ -190,7 +338,7 @@ const toggleCollapse = () => {
 
 const search = (form: any) => {
   console.log('form', form);
-  getAreaList(form);
+  getStoreList(form);
 };
 
 const reset = (form: any) => {
@@ -198,7 +346,7 @@ const reset = (form: any) => {
   formConfig.list.forEach((item) => {
     item.value = null;
   });
-  getAreaList(form);
+  getStoreList(form);
 };
 
 // 点击操作列按钮
@@ -210,8 +358,17 @@ const handleClick = (row: any, label: string) => {
     case $t('global.btn.edit'): {
       // 编辑
       formTitle.value = label;
+      // 处理选人逻辑
+      selectedPeople.value.realName = [];
+      selectedPeople.value.realName.push({
+        userId: row.userId,
+        userName: row.userName,
+        realName: row.realName,
+      });
+      selectedUsers.realName = selectedPeople.value.realName;
       formInfo.value = {
         ...row,
+        selectedUsers: { realName: selectedPeople.value.realName },
       }; // 确保是新的对象引用
       itemVisible.value = true;
       break;
@@ -234,14 +391,14 @@ const handleClick = (row: any, label: string) => {
 const handleCurrentChange = (currentPage: number) => {
   console.log('currentPage', currentPage);
   pageInfo.pageNum = currentPage;
-  getAreaList();
+  getStoreList();
 };
 
 // 表格分页大小
 const handleSizeChange = (pageSize: number) => {
   console.log('pageSize', pageSize);
   pageInfo.pageSize = pageSize;
-  getAreaList();
+  getStoreList();
 };
 
 // 关闭编辑弹窗
@@ -255,19 +412,29 @@ const confirmDialog = async (title: string, data: any) => {
   console.log('data', data);
   const obj = {
     // 营业执照
-    areaPhoto: data.areaPhoto.map((item: any) => item.url).join(','),
+    businessLicense: data.businessLicense
+      .map((item: any) => item.url)
+      .join(','),
+    // 负责人
+    userId: selectedUsers.realName.map((item: any) => item.userId).join(','),
+    // 身份证正面
+    identityPhoto: data.identityPhoto.map((item: any) => item.url).join(','),
+    userName: null,
+    realName: Array.isArray(data.realName)
+      ? data.realName.join(',')
+      : data.realName,
   };
   try {
     const res =
       title === $t('global.btn.add')
-        ? await addAreaApi({ ...data, ...obj })
-        : await editAreaApi({ ...data, ...obj });
+        ? await addStoreApi({ ...data, ...obj })
+        : await editStoreApi({ ...data, ...obj });
     if (res.code === 200) {
       ElMessage({
         type: 'success',
         message: $t('global.message.success'),
       });
-      getAreaList();
+      getStoreList();
       itemVisible.value = false;
     } else {
       ElMessage({
@@ -294,14 +461,14 @@ const handleAlive = (row: any) => {
       cancelButtonText: $t('global.btn.cancel'),
       type: 'warning',
     }).then(async () => {
-      const res = await editAreaApi({ id: row.id, deleted: 0 });
+      const res = await editStoreApi({ id: row.id, deleted: 0 });
       console.log('res', res);
       if (res.code === 200) {
         ElMessage({
           type: 'success',
           message: $t('global.message.success'),
         });
-        getAreaList();
+        getStoreList();
       } else {
         ElMessage({
           type: 'error',
@@ -323,14 +490,14 @@ const handleDelete = (row: any) => {
       cancelButtonText: $t('global.btn.cancel'),
       type: 'warning',
     }).then(async () => {
-      const res = await deleteAreaApi([row.id]);
+      const res = await deleteStoreApi([row.id]);
       console.log('res', res);
       if (res.code === 200) {
         ElMessage({
           type: 'success',
           message: $t('global.message.success'),
         });
-        getAreaList();
+        getStoreList();
       } else {
         ElMessage({
           type: 'error',
@@ -343,8 +510,8 @@ const handleDelete = (row: any) => {
   }
 };
 
-// 获取区域列表
-const getAreaList = async (form: any = undefined) => {
+// 获取商户列表
+const getStoreList = async (form: any = undefined) => {
   const obj = {
     ...form,
     pageNum: pageInfo.pageNum,
@@ -352,7 +519,7 @@ const getAreaList = async (form: any = undefined) => {
   };
   try {
     isLoading.value = true;
-    const res = await getAreaListApi(obj);
+    const res = await getStoreListApi(obj);
     if (res.code === 200) {
       // 正确的方式：先清空数组再添加新数据
       list.length = 0; // 清空数组但保持响应性
@@ -372,29 +539,15 @@ const getAreaList = async (form: any = undefined) => {
   }
 };
 
-// 获取商户列表
-const getStoreList = async () => {
-  try {
-    const res = await getStoreListApi({ pageSize: 9999, pageNum: 1 });
-    if (res.code === 200) {
-      storeDict.value = res.data.list.map((item: any) => ({
-        label: item.storeName,
-        value: String(item.storeId),
-      }));
-    } else {
-      ElMessage({
-        type: 'error',
-        message: $t('global.message.error'),
-      });
-    }
-  } catch (error) {
-    console.log(error);
-  }
+// 获取弹窗已选用户列表
+const selectedUser = (key: string, value: any) => {
+  console.log('key', key);
+  console.log('value', value);
+  selectedUsers[key] = value;
 };
 
 onMounted(() => {
-  getAreaList(); // 获取区域列表
-  getStoreList(); // 获取商户下拉
+  getStoreList(); // 获取商户列表
 });
 </script>
 
@@ -442,6 +595,7 @@ onMounted(() => {
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
+      @selected-user="selectedUser"
     />
   </div>
 </template>
