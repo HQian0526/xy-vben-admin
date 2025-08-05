@@ -160,5 +160,27 @@
     "remark": "remark",
     "areaPhoto": "aream photo",
     "useCompany": "using store"
+  },
+  "contract": {
+    "contractName": "contract name",
+    "contractNo": "contractno",
+    "contractType": "contract type",
+    "lessorType": "lessor type",
+    "lesseeType": "lessee type",
+    "lessorName": "lessor name",
+    "lesseeName": "lessee name",
+    "startDate": "start date",
+    "endDate": "end date",
+    "totalAmount": "total amount",
+    "paymentCycle": "payment cycle",
+    "contractStatus": "contract status",
+    "signDate": "sign date",
+    "remark": "remark",
+    "leaseContract": "lease contract",
+    "salesContract": "sales contract",
+    "unsigned": "unsigned",
+    "signed": "signed",
+    "expired": "expired",
+    "finished": "finished"
   }
 }

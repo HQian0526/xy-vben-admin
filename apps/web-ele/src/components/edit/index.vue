@@ -291,7 +291,7 @@ watch(
                 v-if="item.type === 'number'"
                 v-model="formData[item.name]"
                 :min="item.min ? item.min : 0"
-                :max="item.max ? item.max : 999"
+                :max="item.max ? item.max : 999999"
                 :readonly="item.readonly ? item.readonly : false"
               />
 

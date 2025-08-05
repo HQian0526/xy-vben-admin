@@ -160,5 +160,27 @@
     "remark": "备注",
     "areaPhoto": "区域照片",
     "useCompany": "对应商户"
+  },
+  "contract": {
+    "contractName": "合同名称",
+    "contractNo": "合同编号",
+    "contractType": "合同类型",
+    "lessorType": "出租方类型",
+    "lesseeType": "承租方类型",
+    "lessorName": "出租方",
+    "lesseeName": "承租方名称",
+    "startDate": "合同开始日期",
+    "endDate": "合同完结日期",
+    "totalAmount": "合同金额",
+    "paymentCycle": "付款周期",
+    "contractStatus": "合同状态",
+    "signDate": "签署日期",
+    "remark": "备注",
+    "leaseContract": "租赁合同",
+    "salesContract": "销售合同",
+    "unsigned": "未签署",
+    "signed": "生效中",
+    "expired": "已到期",
+    "finished": "已终结"
   }
 }

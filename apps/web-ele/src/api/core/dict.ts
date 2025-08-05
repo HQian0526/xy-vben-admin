@@ -1,7 +1,7 @@
 import { requestClient } from '#/api/request';
 
 /**
- * 获取角色列表
+ * 获取字典列表
  */
 export async function getDictListApi(param: any) {
   return requestClient.get('/dict/findDict', {
@@ -30,4 +30,11 @@ export async function deleteDictApi(data: any) {
   return requestClient.delete('/dict/deleteDict', {
     data,
   });
+}
+
+/**
+ * 根据编码字典获取字典
+ */
+export async function getDictByCode(key: string) {
+  return requestClient.get(`/dict/findDictByCode/${key}`);
 }
