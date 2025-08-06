@@ -286,6 +286,66 @@ const editRules = reactive({
     },
   ],
 });
+const itemTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同项类型字典
+// 弹窗内表格配置
+const editTableConfig = reactive({
+  list: [
+    {
+      prop: 'index',
+    },
+    {
+      prop: 'itemName',
+      label: $t('global.contract.itemName'),
+      type: 'input',
+    },
+    {
+      prop: 'itemType',
+      label: $t('global.contract.itemType'),
+      type: 'select',
+      options: itemTypeDict,
+    },
+    {
+      prop: 'quantity',
+      label: $t('global.contract.quantity'),
+      type: 'input',
+    },
+    {
+      prop: 'unitPrice',
+      label: $t('global.contract.unitPrice'),
+      type: 'input',
+    },
+    {
+      prop: 'specification',
+      label: $t('global.contract.specification'),
+      type: 'input',
+    },
+    {
+      prop: 'totalPrice',
+      label: $t('global.contract.totalPrice'),
+      type: 'input',
+    },
+    {
+      prop: 'remark',
+      label: $t('global.contract.remark'),
+      type: 'input',
+    },
+    {
+      prop: 'operation',
+      label: $t('global.operation'),
+      fixed: 'right',
+      width: '100px',
+      operations: [
+        {
+          type: 'danger',
+          label: $t('global.btn.delete'),
+          show: true,
+        },
+      ],
+    },
+  ],
+});
+// 弹窗内表格数据
+const editTableList = ref([]);
 
 // 点击展开收起
 const toggleCollapse = () => {
@@ -344,6 +404,8 @@ const handleSizeChange = (pageSize: number) => {
 
 // 关闭编辑弹窗
 const closeDialog = () => {
+  editTableList.value = []; // 使用 ref 时这样清空
+  formInfo.value = {}; // 同时清空表单数据
   itemVisible.value = false;
 };
 
@@ -384,6 +446,7 @@ const confirmDialog = async (title: string, data: any) => {
 const handleAdd = () => {
   formTitle.value = $t('global.btn.add');
   formInfo.value = {}; // 清空表单数据
+  editTableList.value = []; // 明确清空表格数据
   itemVisible.value = true;
 };
 
@@ -446,6 +509,31 @@ const getContractList = async (form: any = undefined) => {
   }
 };
 
+// 点击弹窗内表格操作列按钮
+const editTableClick = (row: any, label: string) => {
+  console.log('row', row);
+  console.log('label', label);
+  if (label === $t('global.btn.delete')) {
+    const index = editTableList.value.indexOf(row);
+    if (index !== -1) {
+      editTableList.value.splice(index, 1);
+    }
+  }
+};
+
+// 弹窗内表格新增项
+const editTableAdd = async () => {
+  editTableList.value.push({
+    itemName: '',
+    itemType: '',
+    quantity: '',
+    unitPrice: '',
+    specification: '',
+    totalPrice: '',
+    remark: '',
+  });
+};
+
 onMounted(async () => {
   // 获取合同类型字典值
   const dict1 = await getDict('contract_type');
@@ -459,6 +547,9 @@ onMounted(async () => {
   // 获取合同状态字典值
   const dict4 = await getDict('contract_status');
   contractStatusDict.splice(0, contractStatusDict.length, ...dict4);
+  // 获取合同项类型字典值
+  const dict5 = await getDict('contract_item_type');
+  itemTypeDict.splice(0, itemTypeDict.length, ...dict5);
   getContractList(); // 获取区域列表
 });
 </script>
@@ -507,7 +598,20 @@ onMounted(async () => {
       :visible="itemVisible"
       @close="closeDialog"
       @confirm="confirmDialog"
-    />
+    >
+      <template #slot>
+        <!-- 弹窗内的表格 -->
+        <el-button type="primary" @click="editTableAdd">
+          {{ $t('global.contract.addContractItem') }}
+        </el-button>
+        <Table
+          :pagination="false"
+          :table-config="editTableConfig"
+          :list="editTableList"
+          @handle-click="editTableClick"
+        />
+      </template>
+    </Edit>
   </div>
 </template>
 

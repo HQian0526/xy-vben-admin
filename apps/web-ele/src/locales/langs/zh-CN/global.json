@@ -181,6 +181,13 @@
     "unsigned": "未签署",
     "signed": "生效中",
     "expired": "已到期",
-    "finished": "已终结"
+    "finished": "已终结",
+    "itemName": "合同项名称",
+    "itemType": "类型",
+    "quantity": "数量",
+    "unitPrice": "单价",
+    "specification": "规格",
+    "totalPrice": "总价",
+    "addContractItem": "新增合同项"
   }
 }

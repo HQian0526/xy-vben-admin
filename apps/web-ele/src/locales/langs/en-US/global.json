@@ -181,6 +181,13 @@
     "unsigned": "unsigned",
     "signed": "signed",
     "expired": "expired",
-    "finished": "finished"
+    "finished": "finished",
+    "itemName": "item name",
+    "itemType": "item type",
+    "quantity": "quantity",
+    "unitPrice": "unit price",
+    "specification": "specification",
+    "totalPrice": "total price",
+    "addContractItem": "add contract item"
   }
 }

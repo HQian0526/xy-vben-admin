@@ -2,11 +2,13 @@
 import { defineEmits, defineProps, reactive } from 'vue';
 
 import {
-ElButton,
-ElInput,
-ElPagination,
-ElTable,
-ElTableColumn
+  ElButton,
+  ElInput,
+  ElPagination,
+  ElTable,
+  ElTableColumn,
+  ElSelect,
+  ElOption
 } from 'element-plus';
 
 const props = defineProps({
@@ -87,6 +89,32 @@ const handleSizeChange = (pageSize: number) => {
           :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
           <template #default="scope">
             <ElInput v-model="scope.row[item.prop]" />
+          </template>
+        </ElTableColumn>
+        <!-- 表格内select下拉框编辑列 -->
+        <ElTableColumn v-else-if="item.type && item.type === 'select'" :prop="item.prop" :label="item.label"
+          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+          <template #default="scope">
+            <ElSelect
+                v-model="scope.row[item.prop]"
+                :placeholder="$t('global.pleaseSelect')"
+                style="width: 100%"
+              >
+                <ElOption
+                  v-for="(itemSelect, indexSelect) in item.options"
+                  :label="itemSelect.label"
+                  :value="Number(itemSelect.value)"
+                  :key="indexSelect"
+                />
+              </ElSelect>
+          </template>
+        </ElTableColumn>
+        <!-- 表格内数字输入框编辑列 -->
+        <ElTableColumn v-else-if="item.type && item.type === 'number'" :prop="item.prop" :label="item.label"
+          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+          <template #default="scope">
+            <el-input-number v-model="scope.row[item.prop]" :min="item.min ? item.min : 0"
+              :max="item.max ? item.max : 999999" />
           </template>
         </ElTableColumn>
         <!-- 操作列 -->

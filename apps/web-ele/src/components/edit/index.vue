@@ -254,8 +254,8 @@ watch(
   <ElDialog
     v-model="props.visible"
     :title="props.title"
-    top="10%"
-    width="750px"
+    top="5%"
+    width="70%"
     :append-to-body="true"
     :close-on-click-modal="false"
     @close="closeDialog"
