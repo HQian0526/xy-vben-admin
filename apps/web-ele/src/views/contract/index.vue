@@ -168,6 +168,7 @@ const paymentCycleDict = reactive<Array<{ label: string; value: any }>>([]); // 
 const lesseeTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 承租方类型字典
 const contractStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 合同状态字典
 // 弹窗表单配置
+const editForm = ref(null); // 创建 ref
 const editConfig = reactive([
   {
     label: $t('global.contract.contractName'),
@@ -345,7 +346,16 @@ const editTableConfig = reactive({
   ],
 });
 // 弹窗内表格数据
-const editTableList = ref([]);
+interface TableItem {
+  itemName: string;
+  itemType: string;
+  quantity: string;
+  unitPrice: string;
+  specification: string;
+  totalPrice: string;
+  remark: string;
+}
+const editTableList = ref<TableItem[]>([]);
 
 // 点击展开收起
 const toggleCollapse = () => {
@@ -439,7 +449,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 新增
@@ -479,7 +489,7 @@ const handleDelete = (row: any) => {
   }
 };
 
-// 获取区域列表
+// 获取合同列表
 const getContractList = async (form: any = undefined) => {
   const obj = {
     ...form,
@@ -523,6 +533,12 @@ const editTableClick = (row: any, label: string) => {
 
 // 弹窗内表格新增项
 const editTableAdd = async () => {
+  if (!formInfo.contractNo) {
+    return ElMessage({
+      type: 'warning',
+      message: $t('global.message.pleaseSaveContractFirst'),
+    });
+  }
   editTableList.value.push({
     itemName: '',
     itemType: '',
@@ -532,6 +548,38 @@ const editTableAdd = async () => {
     totalPrice: '',
     remark: '',
   });
+};
+
+// 弹窗内表格新增项
+const editTableSave = async () => {
+  let valid = editForm.value.validateForm();
+  if (!valid) return;
+  // 接口所需其他字段
+  const obj = {
+    // 出租方类型
+    lessorType: Number(import.meta.env.VITE_CONTRACT_LESSOR_TYPE),
+    // 出租方名称
+    lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
+  };
+  console.log('obj', obj);
+  try {
+    const res =
+      formTitle.value
+        === $t('global.btn.add')
+        ? await addContractApi({ ...formInfo, ...obj })
+        : await editContractApi({ ...formInfo, ...obj });
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
+    }
+  } catch { }
 };
 
 onMounted(async () => {
@@ -550,10 +598,10 @@ onMounted(async () => {
   // 获取合同项类型字典值
   const dict5 = await getDict('contract_item_type');
   itemTypeDict.splice(0, itemTypeDict.length, ...dict5);
-  getContractList(); // 获取区域列表
+  getContractList(); // 获取合同列表
 });
 </script>
-
+  
 <template>
   <div v-loading="isLoading" class="pd5">
     <el-card>
@@ -563,8 +611,8 @@ onMounted(async () => {
           <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
-                ? $t('global.btn.expandMore')
-                : $t('global.btn.collapseMore')
+              ? $t('global.btn.expandMore')
+              : $t('global.btn.collapseMore')
             }}
           </el-button>
 
@@ -578,38 +626,17 @@ onMounted(async () => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange"
-        @handle-size-change="handleSizeChange"
-      />
+      <Table :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
     </el-card>
     <!-- 编辑弹窗 -->
-    <Edit
-      ref="editForm"
-      label-width="120px"
-      :form-config="editConfig"
-      :form-rules="editRules"
-      :title="formTitle"
-      :form-info="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    >
+    <Edit ref="editForm" label-width="120px" :form-config="editConfig" :form-rules="editRules" :title="formTitle"
+      :form-info="formInfo" :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog">
       <template #slot>
         <!-- 弹窗内的表格 -->
-        <el-button type="primary" @click="editTableAdd">
-          {{ $t('global.contract.addContractItem') }}
-        </el-button>
-        <Table
-          :pagination="false"
-          :table-config="editTableConfig"
-          :list="editTableList"
-          @handle-click="editTableClick"
-        />
+        <el-button type="primary" @click="editTableSave">{{ $t('global.contract.saveContractInfo') }}</el-button>
+        <el-button type="primary" @click="editTableAdd">{{ $t('global.contract.addContractItem') }}</el-button>
+        <Table :pagination="false" :table-config="editTableConfig" :list="editTableList" @handle-click="editTableClick" />
       </template>
     </Edit>
   </div>

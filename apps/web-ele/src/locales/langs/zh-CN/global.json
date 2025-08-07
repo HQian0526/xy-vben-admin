@@ -45,7 +45,8 @@
     "noPermission": "无权限访问",
     "getMenuError": "获取菜单失败",
     "getUserInfoErr": "获取用户信息失败",
-    "onlyOneUser": "只能选择一个用户"
+    "onlyOneUser": "只能选择一个用户",
+    "pleaseSaveContractFirst": "请先保存合同基础信息"
   },
   "btn": {
     "add": "添加",
@@ -188,6 +189,7 @@
     "unitPrice": "单价",
     "specification": "规格",
     "totalPrice": "总价",
-    "addContractItem": "新增合同项"
+    "addContractItem": "新增合同项",
+    "saveContractInfo": "保存基本信息"
   }
 }

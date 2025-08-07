@@ -45,7 +45,8 @@
     "noPermission": "no permission",
     "getMenuError": "get menu error",
     "getUserInfoErr": "get user info error",
-    "onlyOneUser": "only choose one user"
+    "onlyOneUser": "only choose one user",
+    "pleaseSaveContractFirst": "please save contract first"
   },
   "btn": {
     "add": "add",
@@ -188,6 +189,7 @@
     "unitPrice": "unit price",
     "specification": "specification",
     "totalPrice": "total price",
-    "addContractItem": "add contract item"
+    "addContractItem": "add contract item",
+    "saveContractInfo": "save contract info"
   }
 }
