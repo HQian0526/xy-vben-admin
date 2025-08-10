@@ -148,6 +148,21 @@ const editConfig = reactive([
     name: 'componentPath',
     type: 'input',
   },
+  {
+    label: $t('global.menu.isShow'),
+    name: 'isShow',
+    type: 'radio',
+    options: [
+      {
+        label: '是',
+        value: 1,
+      },
+      {
+        label: '否',
+        value: 0,
+      },
+    ],
+  },
 ]);
 // 弹窗表单校验规则
 const editRules = reactive({

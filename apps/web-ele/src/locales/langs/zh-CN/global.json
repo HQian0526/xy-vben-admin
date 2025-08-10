@@ -127,7 +127,8 @@
     "munu": "菜单",
     "button": "按钮",
     "componentPath": "组件路径",
-    "copyIcon": "选择图标"
+    "copyIcon": "选择图标",
+    "isShow": "是否展示"
   },
   "store": {
     "storeName": "商户名称",

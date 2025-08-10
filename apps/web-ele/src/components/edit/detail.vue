@@ -3,19 +3,6 @@
 import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
 
 import { Plus } from '@element-plus/icons-vue';
-import {
-  ElButton,
-  ElCol,
-  ElDatePicker,
-  ElDialog,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElMessage,
-  ElOption,
-  ElRow,
-  ElSelect,
-} from 'element-plus';
 
 import SelectPeople from '#/components/selectPeople/index.vue';
 import { $t } from '#/locales';
@@ -246,7 +233,7 @@ const validateForm = () => {
 };
 
 defineExpose({
-  validateForm, // 暴露方法
+  validateForm // 暴露方法
 });
 
 watch(
@@ -262,8 +249,7 @@ watch(
 </script>
 
 <template>
-  <ElDialog v-model="props.visible" :title="props.title" top="5%" width="70%" :append-to-body="true"
-    :close-on-click-modal="false" @close="closeDialog">
+  <div>
     <ElForm ref="formRef" :model="formData" :label-width="labelWidth ? labelWidth : '80px'" :rules="props.formRules">
       <ElRow :gutter="20">
         <template v-for="(item, index) in props.formConfig" :key="index">
@@ -298,16 +284,15 @@ watch(
                   :value="Number(itemSelect.value)" :key="indexSelect" />
               </ElSelect>
               <el-radio-group v-if="item.type === 'radio'" v-model="formData[item.name]">
-                <el-radio v-for="(itemRadio, indexRadio) in item.options" :key="indexRadio" :value="itemRadio.value">
-                  {{ itemRadio.label }}
-                </el-radio>
+                <el-radio v-for="(itemRadio, indexRadio) in item.options" :key="indexRadio" :value="itemRadio.value">{{
+                  itemRadio.label }}</el-radio>
               </el-radio-group>
               <!-- 树形下拉框 -->
               <el-tree-select v-if="item.type === 'tree'" v-model="formData[item.name]" :data="item.treeConfig.options"
                 :render-after-expand="false" :check-strictly="item.treeConfig.checkStrictly
-                    ? item.treeConfig.checkStrictly
-                    : false
-                " style="width: 100%" />
+                  ? item.treeConfig.checkStrictly
+                  : false
+                  " style="width: 100%" />
               <!-- 选人弹窗 -->
               <ElInput v-if="item.type === 'selectPeople'" readonly
                 :placeholder="`${$t('global.pleaseSelect')}${item.label}`" v-model="formData[item.name]">
@@ -326,8 +311,7 @@ watch(
                 <el-upload v-model:file-list="formData[item.name]" :class="formData[item.name]?.length === item.limit ? 'hide' : ''
                   " :action="uploadAction" :headers="{ Authorization: token }" list-type="picture-card"
                   :limit="item.limit" :on-preview="handlePictureCardPreview" :on-remove="handleRemove"
-                  :on-exceed="handleExceed" :before-upload="beforeUpload" @success="
-                    (response, file) => handleSuccess(response, file, item)
+                  :on-exceed="handleExceed" :before-upload="beforeUpload" @success="(response, file) => handleSuccess(response, file, item)
                   " :on-error="handleError">
                   <el-icon>
                     <Plus />
@@ -355,7 +339,7 @@ watch(
         </div>
       </div>
     </div>
-  </ElDialog>
+  </div>
 
   <!-- 选择用户弹窗 -->
   <SelectPeople :key="selectPeopleKey" :visible="selectPeopleVisible" :selected-users="selectedUsers"

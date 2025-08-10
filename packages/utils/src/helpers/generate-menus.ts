@@ -75,7 +75,7 @@ function generateMenus(
       parent: route.parent,
       parents: route.parents,
       path: resultPath,
-      show: !meta.hideInMenu,
+      show: !meta.hideMenu,
       children: resultChildren,
     };
   });

@@ -12,26 +12,26 @@ const mockRoutes = [
   {
     meta: {
       authority: ['admin', 'user'],
-      hideInMenu: false,
+      hideMenu: false,
     },
     path: '/dashboard',
     children: [
       {
         path: '/dashboard/overview',
-        meta: { authority: ['admin'], hideInMenu: false },
+        meta: { authority: ['admin'], hideMenu: false },
       },
       {
         path: '/dashboard/stats',
-        meta: { authority: ['user'], hideInMenu: true },
+        meta: { authority: ['user'], hideMenu: true },
       },
     ],
   },
   {
-    meta: { authority: ['admin'], hideInMenu: false },
+    meta: { authority: ['admin'], hideMenu: false },
     path: '/settings',
   },
   {
-    meta: { hideInMenu: false },
+    meta: { hideMenu: false },
     path: '/profile',
   },
 ] as RouteRecordRaw[];

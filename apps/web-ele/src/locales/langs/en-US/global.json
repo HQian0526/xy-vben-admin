@@ -127,7 +127,8 @@
     "munu": "munu",
     "button": "button",
     "componentPath": "component path",
-    "copyIcon": "choose icon"
+    "copyIcon": "choose icon",
+    "isShow": "is show"
   },
   "store": {
     "storeName": "Store Name",

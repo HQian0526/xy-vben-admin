@@ -3,6 +3,7 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -18,6 +19,8 @@ import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { getDict } from '#/utils';
+
+const router = useRouter();
 
 const isLoading = ref(false);
 //* *************table相关变量**************
@@ -449,7 +452,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch { }
+  } catch {}
 };
 
 // 新增
@@ -458,6 +461,9 @@ const handleAdd = () => {
   formInfo.value = {}; // 清空表单数据
   editTableList.value = []; // 明确清空表格数据
   itemVisible.value = true;
+  router.push({
+    path: '/contract-detail',
+  });
 };
 
 // 删除
@@ -533,7 +539,7 @@ const editTableClick = (row: any, label: string) => {
 
 // 弹窗内表格新增项
 const editTableAdd = async () => {
-  if (!formInfo.contractNo) {
+  if (!formInfo.value.contractNo) {
     return ElMessage({
       type: 'warning',
       message: $t('global.message.pleaseSaveContractFirst'),
@@ -552,7 +558,7 @@ const editTableAdd = async () => {
 
 // 弹窗内表格新增项
 const editTableSave = async () => {
-  let valid = editForm.value.validateForm();
+  const valid = editForm.value.validateForm();
   if (!valid) return;
   // 接口所需其他字段
   const obj = {
@@ -564,8 +570,7 @@ const editTableSave = async () => {
   console.log('obj', obj);
   try {
     const res =
-      formTitle.value
-        === $t('global.btn.add')
+      formTitle.value === $t('global.btn.add')
         ? await addContractApi({ ...formInfo, ...obj })
         : await editContractApi({ ...formInfo, ...obj });
     if (res.code === 200) {
@@ -579,7 +584,7 @@ const editTableSave = async () => {
         message: res.msg,
       });
     }
-  } catch { }
+  } catch {}
 };
 
 onMounted(async () => {
@@ -601,7 +606,7 @@ onMounted(async () => {
   getContractList(); // 获取合同列表
 });
 </script>
-  
+
 <template>
   <div v-loading="isLoading" class="pd5">
     <el-card>
@@ -611,8 +616,8 @@ onMounted(async () => {
           <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
-              ? $t('global.btn.expandMore')
-              : $t('global.btn.collapseMore')
+                ? $t('global.btn.expandMore')
+                : $t('global.btn.collapseMore')
             }}
           </el-button>
 
@@ -626,17 +631,41 @@ onMounted(async () => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
+      <Table
+        :table-config="tableConfig"
+        :list="list"
+        :total="total"
+        @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange"
+        @handle-size-change="handleSizeChange"
+      />
     </el-card>
     <!-- 编辑弹窗 -->
-    <Edit ref="editForm" label-width="120px" :form-config="editConfig" :form-rules="editRules" :title="formTitle"
-      :form-info="formInfo" :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog">
+    <Edit
+      ref="editForm"
+      label-width="120px"
+      :form-config="editConfig"
+      :form-rules="editRules"
+      :title="formTitle"
+      :form-info="formInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    >
       <template #slot>
         <!-- 弹窗内的表格 -->
-        <el-button type="primary" @click="editTableSave">{{ $t('global.contract.saveContractInfo') }}</el-button>
-        <el-button type="primary" @click="editTableAdd">{{ $t('global.contract.addContractItem') }}</el-button>
-        <Table :pagination="false" :table-config="editTableConfig" :list="editTableList" @handle-click="editTableClick" />
+        <el-button type="primary" @click="editTableSave">
+          {{ $t('global.contract.saveContractInfo') }}
+        </el-button>
+        <el-button type="primary" @click="editTableAdd">
+          {{ $t('global.contract.addContractItem') }}
+        </el-button>
+        <Table
+          :pagination="false"
+          :table-config="editTableConfig"
+          :list="editTableList"
+          @handle-click="editTableClick"
+        />
       </template>
     </Edit>
   </div>

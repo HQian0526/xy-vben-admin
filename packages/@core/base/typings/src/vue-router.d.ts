@@ -58,15 +58,15 @@ interface RouteMeta {
    */
   hideInBreadcrumb?: boolean;
   /**
-   * 当前路由在菜单中不展现
-   * @default false
-   */
-  hideInMenu?: boolean;
-  /**
    * 当前路由在标签页不展现
    * @default false
    */
   hideInTab?: boolean;
+  /**
+   * 当前路由在菜单中不展现
+   * @default false
+   */
+  hideMenu?: boolean;
   /**
    * 图标（菜单/tab）
    */
