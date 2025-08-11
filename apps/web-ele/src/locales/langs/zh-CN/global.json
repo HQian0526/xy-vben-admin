@@ -14,6 +14,7 @@
   "allPeople": "全部人员",
   "choicePeople": "已选人员",
   "devideAuth": "分配权限",
+  "fileModule": "********************文件相关********************",
   "file": {
     "limitSize": "文件大小超过最大限制",
     "limitNum": "上传文件数超过限制",
@@ -22,10 +23,12 @@
     "uploading": "上传中",
     "onlyImage": "只能上传图片"
   },
+  "homeModule": "********************官网相关********************",
   "home": {
     "title": "官网",
     "logo": "公司logo"
   },
+  "tipModule": "********************提示语相关********************",
   "message": {
     "success": "操作成功",
     "error": "操作失败",
@@ -48,6 +51,7 @@
     "onlyOneUser": "只能选择一个用户",
     "pleaseSaveContractFirst": "请先保存合同基础信息"
   },
+  "btnModule": "********************按钮相关********************",
   "btn": {
     "add": "添加",
     "edit": "编辑",
@@ -56,7 +60,7 @@
     "reset": "重置",
     "submit": "提交",
     "cancel": "取消",
-    "confirm": "确认",
+    "confirm": "确定",
     "back": "返回",
     "save": "保存",
     "import": "导入",
@@ -80,8 +84,11 @@
     "devideAuth": "分配权限",
     "addDictItem": "添加字典项",
     "linkTo": "跳转",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "next": "下一步",
+    "previous": "上一步"
   },
+  "userModule": "********************用户管理模块********************",
   "user": {
     "userName": "用户号",
     "realName": "真实姓名",
@@ -103,6 +110,7 @@
     "man": "男",
     "woman": "女"
   },
+  "dictModule": "********************字典管理模块********************",
   "dict": {
     "code": "字典编码",
     "dictName": "字典名称",
@@ -110,10 +118,12 @@
     "key": "数据键",
     "value": "数据值"
   },
+  "roleModule": "********************角色管理模块********************",
   "role": {
     "roleName": "角色名称",
     "remark": "备注"
   },
+  "menuModule": "********************菜单管理模块********************",
   "menu": {
     "menuName": "菜单名称",
     "menuCode": "菜单编码",
@@ -130,6 +140,7 @@
     "copyIcon": "选择图标",
     "isShow": "是否展示"
   },
+  "storeModule": "********************商户管理模块********************",
   "store": {
     "storeName": "商户名称",
     "storeCode": "编码",
@@ -155,6 +166,7 @@
     "remark": "备注",
     "idCard": "身份证"
   },
+  "areaModule": "********************商户管理模块********************",
   "area": {
     "areaName": "区域名称",
     "areaCode": "编码",
@@ -163,6 +175,7 @@
     "areaPhoto": "区域照片",
     "useCompany": "对应商户"
   },
+  "contractModule": "********************合同管理模块********************",
   "contract": {
     "contractName": "合同名称",
     "contractNo": "合同编号",
@@ -173,7 +186,7 @@
     "lesseeName": "承租方名称",
     "startDate": "合同开始日期",
     "endDate": "合同完结日期",
-    "totalAmount": "合同金额",
+    "totalAmount": "合同金额(元)",
     "paymentCycle": "付款周期",
     "contractStatus": "合同状态",
     "signDate": "签署日期",
@@ -187,9 +200,9 @@
     "itemName": "合同项名称",
     "itemType": "类型",
     "quantity": "数量",
-    "unitPrice": "单价",
+    "unitPrice": "单价(元)",
     "specification": "规格",
-    "totalPrice": "总价",
+    "totalPrice": "总价(元)",
     "addContractItem": "新增合同项",
     "saveContractInfo": "保存基本信息"
   }

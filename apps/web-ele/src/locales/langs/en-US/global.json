@@ -80,7 +80,9 @@
     "devideAuth": "devide auth",
     "addDictItem": "add dict item",
     "linkTo": "link to",
-    "refresh": "fresh"
+    "refresh": "fresh",
+    "next": "next",
+    "previous": "previous"
   },
   "user": {
     "userName": "account",
@@ -153,7 +155,8 @@
     "expirationTime": "expiration time",
     "businessLicense": "Business License",
     "remark": "remark",
-    "idCard": "idCard"
+    "idCard": "idCard",
+    "next": "next"
   },
   "area": {
     "areaName": "area name",
@@ -173,7 +176,7 @@
     "lesseeName": "lessee name",
     "startDate": "start date",
     "endDate": "end date",
-    "totalAmount": "total amount",
+    "totalAmount": "total amount(￥)",
     "paymentCycle": "payment cycle",
     "contractStatus": "contract status",
     "signDate": "sign date",
@@ -187,9 +190,9 @@
     "itemName": "item name",
     "itemType": "item type",
     "quantity": "quantity",
-    "unitPrice": "unit price",
+    "unitPrice": "unit price(￥)",
     "specification": "specification",
-    "totalPrice": "total price",
+    "totalPrice": "total price(￥)",
     "addContractItem": "add contract item",
     "saveContractInfo": "save contract info"
   }

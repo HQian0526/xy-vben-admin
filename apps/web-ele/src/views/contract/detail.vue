@@ -3,7 +3,11 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { ElMessage } from 'element-plus';
+
+import { addContractApi } from '#/api';
 import Detail from '#/components/edit/detail.vue';
+import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { getDict } from '#/utils';
 
@@ -18,7 +22,7 @@ const lesseeTypeDict = reactive<Array<{ label: string; value: any }>>([]); // �
 const contractStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 合同状态字典
 const itemTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同项类型字典
 
-const formInfo = ref({}); // 表单1信息
+const formInfo1 = ref({}); // 表单1信息
 // 表单1配置
 const detailForm1 = ref(null); // 创建 ref
 const editConfig1 = reactive([
@@ -140,6 +144,112 @@ const editRules1 = reactive({
   ],
 });
 
+// 第二步表格配置
+const editTableConfig = reactive({
+  list: [
+    {
+      prop: 'index',
+    },
+    {
+      prop: 'itemName',
+      label: $t('global.contract.itemName'),
+      type: 'input',
+    },
+    {
+      prop: 'itemType',
+      label: $t('global.contract.itemType'),
+      type: 'select',
+      options: itemTypeDict,
+    },
+    {
+      prop: 'quantity',
+      label: $t('global.contract.quantity'),
+      type: 'number',
+    },
+    {
+      prop: 'unitPrice',
+      label: $t('global.contract.unitPrice'),
+      type: 'number',
+    },
+    {
+      prop: 'specification',
+      label: $t('global.contract.specification'),
+      type: 'input',
+    },
+    {
+      prop: 'totalPrice',
+      label: $t('global.contract.totalPrice'),
+      type: 'number',
+    },
+    {
+      prop: 'operation',
+      label: $t('global.operation'),
+      fixed: 'right',
+      width: '100px',
+      operations: [
+        {
+          type: 'danger',
+          label: $t('global.btn.delete'),
+          show: true,
+        },
+      ],
+    },
+  ],
+});
+
+// 第二步表格数据
+const editTableList = ref([]);
+
+// 点击下一步/确定
+const handleConfirm = async (title: String, form: any) => {
+  console.log('title', title);
+  console.log('form', form);
+  // 第一步保存合同基本信息
+  if (title === 'step1') {
+    // 接口所需其他字段
+    const obj = {
+      // 出租方类型
+      lessorType: Number(import.meta.env.VITE_CONTRACT_LESSOR_TYPE),
+      // 出租方名称
+      lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
+    };
+    try {
+      const res = await addContractApi({ ...form, ...obj });
+      if (res.code === 200) {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+        if (active.value < 2) {
+          active.value++;
+        }
+      } else {
+        ElMessage({
+          type: 'error',
+          message: res.msg,
+        });
+      }
+    } catch {}
+  }
+};
+
+// 点击第二步表格操作列按钮
+const editTableClick = (row: any, label: string) => {
+  console.log('row', row);
+  console.log('label', label);
+  if (label === $t('global.btn.delete')) {
+    const index = editTableList.value.indexOf(row);
+    if (index !== -1) {
+      editTableList.value.splice(index, 1);
+    }
+  }
+};
+
+// 提交合同项
+const submit = () => {
+  console.log('提交合同');
+};
+
 onMounted(async () => {
   // 获取合同类型字典值
   const dict1 = await getDict('contract_type');
@@ -156,7 +266,7 @@ onMounted(async () => {
   // 获取合同项类型字典值
   const dict5 = await getDict('contract_item_type');
   itemTypeDict.splice(0, itemTypeDict.length, ...dict5);
-  formInfo.value = {}; // 确保是新的对象引用
+  formInfo1.value = {}; // 确保是新的对象引用
 });
 </script>
 
@@ -175,11 +285,35 @@ onMounted(async () => {
     <div class="pd20">
       <Detail
         ref="detailForm1"
+        v-if="active === 0"
         label-width="120px"
+        title="step1"
         :form-config="editConfig1"
         :form-rules="editRules1"
-        :form-info="formInfo"
+        :form-info="formInfo1"
+        :confirm-text="$t('global.btn.next')"
+        @confirm="handleConfirm"
       />
+      <Table
+        v-if="active === 1"
+        :pagination="false"
+        :table-config="editTableConfig"
+        :list="editTableList"
+        @handle-click="editTableClick"
+      />
+      <!-- 底部按钮 -->
+      <div class="bottom-item">
+        <div class="button">
+          <div class="cancel">
+            <ElButton @click="closeDialog">上一步</ElButton>
+          </div>
+          <div class="confirm">
+            <ElButton type="primary" plain @click="submit">
+              {{ $t('global.btn.submit') }}
+            </ElButton>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -193,6 +327,36 @@ onMounted(async () => {
     width: 600px;
     margin: 0 auto;
     margin-top: 20px;
+  }
+}
+
+.bottom-item {
+  width: 100%;
+  margin-top: 20px;
+
+  .button {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .cancel {
+    margin-right: 10px;
+  }
+
+  .confirm {
+    margin-left: 10px;
+
+    .el-button--primary {
+      color: #fff;
+      background: #2278e9 !important;
+      border-color: #2278e9 !important;
+    }
+
+    .el-button--primary:hover {
+      background: #1890ff !important;
+      border-color: #1890ff !important;
+    }
   }
 }
 </style>
