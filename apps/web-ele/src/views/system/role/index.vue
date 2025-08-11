@@ -129,6 +129,7 @@ const userVisible = ref(false); // 是否展示弹窗
 const selectedUsers = ref([]); // 已选用户
 
 //* *************分配权限相关变量**************
+const authKey = ref(Date.now());
 const authVisible = ref(false); // 是否展示弹窗
 const treeData = ref([]); // 权限树形结构数据
 const roleId = ref(null); // 角色id
@@ -159,7 +160,6 @@ const handleClick = (row: any, label: string) => {
     case $t('global.btn.delete'): {
       // 删除
       handleDelete(row);
-
       break;
     }
     case $t('global.btn.devideAuth'): {
@@ -167,15 +167,12 @@ const handleClick = (row: any, label: string) => {
       console.log('devideAuth');
       roleId.value = row.id;
       getRoleMenuChecked(row.id);
-
       break;
     }
     case $t('global.btn.devideUser'): {
       // 分配用户
-      console.log('devideUser', JSON.parse(row.userList));
       devideUserId.value = row.id;
       getUserListByRoleId(row.id);
-
       break;
     }
     case $t('global.btn.edit'): {
@@ -183,7 +180,6 @@ const handleClick = (row: any, label: string) => {
       formTitle.value = label;
       formInfo.value = { ...row }; // 确保是新的对象引用
       itemVisible.value = true;
-
       break;
     }
     // No default
@@ -409,7 +405,8 @@ const getCheckedIds = (treeData) => {
   let checkedIds = [];
 
   treeData.forEach((node) => {
-    if (node.checked) {
+    // 文件夹如果勾了则所有的子项都会勾选，故文件夹类型不参与
+    if (node.checked && node.menuType !== 1) {
       checkedIds.push(node.id);
     }
 
@@ -429,6 +426,7 @@ const getRoleMenuChecked = async (roleId: number) => {
     if (res.code === 200) {
       menuIds.value = getCheckedIds(res.data);
       isLoading.value = false;
+      authKey.value = Date.now();
       authVisible.value = true;
     } else {
       isLoading.value = false;
@@ -505,7 +503,7 @@ onMounted(() => {
       @confirm="confirmUserDialog" />
     <!-- 分配权限弹窗 -->
     <Dialog :visible="authVisible" :title="$t('global.devideAuth')" @close="closeAuthDialog" @confirm="confirmAuthDialog">
-      <AuthTree :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected" />
+      <AuthTree :key="authKey" :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected" />
     </Dialog>
   </div>
 </template>
