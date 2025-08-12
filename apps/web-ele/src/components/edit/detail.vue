@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
 
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Close, Check } from '@element-plus/icons-vue';
 
 import SelectPeople from '#/components/selectPeople/index.vue';
 import { $t } from '#/locales';
@@ -406,10 +406,10 @@ watch(
     <div class="bottom-item">
       <div class="button">
         <div class="cancel">
-          <ElButton @click="closeDialog">取消</ElButton>
+          <ElButton :icon="Close" @click="closeDialog">取消</ElButton>
         </div>
         <div class="confirm">
-          <ElButton type="primary" plain @click="confirm">
+          <ElButton type="primary" :icon="Check" plain @click="confirm">
             {{ props.confirmText }}
           </ElButton>
         </div>

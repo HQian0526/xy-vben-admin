@@ -4,8 +4,8 @@ import { onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { ElMessage } from 'element-plus';
-
-import { addContractApi } from '#/api';
+import { Plus, Back, CircleCheck } from '@element-plus/icons-vue';
+import { addContractApi, addContractItem } from '#/api';
 import Detail from '#/components/edit/detail.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
@@ -14,6 +14,8 @@ import { getDict } from '#/utils';
 const route = useRoute();
 
 const active = ref(0);
+
+const contractNo = ref(null);
 
 // 字典相关
 const contractTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同类型字典
@@ -182,6 +184,11 @@ const editTableConfig = reactive({
       type: 'number',
     },
     {
+      prop: 'remark',
+      label: $t('global.contract.remark'),
+      type: 'input',
+    },
+    {
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
@@ -198,7 +205,17 @@ const editTableConfig = reactive({
 });
 
 // 第二步表格数据
-const editTableList = ref([]);
+const editTableList = ref([
+  {
+    itemName: '',
+    itemType: '',
+    quantity: '',
+    unitPrice: '',
+    specification: '',
+    totalPrice: '',
+    remark: '',
+  }
+]);
 
 // 点击下一步/确定
 const handleConfirm = async (title: String, form: any) => {
@@ -220,6 +237,7 @@ const handleConfirm = async (title: String, form: any) => {
           type: 'success',
           message: $t('global.message.success'),
         });
+        contractNo.value = res.data.contractNo;
         if (active.value < 2) {
           active.value++;
         }
@@ -229,7 +247,7 @@ const handleConfirm = async (title: String, form: any) => {
           message: res.msg,
         });
       }
-    } catch {}
+    } catch { }
   }
 };
 
@@ -246,8 +264,98 @@ const editTableClick = (row: any, label: string) => {
 };
 
 // 提交合同项
-const submit = () => {
+const submit = async () => {
   console.log('提交合同');
+  const valid = validContractItem();
+  if (!valid) return;
+  const obj = {
+    contractNo: contractNo.value,
+    items: editTableList.value,
+  }
+  try {
+    const res = await addContractItem(obj);
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.saveSuccess'),
+      });
+      active.value++;
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg,
+      });
+    }
+  } catch { }
+};
+
+// 表格新增项
+const addItem = async () => {
+  const valid = validContractItem();
+  if (!valid) return;
+  editTableList.value.push({
+    itemName: '',
+    itemType: '',
+    quantity: '',
+    unitPrice: '',
+    specification: '',
+    totalPrice: '',
+    remark: '',
+  });
+};
+
+const previous = () => {
+  if (active.value > 0) {
+    active.value--;
+  }
+};
+
+// 校验合同项输入
+const validContractItem = () => {
+  if (editTableList.value.length === 0) {
+    ElMessage({
+      type: 'warning',
+      message: $t('global.message.contractItemIsNull'),
+    });
+    return false;
+  } else {
+    let res = true;
+    for (let i = 0; i < editTableList.value.length; i++) {
+      if (editTableList.value[i]?.itemName === '') {
+        ElMessage({
+          type: 'warning',
+          message: $t('global.message.pleaseEnterItemName'),
+        });
+        res = false;
+        break;
+      }
+      if (editTableList.value[i]?.quantity === '') {
+        ElMessage({
+          type: 'warning',
+          message: $t('global.message.pleaseEnterItemNumber'),
+        });
+        res = false;
+        break;
+      }
+      if (editTableList.value[i]?.unitPrice === '') {
+        ElMessage({
+          type: 'warning',
+          message: $t('global.message.pleaseEnterItemUnitPrice'),
+        });
+        res = false;
+        break;
+      }
+      if (editTableList.value[i]?.totalPrice === '') {
+        ElMessage({
+          type: 'warning',
+          message: $t('global.message.pleaseEnterItemTotalPrice'),
+        });
+        res = false;
+        break;
+      }
+    }
+    return res;
+  }
 };
 
 onMounted(async () => {
@@ -272,44 +380,30 @@ onMounted(async () => {
 
 <template>
   <div class="detail-view">
-    <el-steps
-      class="step"
-      :active="active"
-      finish-status="success"
-      align-center
-    >
+    <el-steps class="step" :active="active" finish-status="success" align-center>
       <el-step title="填写基本信息" />
       <el-step title="完善合同细则" />
       <el-step title="生成预览二维码" />
     </el-steps>
     <div class="pd20">
-      <Detail
-        ref="detailForm1"
-        v-if="active === 0"
-        label-width="120px"
-        title="step1"
-        :form-config="editConfig1"
-        :form-rules="editRules1"
-        :form-info="formInfo1"
-        :confirm-text="$t('global.btn.next')"
-        @confirm="handleConfirm"
-      />
-      <Table
-        v-if="active === 1"
-        :pagination="false"
-        :table-config="editTableConfig"
-        :list="editTableList"
-        @handle-click="editTableClick"
-      />
+      <Detail ref="detailForm1" v-if="active === 0" label-width="120px" title="step1" :form-config="editConfig1"
+        :form-rules="editRules1" :form-info="formInfo1" :confirm-text="$t('global.btn.next')"
+        @confirm="handleConfirm" />
+      <Table v-if="active === 1" :pagination="false" :table-config="editTableConfig" :list="editTableList"
+        @handle-click="editTableClick" />
       <!-- 底部按钮 -->
-      <div class="bottom-item">
+      <div v-if="active === 1" class="bottom-item">
         <div class="button">
           <div class="cancel">
-            <ElButton @click="closeDialog">上一步</ElButton>
+            <ElButton type="success" :icon="Plus" @click="addItem">{{ $t('global.contract.addContractItem') }}
+            </ElButton>
+          </div>
+          <div class="cancel">
+            <ElButton :icon="Back" @click="previous">{{ $t('global.btn.previous') }}</ElButton>
           </div>
           <div class="confirm">
-            <ElButton type="primary" plain @click="submit">
-              {{ $t('global.btn.submit') }}
+            <ElButton type="primary" :icon="CircleCheck" plain @click="submit">
+              {{ $t('global.btn.save') }}
             </ElButton>
           </div>
         </div>

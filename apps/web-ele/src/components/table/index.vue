@@ -88,7 +88,7 @@ const handleSizeChange = (pageSize: number) => {
         <ElTableColumn v-else-if="item.type && item.type === 'input'" :prop="item.prop" :label="item.label"
           :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
           <template #default="scope">
-            <ElInput v-model="scope.row[item.prop]" />
+            <ElInput v-model="scope.row[item.prop]" :placeholder="$t('global.pleaseEnter')" />
           </template>
         </ElTableColumn>
         <!-- 表格内select下拉框编辑列 -->

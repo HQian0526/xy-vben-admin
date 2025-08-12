@@ -46,7 +46,13 @@
     "getMenuError": "get menu error",
     "getUserInfoErr": "get user info error",
     "onlyOneUser": "only choose one user",
-    "pleaseSaveContractFirst": "please save contract first"
+    "pleaseSaveContractFirst": "please save contract first",
+    "pleaseEnterItemName": "please enter name",
+    "pleaseEnterItemNumber": "please enter number",
+    "pleaseEnterItemUnitPrice": "please enter unit price",
+    "pleaseEnterItemTotalPrice": "please enter total price",
+    "contractItemIsNull": "contract item is null",
+    "saveSuccess": "save success"
   },
   "btn": {
     "add": "add",
