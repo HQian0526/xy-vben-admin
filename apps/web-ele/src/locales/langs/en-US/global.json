@@ -52,7 +52,8 @@
     "pleaseEnterItemUnitPrice": "please enter unit price",
     "pleaseEnterItemTotalPrice": "please enter total price",
     "contractItemIsNull": "contract item is null",
-    "saveSuccess": "save success"
+    "saveSuccess": "save success",
+    "getContractItemFail": "get contract item fail"
   },
   "btn": {
     "add": "add",

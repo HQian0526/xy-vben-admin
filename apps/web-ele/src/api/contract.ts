@@ -33,8 +33,15 @@ export async function deleteContractApi(data: any) {
 }
 
 /**
- * 新增合同细则
+ * 保存合同细则
  */
-export async function addContractItem(data: any) {
+export async function saveContractItem(data: any) {
   return requestClient.post('/contract/saveContractItems', data);
+}
+
+/**
+ * 查询合同细则列表
+ */
+export async function getContractItemList(no: string) {
+  return requestClient.get(`/contract/getContractItem/${no}`);
 }

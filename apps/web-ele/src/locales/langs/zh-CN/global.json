@@ -55,7 +55,8 @@
     "pleaseEnterItemUnitPrice": "请先完善合同项单价",
     "pleaseEnterItemTotalPrice": "请先完善合同项总价",
     "contractItemIsNull": "合同项为空",
-    "saveSuccess": "保存成功"
+    "saveSuccess": "保存成功",
+    "getContractItemFail": "获取合同细则失败"
   },
   "btnModule": "********************按钮相关********************",
   "btn": {

@@ -5,14 +5,15 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { Plus } from '@element-plus/icons-vue';
+import { CircleCheck, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
-  addContractApi,
   deleteContractApi,
   editContractApi,
+  getContractItemList,
   getContractListApi,
+  saveContractItem,
 } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
@@ -395,6 +396,7 @@ const handleClick = (row: any, label: string) => {
       formInfo.value = {
         ...row,
       }; // 确保是新的对象引用
+      getContractItem(row);
       itemVisible.value = true;
       break;
     }
@@ -420,6 +422,7 @@ const closeDialog = () => {
   editTableList.value = []; // 使用 ref 时这样清空
   formInfo.value = {}; // 同时清空表单数据
   itemVisible.value = false;
+  getContractList();
 };
 
 // 确定编辑弹窗
@@ -432,13 +435,15 @@ const confirmDialog = async (title: string, data: any) => {
     lessorType: Number(import.meta.env.VITE_CONTRACT_LESSOR_TYPE),
     // 出租方名称
     lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
+    items: editTableList.value,
+    startDate: data.startDate ? data.startDate.split('T')[0] : '',
+    endDate: data.endDate ? data.endDate.split('T')[0] : '',
   };
   console.log('obj', obj);
   try {
-    const res =
-      title === $t('global.btn.add')
-        ? await addContractApi({ ...data, ...obj })
-        : await editContractApi({ ...data, ...obj });
+    const valid = validContractItem();
+    if (!valid) return;
+    const res = await saveContractItem({ ...data, ...obj });
     if (res.code === 200) {
       ElMessage({
         type: 'success',
@@ -452,7 +457,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 新增
@@ -525,6 +530,21 @@ const getContractList = async (form: any = undefined) => {
   }
 };
 
+// 获取合同项
+const getContractItem = async (row: any) => {
+  try {
+    const res = await getContractItemList(row.contractNo);
+    if (res.code === 200) {
+      editTableList.value = res.data;
+    } else {
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.getContractItemFail'),
+      });
+    }
+  } catch { }
+};
+
 // 点击弹窗内表格操作列按钮
 const editTableClick = (row: any, label: string) => {
   console.log('row', row);
@@ -539,6 +559,8 @@ const editTableClick = (row: any, label: string) => {
 
 // 弹窗内表格新增项
 const editTableAdd = async () => {
+  const valid = validContractItem();
+  if (!valid) return;
   if (!formInfo.value.contractNo) {
     return ElMessage({
       type: 'warning',
@@ -568,11 +590,10 @@ const editTableSave = async () => {
     lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
   };
   console.log('obj', obj);
+  console.log('formInfo', formInfo.value);
   try {
-    const res =
-      formTitle.value === $t('global.btn.add')
-        ? await addContractApi({ ...formInfo, ...obj })
-        : await editContractApi({ ...formInfo, ...obj });
+    const nowFormData = editForm.value.getFormData();
+    const res = await editContractApi({ ...nowFormData, ...obj });
     if (res.code === 200) {
       ElMessage({
         type: 'success',
@@ -584,7 +605,47 @@ const editTableSave = async () => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
+};
+
+// 校验合同项输入
+const validContractItem = () => {
+  let res = true;
+  for (let i = 0; i < editTableList.value.length; i++) {
+    if (editTableList.value[i]?.itemName === '') {
+      ElMessage({
+        type: 'warning',
+        message: $t('global.message.pleaseEnterItemName'),
+      });
+      res = false;
+      break;
+    }
+    if (editTableList.value[i]?.quantity === '') {
+      ElMessage({
+        type: 'warning',
+        message: $t('global.message.pleaseEnterItemNumber'),
+      });
+      res = false;
+      break;
+    }
+    if (editTableList.value[i]?.unitPrice === '') {
+      ElMessage({
+        type: 'warning',
+        message: $t('global.message.pleaseEnterItemUnitPrice'),
+      });
+      res = false;
+      break;
+    }
+    if (editTableList.value[i]?.totalPrice === '') {
+      ElMessage({
+        type: 'warning',
+        message: $t('global.message.pleaseEnterItemTotalPrice'),
+      });
+      res = false;
+      break;
+    }
+  }
+  return res;
 };
 
 onMounted(async () => {
@@ -631,41 +692,23 @@ onMounted(async () => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange"
-        @handle-size-change="handleSizeChange"
-      />
+      <Table :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
     </el-card>
     <!-- 编辑弹窗 -->
-    <Edit
-      ref="editForm"
-      label-width="120px"
-      :form-config="editConfig"
-      :form-rules="editRules"
-      :title="formTitle"
-      :form-info="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    >
+    <Edit ref="editForm" label-width="120px" :form-config="editConfig" :form-rules="editRules" :title="formTitle"
+      :form-info="formInfo" :visible="itemVisible" :confirm-text="formInfo.contractStatus === 1 ? $t('global.btn.confirm') : ''
+      " @close="closeDialog" @confirm="confirmDialog">
       <template #slot>
         <!-- 弹窗内的表格 -->
-        <el-button type="primary" @click="editTableSave">
+        <el-button v-if="formInfo.contractStatus === 1" type="primary" :icon="CircleCheck" @click="editTableSave">
           {{ $t('global.contract.saveContractInfo') }}
         </el-button>
-        <el-button type="primary" @click="editTableAdd">
+        <el-button v-if="formInfo.contractStatus === 1" type="primary" :icon="Plus" @click="editTableAdd">
           {{ $t('global.contract.addContractItem') }}
         </el-button>
-        <Table
-          :pagination="false"
-          :table-config="editTableConfig"
-          :list="editTableList"
-          @handle-click="editTableClick"
-        />
+        <Table :pagination="false" :table-config="editTableConfig" :list="editTableList"
+          @handle-click="editTableClick" />
       </template>
     </Edit>
   </div>
