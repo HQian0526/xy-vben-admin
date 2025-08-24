@@ -16,12 +16,15 @@
   "devideAuth": "分配权限",
   "fileModule": "********************文件相关********************",
   "file": {
+    "uploadFile": "上传附件",
     "limitSize": "文件大小超过最大限制",
     "limitNum": "上传文件数超过限制",
     "uploadError": "上传失败，请重试",
     "uploadSuccess": "上传成功",
     "uploading": "上传中",
-    "onlyImage": "只能上传图片"
+    "onlyImage": "只能上传图片",
+    "fileSize": "文件最大不能超过20M",
+    "delete": "是否删除文件："
   },
   "homeModule": "********************官网相关********************",
   "home": {
@@ -56,7 +59,12 @@
     "pleaseEnterItemTotalPrice": "请先完善合同项总价",
     "contractItemIsNull": "合同项为空",
     "saveSuccess": "保存成功",
-    "getContractItemFail": "获取合同细则失败"
+    "getContractItemFail": "获取合同细则失败",
+    "editTableItemIsNull": "表格必填项不能为空",
+    "pleaseEnterVariableName": "请先完善变量名称",
+    "pleaseEnterDataSource": "请先完善数据源",
+    "pleaseEnterFieldPath": "请先完善字段路径",
+    "systemCreate": "系统自动生成"
   },
   "btnModule": "********************按钮相关********************",
   "btn": {
@@ -74,7 +82,7 @@
     "export": "导出",
     "more": "更多",
     "setting": "设置",
-    "upload": "上传",
+    "upload": "上传文件",
     "download": "下载",
     "preview": "预览",
     "fullscreen": "全屏",
@@ -93,7 +101,8 @@
     "linkTo": "跳转",
     "refresh": "刷新",
     "next": "下一步",
-    "previous": "上一步"
+    "previous": "上一步",
+    "addVariable": "添加变量"
   },
   "userModule": "********************用户管理模块********************",
   "user": {
@@ -211,6 +220,15 @@
     "specification": "规格",
     "totalPrice": "总价(元)",
     "addContractItem": "新增合同项",
-    "saveContractInfo": "保存基本信息"
+    "saveContractInfo": "保存基本信息",
+    "templateName": "模板名称",
+    "templateNo": "模板编号",
+    "templateType": "模板类型",
+    "uploadTemp": "上传合同模板",
+    "variable": "变量配置",
+    "baseInfo": "基础信息",
+    "variableName": "变量名",
+    "dataSource": "数据来源",
+    "fieldPath": "字段路径"
   }
 }

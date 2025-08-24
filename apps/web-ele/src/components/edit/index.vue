@@ -1,7 +1,6 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
 import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
-
 import { Plus, Close, Check } from '@element-plus/icons-vue';
 import {
   ElButton,
@@ -12,6 +11,7 @@ import {
   ElFormItem,
   ElInput,
   ElMessage,
+  ElMessageBox,
   ElOption,
   ElRow,
   ElSelect,
@@ -93,6 +93,7 @@ const initData = () => {
   const newFormData: Record<string, any> = {};
   // 遍历 formConfig 初始化所有字段
   props.formConfig.forEach((item: any) => {
+    if (!item.name) return;
     // 处理上传图片回显
     if (item.type === 'uploadImg') {
       if (Array.isArray(props.formInfo[item.name])) {
@@ -115,6 +116,23 @@ const initData = () => {
             status: 'success',
             name: url.split('/').pop(),
           }));
+      } else {
+        newFormData[item.name] = [];
+      }
+    } else if (item.type === 'uploadFile') {
+      // 处理文件上传字段初始化
+      if (Array.isArray(props.formInfo[item.name])) {
+        newFormData[item.name] = props.formInfo[item.name].map((fileInfo: any) => ({
+          name: fileInfo.name || fileInfo.split('/').pop(),
+          url: fileInfo.url || fileInfo,
+          status: 'success'
+        }));
+      } else if (props.formInfo[item.name]) {
+        newFormData[item.name] = [{
+          name: props.formInfo[item.name].split('/').pop(),
+          url: props.formInfo[item.name],
+          status: 'success'
+        }];
       } else {
         newFormData[item.name] = [];
       }
@@ -171,8 +189,32 @@ const initFormData = () => {
 };
 
 // 删除图片
-const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+const handleRemoveImg: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles);
+};
+
+// 删除文件
+const handleRemoveFile: UploadProps['onRemove'] = (uploadFile, uploadFiles, fieldName) => {
+  console.log('删除文件:', uploadFile, '字段名:', fieldName);
+  
+  // 确保字段存在且是数组
+  if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
+    console.warn(`字段 ${fieldName} 不存在或不是数组`);
+    return;
+  }
+  
+  // 查找要删除的文件索引
+  const index = formData[fieldName].findIndex((item: any) => {
+    // 通过 uid 或 name 匹配
+    return item.uid === uploadFile.uid;
+  });
+  
+  if (index !== -1) {
+    formData[fieldName].splice(index, 1);
+    console.log('文件删除成功，更新后的文件列表:', formData[fieldName]);
+  } else {
+    console.warn('未找到要删除的文件');
+  }
 };
 
 // 图片预览
@@ -181,8 +223,8 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
   dialogVisible.value = true;
 };
 
-// 文件上传前校验
-const beforeUpload = (file) => {
+// 图片上传前校验
+const beforeUploadImg = (file) => {
   const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.name);
   const isLt20M = file.size / 1024 / 1024 < 20;
 
@@ -197,13 +239,62 @@ const beforeUpload = (file) => {
   return true;
 };
 
-// 上传成功处理
-const handleSuccess = (response: any, file: any, item: any) => {
+// 文件上传前校验
+const beforeUploadFile = (file) => {
+  const isLt20M = file.size / 1024 / 1024 < 20;
+  if (!isLt20M) {
+    ElMessage.error($t('global.file.limitSize'));
+    return false;
+  }
+  return true;
+};
+
+// 删除文件前
+const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
+  return ElMessageBox.confirm(
+    `${$t('global.file.delete')}【${uploadFile.name}】 ?`
+  ).then(
+    () => true,
+    () => false
+  )
+}
+
+// 图片上传成功处理
+const handleSuccessImg = (response: any, file: any, item: any) => {
   console.log('response', response);
   console.log('file', file);
   if (response.data) {
     ElMessage.success('上传成功');
     file.url = `${import.meta.env.VITE_API_BASE}/api${response.data}`; // 将返回的URL绑定到文件对象
+  }
+  console.log('yyyy', formData);
+};
+
+// 文件上传成功处理
+const handleSuccessFile = (response: any, file: any, item: any) => {
+  console.log('response', response);
+  console.log('file', file);
+  if (response.data) {
+    ElMessage.success('上传成功');
+    file.url = `/api${response.data}`; // 将返回的URL绑定到文件对象
+    file.name = file.name || response.data.split('/').pop();
+  }
+
+  // 手动更新文件列表
+  if (!formData[item.name]) {
+    formData[item.name] = [];
+  }
+
+  // 检查文件是否已经在列表中
+  const fileExists = formData[item.name].some((f: any) => f.uid === file.uid);
+  if (!fileExists) {
+    formData[item.name].push({
+      name: file.name,
+      url: file.url,
+      status: 'success',
+      uid: file.uid,
+      size: file.size,
+    });
   }
   console.log('yyyy', formData);
 };
@@ -279,11 +370,12 @@ watch(
       <ElRow :gutter="20">
         <template v-for="(item, index) in props.formConfig" :key="index">
           <!-- 每行显示两个表单项 -->
-          <ElCol :span="item.span ? item.span : 12">
+          <ElCol v-if="item.name" :span="item.span ? item.span : 12">
             <ElFormItem :label="item.label" :prop="item.name">
               <!--输入框-->
               <ElInput v-if="item.type === 'input'" :readonly="item.readonly ? item.readonly : false"
-                :placeholder="`${$t('global.pleaseEnter')}${item.label}`" v-model="formData[item.name]">
+                :placeholder="item.placeholder ? item.placeholder : `${$t('global.pleaseEnter')}${item.label}`"
+                v-model="formData[item.name]">
                 <template v-if="item.append" #append>
                   <div @click="item.append.filter ? item.append.filter() : null">
                     {{ item.append.label }}
@@ -316,8 +408,8 @@ watch(
               <!-- 树形下拉框 -->
               <el-tree-select v-if="item.type === 'tree'" v-model="formData[item.name]" :data="item.treeConfig.options"
                 :render-after-expand="false" :check-strictly="item.treeConfig.checkStrictly
-                    ? item.treeConfig.checkStrictly
-                    : false
+                  ? item.treeConfig.checkStrictly
+                  : false
                   " style="width: 100%" />
               <!-- 选人弹窗 -->
               <ElInput v-if="item.type === 'selectPeople'" readonly
@@ -336,9 +428,9 @@ watch(
               <template v-if="item.type === 'uploadImg'">
                 <el-upload v-model:file-list="formData[item.name]" :class="formData[item.name]?.length === item.limit ? 'hide' : ''
                   " :action="uploadAction" :headers="{ Authorization: token }" list-type="picture-card"
-                  :limit="item.limit" :on-preview="handlePictureCardPreview" :on-remove="handleRemove"
-                  :on-exceed="handleExceed" :before-upload="beforeUpload" @success="
-                    (response, file) => handleSuccess(response, file, item)
+                  :limit="item.limit || 5" :on-preview="handlePictureCardPreview" :on-remove="handleRemoveImg"
+                  :on-exceed="handleExceed" :before-upload="beforeUploadImg" @success="
+                    (response, file) => handleSuccessImg(response, file, item)
                   " :on-error="handleError">
                   <el-icon>
                     <Plus />
@@ -349,8 +441,26 @@ watch(
                   <img w-full :src="dialogImageUrl" alt="Preview Image" />
                 </ElDialog>
               </template>
+              <!-- 文件上传 -->
+              <template v-if="item.type === 'uploadFile'">
+                <el-upload :file-list="formData[item.name]" class="upload-demo" :action="uploadAction"
+                  :before-remove="beforeRemove" :on-remove="(uploadFilled, uploadFiles) => handleRemoveFile(uploadFilled, uploadFiles, item.name)" :limit="item.limit" :on-exceed="handleExceed"
+                  :before-upload="beforeUploadFile" :on-error="handleError" @success="
+                    (response, file) => handleSuccessFile(response, file, item)
+                  ">
+                  <el-button type="primary">{{ $t('global.btn.upload') }}</el-button>
+                  <template #tip>
+                    <div class="el-upload__tip">
+                      {{ item.tip ? item.tip : $t('global.file.fileSize') }}
+                    </div>
+                  </template>
+                </el-upload>
+              </template>
             </ElFormItem>
           </ElCol>
+          <template v-if="item.type === 'deliver'">
+            <el-divider content-position="left">{{ `【${item.label}】` }}</el-divider>
+          </template>
         </template>
       </ElRow>
     </ElForm>
@@ -409,6 +519,10 @@ watch(
 <style scoped>
 ::v-deep .el-input-group__append {
   cursor: pointer;
+}
+
+::v-deep .el-upload__tip {
+  margin-top: 0px !important;
 }
 
 .hide {

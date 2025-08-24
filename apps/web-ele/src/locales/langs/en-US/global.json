@@ -15,12 +15,15 @@
   "choicePeople": "choice people",
   "devideAuth": "devide auth",
   "file": {
+    "uploadFile": "upload",
     "limitSize": "file size should not exceed",
     "limitNum": "file number should not exceed",
     "uploadError": "upload error",
     "uploadSuccess": "upload success",
     "uploading": "uploading",
-    "onlyImage": "only image"
+    "onlyImage": "only image",
+    "fileSize": "files with a size less than 20M",
+    "delete": "confirm delete："
   },
   "home": {
     "title": "​Corporate Site",
@@ -53,7 +56,12 @@
     "pleaseEnterItemTotalPrice": "please enter total price",
     "contractItemIsNull": "contract item is null",
     "saveSuccess": "save success",
-    "getContractItemFail": "get contract item fail"
+    "getContractItemFail": "get contract item fail",
+    "editTableItemIsNull": "table item can not be empty",
+    "pleaseEnterVariableName": "please enter variable name",
+    "pleaseEnterDataSource": "please enter data source",
+    "pleaseEnterFieldPath": "please enter field path",
+    "systemCreate": "system will create"
   },
   "btn": {
     "add": "add",
@@ -89,7 +97,8 @@
     "linkTo": "link to",
     "refresh": "fresh",
     "next": "next",
-    "previous": "previous"
+    "previous": "previous",
+    "addVariable": "addVariable"
   },
   "user": {
     "userName": "account",
@@ -201,6 +210,15 @@
     "specification": "specification",
     "totalPrice": "total price(￥)",
     "addContractItem": "add contract item",
-    "saveContractInfo": "save contract info"
+    "saveContractInfo": "save contract info",
+    "templateName": "template name",
+    "templateNo": "template no",
+    "templateType": "template type",
+    "uploadTemp": "upload template",
+    "variable": "variable config",
+    "baseInfo": "base info",
+    "variableName": "variable name",
+    "dataSource": "data source",
+    "fieldPath": "field path"
   }
 }

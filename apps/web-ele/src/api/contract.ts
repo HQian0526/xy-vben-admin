@@ -45,3 +45,42 @@ export async function saveContractItem(data: any) {
 export async function getContractItemList(no: string) {
   return requestClient.get(`/contract/getContractItem/${no}`);
 }
+
+/**
+ * 查询合同模板列表
+ */
+export async function getContractTempApi(param: any) {
+  return requestClient.get('/contract-template/findContractTemp', {
+    params: param,
+  });
+}
+
+/**
+ * 新增合同模板
+ */
+export async function addContractTempApi(data: any) {
+  return requestClient.post('/contract-template/addContractTemp', data);
+}
+
+/**
+ * 编辑合同模板
+ */
+export async function editContractTempApi(data: any) {
+  return requestClient.put('/contract-template/updateContractTemp', data);
+}
+
+/**
+ * 删除合同模板
+ */
+export async function deleteContractTempApi(data: any) {
+  return requestClient.delete('/contract-template/deleteContractTemp', {
+    data,
+  });
+}
+
+/**
+ * 预览合同模板
+ */
+export async function previewContractTempApi(templateNo: string) {
+  return requestClient.get(`/preview/${templateNo}`);
+}
