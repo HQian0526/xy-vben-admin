@@ -111,13 +111,15 @@ const initData = () => {
         newFormData[item.name] = props.formInfo[item.name].map((fileInfo: any) => ({
           name: fileInfo.name || fileInfo.split('/').pop(),
           url: fileInfo.url || fileInfo,
-          status: 'success'
+          status: 'success',
+          size: fileInfo.size || 0,
         }));
       } else if (props.formInfo[item.name]) {
         newFormData[item.name] = [{
           name: props.formInfo[item.name].split('/').pop(),
           url: props.formInfo[item.name],
-          status: 'success'
+          status: 'success',
+          size: props.formInfo[item.name] || 0,
         }];
       } else {
         newFormData[item.name] = [];
@@ -182,19 +184,19 @@ const handleRemoveImg: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
 // 删除文件
 const handleRemoveFile: UploadProps['onRemove'] = (uploadFile, uploadFiles, fieldName) => {
   console.log('删除文件:', uploadFile, '字段名:', fieldName);
-  
+
   // 确保字段存在且是数组
   if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
     console.warn(`字段 ${fieldName} 不存在或不是数组`);
     return;
   }
-  
+
   // 查找要删除的文件索引
   const index = formData[fieldName].findIndex((item: any) => {
     // 通过 uid 或 name 匹配
     return item.uid === uploadFile.uid;
   });
-  
+
   if (index !== -1) {
     formData[fieldName].splice(index, 1);
     console.log('文件删除成功，更新后的文件列表:', formData[fieldName]);
@@ -237,12 +239,12 @@ const beforeUploadFile = (file) => {
 
 // 删除文件前
 const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
-  return ElMessageBox.confirm(
-    `${$t('global.file.delete')}【${uploadFile.name}】 ?`
-  ).then(
-    () => true,
-    () => false
-  )
+  // return ElMessageBox.confirm(
+  //   `${$t('global.file.delete')}【${uploadFile.name}】 ?`
+  // ).then(
+  //   () => true,
+  //   () => false
+  // )
 }
 
 // 图片上传成功处理
@@ -262,7 +264,7 @@ const handleSuccessFile = (response: any, file: any, item: any) => {
   console.log('file', file);
   if (response.data) {
     ElMessage.success('上传成功');
-    file.url = `${import.meta.env.VITE_API_BASE}/api${response.data}`; // 将返回的URL绑定到文件对象
+    file.url = `${response.data.split('/upload-images')[1]}`; // 将返回的URL绑定到文件对象
     file.name = file.name || response.data.split('/').pop();
   }
 
@@ -278,7 +280,8 @@ const handleSuccessFile = (response: any, file: any, item: any) => {
       name: file.name,
       url: file.url,
       status: 'success',
-      uid: file.uid
+      uid: file.uid,
+      size: file.size,
     });
   }
   console.log('yyyy', formData);
@@ -344,138 +347,72 @@ watch(
 
 <template>
   <div>
-    <ElForm
-      ref="formRef"
-      :model="formData"
-      :label-width="labelWidth ? labelWidth : '80px'"
-      :rules="props.formRules"
-    >
+    <ElForm ref="formRef" :model="formData" :label-width="labelWidth ? labelWidth : '80px'" :rules="props.formRules">
       <ElRow :gutter="20">
         <template v-for="(item, index) in props.formConfig" :key="index">
           <!-- 每行显示两个表单项 -->
           <ElCol v-if="item.name" :span="item.span ? item.span : 12">
             <ElFormItem :label="item.label" :prop="item.name">
               <!--输入框-->
-              <ElInput
-                v-if="item.type === 'input'"
-                :readonly="item.readonly ? item.readonly : false"
+              <ElInput v-if="item.type === 'input'" :readonly="item.readonly ? item.readonly : false"
                 :placeholder="item.placeholder ? item.placeholder : `${$t('global.pleaseEnter')}${item.label}`"
-                v-model="formData[item.name]"
-              >
+                v-model="formData[item.name]">
                 <template v-if="item.append" #append>
-                  <div
-                    @click="item.append.filter ? item.append.filter() : null"
-                  >
+                  <div @click="item.append.filter ? item.append.filter() : null">
                     {{ item.append.label }}
                   </div>
                 </template>
               </ElInput>
               <!--数字输入框-->
-              <el-input-number
-                v-if="item.type === 'number'"
-                v-model="formData[item.name]"
-                :min="item.min ? item.min : 0"
-                :max="item.max ? item.max : 999999"
-                :readonly="item.readonly ? item.readonly : false"
-              />
+              <el-input-number v-if="item.type === 'number'" v-model="formData[item.name]"
+                :min="item.min ? item.min : 0" :max="item.max ? item.max : 999999"
+                :readonly="item.readonly ? item.readonly : false" />
               <!--文本域-->
-              <ElInput
-                v-if="item.type === 'textarea'"
-                type="textarea"
-                :readonly="item.readonly ? item.readonly : false"
-                :placeholder="`${$t('global.pleaseEnter')}${item.label}`"
-                v-model="formData[item.name]"
-              />
+              <ElInput v-if="item.type === 'textarea'" type="textarea" :readonly="item.readonly ? item.readonly : false"
+                :placeholder="`${$t('global.pleaseEnter')}${item.label}`" v-model="formData[item.name]" />
               <!--日期选择器-->
-              <ElDatePicker
-                v-if="item.type === 'date'"
-                type="date"
-                :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
-                :disabled="item.readonly"
-                v-model="formData[item.name]"
-                style="width: 100%"
-                value-format="YYYY-MM-DD"
-                format="YYYY-MM-DD"
-              />
+              <ElDatePicker v-if="item.type === 'date'" type="date"
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" :disabled="item.readonly"
+                v-model="formData[item.name]" style="width: 100%" value-format="YYYY-MM-DD" format="YYYY-MM-DD" />
               <!--下拉框-->
-              <ElSelect
-                v-if="item.type === 'select'"
-                v-model="formData[item.name]"
+              <ElSelect v-if="item.type === 'select'" v-model="formData[item.name]"
                 :readonly="item.readonly ? item.readonly : false"
-                :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
-                style="width: 100%"
-              >
-                <ElOption
-                  v-for="(itemSelect, indexSelect) in item.options"
-                  :label="itemSelect.label"
-                  :value="Number(itemSelect.value)"
-                  :key="indexSelect"
-                />
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" style="width: 100%">
+                <ElOption v-for="(itemSelect, indexSelect) in item.options" :label="itemSelect.label"
+                  :value="Number(itemSelect.value)" :key="indexSelect" />
               </ElSelect>
-              <el-radio-group
-                v-if="item.type === 'radio'"
-                v-model="formData[item.name]"
-              >
-                <el-radio
-                  v-for="(itemRadio, indexRadio) in item.options"
-                  :key="indexRadio"
-                  :value="itemRadio.value"
-                >
+              <el-radio-group v-if="item.type === 'radio'" v-model="formData[item.name]">
+                <el-radio v-for="(itemRadio, indexRadio) in item.options" :key="indexRadio" :value="itemRadio.value">
                   {{ itemRadio.label }}
                 </el-radio>
               </el-radio-group>
               <!-- 树形下拉框 -->
-              <el-tree-select
-                v-if="item.type === 'tree'"
-                v-model="formData[item.name]"
-                :data="item.treeConfig.options"
-                :render-after-expand="false"
-                :check-strictly="
-                  item.treeConfig.checkStrictly
+              <el-tree-select v-if="item.type === 'tree'" v-model="formData[item.name]" :data="item.treeConfig.options"
+                :render-after-expand="false" :check-strictly="item.treeConfig.checkStrictly
                     ? item.treeConfig.checkStrictly
                     : false
-                "
-                style="width: 100%"
-              />
+                  " style="width: 100%" />
               <!-- 选人弹窗 -->
-              <ElInput
-                v-if="item.type === 'selectPeople'"
-                readonly
-                :placeholder="`${$t('global.pleaseSelect')}${item.label}`"
-                v-model="formData[item.name]"
-              >
+              <ElInput v-if="item.type === 'selectPeople'" readonly
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" v-model="formData[item.name]">
                 <template v-if="item.append" #append>
-                  <div
-                    @click="
-                      item.append.filter
-                        ? item.append.filter()
-                        : openSelectPeopleDialog(item.name)
-                    "
-                  >
+                  <div @click="
+                    item.append.filter
+                      ? item.append.filter()
+                      : openSelectPeopleDialog(item.name)
+                    ">
                     {{ item.append.label }}
                   </div>
                 </template>
               </ElInput>
               <!-- 图片上传 -->
               <template v-if="item.type === 'uploadImg'">
-                <el-upload
-                  v-model:file-list="formData[item.name]"
-                  :class="
-                    formData[item.name]?.length === item.limit ? 'hide' : ''
-                  "
-                  :action="uploadAction"
-                  :headers="{ Authorization: token }"
-                  list-type="picture-card"
-                  :limit="item.limit || 5"
-                  :on-preview="handlePictureCardPreview"
-                  :on-remove="handleRemoveImg"
-                  :on-exceed="handleExceed"
-                  :before-upload="beforeUploadImg"
-                  @success="
+                <el-upload v-model:file-list="formData[item.name]" :class="formData[item.name]?.length === item.limit ? 'hide' : ''
+                  " :action="uploadAction" :headers="{ Authorization: token }" list-type="picture-card"
+                  :limit="item.limit || 5" :on-preview="handlePictureCardPreview" :on-remove="handleRemoveImg"
+                  :on-exceed="handleExceed" :before-upload="beforeUploadImg" @success="
                     (response, file) => handleSuccessImg(response, file, item)
-                  "
-                  :on-error="handleError"
-                >
+                  " :on-error="handleError">
                   <el-icon>
                     <Plus />
                   </el-icon>
@@ -488,8 +425,10 @@ watch(
               <!-- 文件上传 -->
               <template v-if="item.type === 'uploadFile'">
                 <el-upload :file-list="formData[item.name]" class="upload-demo" :action="uploadAction"
-                  :before-remove="beforeRemove" :on-remove="(uploadFilled, uploadFiles) => handleRemoveFile(uploadFilled, uploadFiles, item.name)" :limit="item.limit" :on-exceed="handleExceed"
-                  :before-upload="beforeUploadFile" :on-error="handleError" @success="
+                  :accept="item.accept" :before-remove="beforeRemove"
+                  :on-remove="(uploadFilled, uploadFiles) => handleRemoveFile(uploadFilled, uploadFiles, item.name)"
+                  :limit="item.limit" :on-exceed="handleExceed" :before-upload="beforeUploadFile"
+                  :on-error="handleError" @success="
                     (response, file) => handleSuccessFile(response, file, item)
                   ">
                   <el-button type="primary">{{ $t('global.btn.upload') }}</el-button>
@@ -525,14 +464,8 @@ watch(
   </div>
 
   <!-- 选择用户弹窗 -->
-  <SelectPeople
-    :key="selectPeopleKey"
-    :visible="selectPeopleVisible"
-    :selected-users="selectedUsers"
-    :select-more="false"
-    @close="closeUserDialog"
-    @confirm="confirmUserDialog"
-  />
+  <SelectPeople :key="selectPeopleKey" :visible="selectPeopleVisible" :selected-users="selectedUsers"
+    :select-more="false" @close="closeUserDialog" @confirm="confirmUserDialog" />
 </template>
 
 <style lang="scss" scoped>

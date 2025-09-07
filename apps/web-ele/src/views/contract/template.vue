@@ -149,6 +149,7 @@ const editConfig = reactive([
     type: 'uploadFile',
     span: 24,
     limit: 1,
+    accept: '.doc, .docx, .pdf',
   },
   {
     label: $t('global.contract.variable'),
@@ -248,9 +249,10 @@ const handleClick = (row: any, label: string) => {
           url: row.filePath,
           status: 'success',
           uid: row.fileId,
-          size: row.fileSize,
+          size: Number(row.fileSize),
         }]
       }; // 确保是新的对象引用
+      console.log('formIfo', formInfo.value)
       editTableList.value = JSON.parse(row.variablesConfig);
       itemVisible.value = true;
       break;
@@ -425,7 +427,6 @@ const handleDelete = (row: any) => {
 const handlePreview = (row: any) => {
   // 构建预览URL
   const previewUrl = `/api/contract-template/previewTemp/${row.templateNo}`;
-  
   // 在新窗口打开预览
   window.open(previewUrl, '_blank');
 };

@@ -125,13 +125,15 @@ const initData = () => {
         newFormData[item.name] = props.formInfo[item.name].map((fileInfo: any) => ({
           name: fileInfo.name || fileInfo.split('/').pop(),
           url: fileInfo.url || fileInfo,
-          status: 'success'
+          status: 'success',
+          size: fileInfo.size || 0,
         }));
       } else if (props.formInfo[item.name]) {
         newFormData[item.name] = [{
           name: props.formInfo[item.name].split('/').pop(),
-          url: props.formInfo[item.name],
-          status: 'success'
+          url: props.formInfo[item.name] || '',
+          status: 'success',
+          size: props.formInfo[item.name] || 0,
         }];
       } else {
         newFormData[item.name] = [];
@@ -196,19 +198,19 @@ const handleRemoveImg: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
 // 删除文件
 const handleRemoveFile: UploadProps['onRemove'] = (uploadFile, uploadFiles, fieldName) => {
   console.log('删除文件:', uploadFile, '字段名:', fieldName);
-  
+
   // 确保字段存在且是数组
   if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
     console.warn(`字段 ${fieldName} 不存在或不是数组`);
     return;
   }
-  
+
   // 查找要删除的文件索引
   const index = formData[fieldName].findIndex((item: any) => {
     // 通过 uid 或 name 匹配
     return item.uid === uploadFile.uid;
   });
-  
+
   if (index !== -1) {
     formData[fieldName].splice(index, 1);
     console.log('文件删除成功，更新后的文件列表:', formData[fieldName]);
@@ -240,23 +242,42 @@ const beforeUploadImg = (file) => {
 };
 
 // 文件上传前校验
-const beforeUploadFile = (file) => {
+const beforeUploadFile = (file, item) => {
   const isLt20M = file.size / 1024 / 1024 < 20;
   if (!isLt20M) {
     ElMessage.error($t('global.file.limitSize'));
     return false;
   }
+  // 获取父组件传递的 accept 值
+  const acceptTypes = item.accept || '';
+
+  // 如果没有设置 accept，则允许所有类型
+  if (!acceptTypes) return true;
+
+  // 将 accept 字符串转换为扩展名数组
+  const allowedExtensions = acceptTypes.split(',')
+    .map(ext => ext.trim().replace('.', '').toLowerCase());
+
+  // 获取文件扩展名
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+
+  // 检查文件类型
+  if (!allowedExtensions.includes(fileExtension)) {
+    ElMessage.error(`只能上传 ${acceptTypes} 格式的文件`);
+    return false;
+  }
+
   return true;
 };
 
 // 删除文件前
 const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
-  return ElMessageBox.confirm(
-    `${$t('global.file.delete')}【${uploadFile.name}】 ?`
-  ).then(
-    () => true,
-    () => false
-  )
+  // return ElMessageBox.confirm(
+  //   `${$t('global.file.delete')}【${uploadFile.name}】 ?`
+  // ).then(
+  //   () => true,
+  //   () => false
+  // )
 }
 
 // 图片上传成功处理
@@ -276,7 +297,7 @@ const handleSuccessFile = (response: any, file: any, item: any) => {
   console.log('file', file);
   if (response.data) {
     ElMessage.success('上传成功');
-    file.url = `/api${response.data}`; // 将返回的URL绑定到文件对象
+    file.url = `${response.data.split('/upload-images')[1]}`; // 将返回的URL绑定到文件对象
     file.name = file.name || response.data.split('/').pop();
   }
 
@@ -444,9 +465,11 @@ watch(
               <!-- 文件上传 -->
               <template v-if="item.type === 'uploadFile'">
                 <el-upload :file-list="formData[item.name]" class="upload-demo" :action="uploadAction"
-                  :before-remove="beforeRemove" :on-remove="(uploadFilled, uploadFiles) => handleRemoveFile(uploadFilled, uploadFiles, item.name)" :limit="item.limit" :on-exceed="handleExceed"
-                  :before-upload="beforeUploadFile" :on-error="handleError" @success="
-                    (response, file) => handleSuccessFile(response, file, item)
+                  :accept="item.accept" :before-remove="beforeRemove"
+                  :on-remove="(uploadFilled, uploadFiles) => handleRemoveFile(uploadFilled, uploadFiles, item.name)"
+                  :limit="item.limit" :on-exceed="handleExceed" :before-upload="(file) => beforeUploadFile(file, item)"
+                  :on-error="handleError" @success="
+                  (response, file) => handleSuccessFile(response, file, item)
                   ">
                   <el-button type="primary">{{ $t('global.btn.upload') }}</el-button>
                   <template #tip>
