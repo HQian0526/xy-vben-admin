@@ -9,6 +9,7 @@ import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
+import { getDict } from '#/utils';
 
 const isLoading = ref(false);
 //* *************table相关变量**************
@@ -143,6 +144,7 @@ const formConfig = reactive({
 });
 
 //* *************edit相关变量**************
+const identityDict = reactive<Array<{ label: string; value: any }>>([]); // 身份字典
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
 const formInfo = ref({}); // 弹窗其他信息
@@ -235,20 +237,7 @@ const editConfig = reactive([
     name: 'identityType',
     type: 'select',
     readonly: false,
-    options: [
-      {
-        label: '基础用户',
-        value: 1,
-      },
-      {
-        label: 'vip会员',
-        value: 2,
-      },
-      {
-        label: '管理员',
-        value: 3,
-      },
-    ],
+    options: identityDict,
   },
   {
     label: $t('global.user.remark'),
@@ -447,7 +436,10 @@ const getUserList = async (form: any = undefined) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 获取身份字典值
+  const dict1 = await getDict('identity_type');
+  identityDict.splice(0, identityDict.length, ...dict1);
   getUserList();
 });
 </script>

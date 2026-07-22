@@ -50,10 +50,10 @@ const formSchema = computed((): VbenFormSchema[] => {
       },
       dependencies: {
         trigger(values, form) {
-          form.setValues({
-            password: '123456',
-            username: 'huangqian',
-          });
+          // form.setValues({
+          //   password: '123456',
+          //   username: 'huangqian',
+          // });
           // if (values.selectAccount) {
           //   const findUser = MOCK_USER_OPTIONS.find(
           //     (item) => item.value === values.selectAccount,

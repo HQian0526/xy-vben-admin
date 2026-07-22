@@ -3,12 +3,13 @@ import { defineEmits, defineProps, reactive } from 'vue';
 
 import {
   ElButton,
+  ElImage,
   ElInput,
+  ElOption,
   ElPagination,
+  ElSelect,
   ElTable,
   ElTableColumn,
-  ElSelect,
-  ElOption
 } from 'element-plus';
 
 const props = defineProps({
@@ -49,6 +50,13 @@ const page = reactive({
   currentPage: 1,
   pageSize: 10,
 });
+
+// 拼接图片完整地址
+const getImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `${import.meta.env.VITE_API_BASE}${url}`;
+};
 
 // 点击操作按钮
 const handleClick = (row: any, label: string) => {
@@ -95,18 +103,10 @@ const handleSizeChange = (pageSize: number) => {
         <ElTableColumn v-else-if="item.type && item.type === 'select'" :prop="item.prop" :label="item.label"
           :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
           <template #default="scope">
-            <ElSelect
-                v-model="scope.row[item.prop]"
-                :placeholder="$t('global.pleaseSelect')"
-                style="width: 100%"
-              >
-                <ElOption
-                  v-for="(itemSelect, indexSelect) in item.options"
-                  :label="itemSelect.label"
-                  :value="Number(itemSelect.value)"
-                  :key="indexSelect"
-                />
-              </ElSelect>
+            <ElSelect v-model="scope.row[item.prop]" :placeholder="$t('global.pleaseSelect')" style="width: 100%">
+              <ElOption v-for="(itemSelect, indexSelect) in item.options" :label="itemSelect.label"
+                :value="Number(itemSelect.value)" :key="indexSelect" />
+            </ElSelect>
           </template>
         </ElTableColumn>
         <!-- 表格内数字输入框编辑列 -->
@@ -117,9 +117,20 @@ const handleSizeChange = (pageSize: number) => {
               :max="item.max ? item.max : 999999" />
           </template>
         </ElTableColumn>
+        <!-- 图片列：单元格内居中展示 -->
+        <ElTableColumn v-else-if="item.type && item.type === 'image'" :prop="item.prop" :label="item.label"
+          :width="item.width ? item.width : '100px'" :sortable="item.sortable ? item.sortable : false" align="center">
+          <template #default="scope">
+            <div class="table-img-cell">
+              <ElImage v-if="scope.row[item.prop]" :src="getImageUrl(scope.row[item.prop])"
+                :preview-src-list="[getImageUrl(scope.row[item.prop])]" fit="cover" style="width: 50px; height: 50px" />
+            </div>
+          </template>
+        </ElTableColumn>
         <!-- 操作列 -->
-        <ElTableColumn v-else-if="item.prop === 'operation'" :fixed="item.fixed ? item.fixed : false" :label="item.label"
-          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+        <ElTableColumn v-else-if="item.prop === 'operation'" :fixed="item.fixed ? item.fixed : false"
+          :label="item.label" :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false">
           <template #default="scope">
             <template v-for="(op, ind) in item.operations" :key="ind">
               <ElButton :style="{
@@ -156,8 +167,16 @@ const handleSizeChange = (pageSize: number) => {
 .table-pagination {
   display: flex;
   justify-content: flex-end;
+
   /* 居右 */
   margin-top: 10px;
+
   /* 可选：与表格的间距 */
+}
+
+.table-img-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

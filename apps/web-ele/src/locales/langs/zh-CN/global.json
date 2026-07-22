@@ -38,6 +38,7 @@
     "confirmDelete": "确认删除？",
     "confirmLock": "确认冻结？",
     "confirmUnlock": "确认解冻？",
+    "confirmOffShelf": "确认下架？",
     "confirmSave": "确认保存？",
     "confirmImport": "确认导入？",
     "confirmExport": "确认导出？",
@@ -102,11 +103,12 @@
     "refresh": "刷新",
     "next": "下一步",
     "previous": "上一步",
-    "addVariable": "添加变量"
+    "addVariable": "添加变量",
+    "offShelf": "下架"
   },
   "userModule": "********************用户管理模块********************",
   "user": {
-    "userName": "用户号",
+    "userName": "登录账号",
     "realName": "真实姓名",
     "sex": "性别",
     "phone": "手机号",
@@ -230,5 +232,22 @@
     "variableName": "变量名",
     "dataSource": "数据来源",
     "fieldPath": "字段路径"
+  },
+  "productModule": "********************商品管理模块********************",
+  "product": {
+    "catagoryId": "编码",
+    "catagoryName": "分类名称",
+    "catagoryStatus": "状态",
+    "normal": "正常",
+    "lock": "冻结",
+    "productName": "商品名称",
+    "productStatus": "状态",
+    "productImg": "图片",
+    "price": "价格",
+    "productNum": "库存",
+    "saleNum": "已售",
+    "remark": "描述",
+    "createdBy": "创建人",
+    "catagory": "商品分类"
   }
 }

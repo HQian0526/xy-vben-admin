@@ -35,6 +35,7 @@
     "confirmDelete": "confirm delete?",
     "confirmLock": "confirm lock?",
     "confirmUnlock": "confirm unlock?",
+    "confirmOffShelf": "confirm off shelf?",
     "confirmSave": "confirm save?",
     "confirmImport": "confirm import?",
     "confirmExport": "confirm export?",
@@ -98,7 +99,8 @@
     "refresh": "fresh",
     "next": "next",
     "previous": "previous",
-    "addVariable": "addVariable"
+    "addVariable": "addVariable",
+    "offShelf": "off shelf"
   },
   "user": {
     "userName": "account",
@@ -220,5 +222,21 @@
     "variableName": "variable name",
     "dataSource": "data source",
     "fieldPath": "field path"
+  },
+  "product": {
+    "catagoryId": "code",
+    "catagoryName": "category name",
+    "catagoryStatus": "status",
+    "normal": "normal",
+    "lock": "lock",
+    "productName": "product name",
+    "productStatus": "status",
+    "productImg": "image",
+    "price": "price",
+    "productNum": "stock",
+    "saleNum": "sold",
+    "remark": "remark",
+    "createdBy": "created by",
+    "catagory": "category"
   }
 }
