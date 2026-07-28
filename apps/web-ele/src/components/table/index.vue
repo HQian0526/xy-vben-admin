@@ -78,14 +78,31 @@ const handleSizeChange = (pageSize: number) => {
 
 <template>
   <div class="table-container">
-    <ElTable :data="props.list" :stripe="props.stripe ? props.stripe : false" :row-key="props.isTree ? 'id' : undefined"
-      style="width: 100%; height: 100%">
-      <template v-for="(item, index) in props.tableConfig.list" :key="item.prop">
+    <ElTable
+      :data="props.list"
+      :stripe="props.stripe ? props.stripe : false"
+      :row-key="props.isTree ? 'id' : undefined"
+      style="width: 100%; height: 100%"
+    >
+      <template
+        v-for="(item, index) in props.tableConfig.list"
+        :key="item.prop"
+      >
         <!-- 索引列 -->
-        <ElTableColumn v-if="item.prop === 'index'" :label="item.label ? item.label : ''" type="index" width="50" />
+        <ElTableColumn
+          v-if="item.prop === 'index'"
+          :label="item.label ? item.label : ''"
+          type="index"
+          width="50"
+        />
         <!-- 字典/过滤器赋值列 如1男 2女 -->
-        <ElTableColumn v-else-if="item.filter" :prop="item.prop" :label="item.label"
-          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+        <ElTableColumn
+          v-else-if="item.filter"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        >
           <template #default="scope">
             <div style="display: flex; align-items: center">
               {{ item.filter(scope.row[item.prop]) }}
@@ -93,65 +110,128 @@ const handleSizeChange = (pageSize: number) => {
           </template>
         </ElTableColumn>
         <!-- 表格内input框编辑列 -->
-        <ElTableColumn v-else-if="item.type && item.type === 'input'" :prop="item.prop" :label="item.label"
-          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+        <ElTableColumn
+          v-else-if="item.type && item.type === 'input'"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        >
           <template #default="scope">
-            <ElInput v-model="scope.row[item.prop]" :placeholder="$t('global.pleaseEnter')" />
+            <ElInput
+              v-model="scope.row[item.prop]"
+              :placeholder="$t('global.pleaseEnter')"
+            />
           </template>
         </ElTableColumn>
         <!-- 表格内select下拉框编辑列 -->
-        <ElTableColumn v-else-if="item.type && item.type === 'select'" :prop="item.prop" :label="item.label"
-          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+        <ElTableColumn
+          v-else-if="item.type && item.type === 'select'"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        >
           <template #default="scope">
-            <ElSelect v-model="scope.row[item.prop]" :placeholder="$t('global.pleaseSelect')" style="width: 100%">
-              <ElOption v-for="(itemSelect, indexSelect) in item.options" :label="itemSelect.label"
-                :value="Number(itemSelect.value)" :key="indexSelect" />
+            <ElSelect
+              v-model="scope.row[item.prop]"
+              :placeholder="$t('global.pleaseSelect')"
+              style="width: 100%"
+            >
+              <ElOption
+                v-for="(itemSelect, indexSelect) in item.options"
+                :label="itemSelect.label"
+                :value="Number(itemSelect.value)"
+                :key="indexSelect"
+              />
             </ElSelect>
           </template>
         </ElTableColumn>
         <!-- 表格内数字输入框编辑列 -->
-        <ElTableColumn v-else-if="item.type && item.type === 'number'" :prop="item.prop" :label="item.label"
-          :width="item.width ? item.width : 'auto'" :sortable="item.sortable ? item.sortable : false">
+        <ElTableColumn
+          v-else-if="item.type && item.type === 'number'"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        >
           <template #default="scope">
-            <el-input-number v-model="scope.row[item.prop]" :min="item.min ? item.min : 0"
-              :max="item.max ? item.max : 999999" />
+            <el-input-number
+              v-model="scope.row[item.prop]"
+              :min="item.min ? item.min : 0"
+              :max="item.max ? item.max : 999999"
+            />
           </template>
         </ElTableColumn>
         <!-- 图片列：单元格内居中展示 -->
-        <ElTableColumn v-else-if="item.type && item.type === 'image'" :prop="item.prop" :label="item.label"
-          :width="item.width ? item.width : '100px'" :sortable="item.sortable ? item.sortable : false" align="center">
+        <ElTableColumn
+          v-else-if="item.type && item.type === 'image'"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : '100px'"
+          :sortable="item.sortable ? item.sortable : false"
+          align="center"
+        >
           <template #default="scope">
             <div class="table-img-cell">
-              <ElImage v-if="scope.row[item.prop]" :src="getImageUrl(scope.row[item.prop])"
-                :preview-src-list="[getImageUrl(scope.row[item.prop])]" fit="cover" style="width: 50px; height: 50px" />
+              <ElImage
+                v-if="scope.row[item.prop]"
+                :src="getImageUrl(scope.row[item.prop])"
+                :preview-src-list="[getImageUrl(scope.row[item.prop])]"
+                fit="cover"
+                style="width: 50px; height: 50px"
+              />
             </div>
           </template>
         </ElTableColumn>
         <!-- 操作列 -->
-        <ElTableColumn v-else-if="item.prop === 'operation'" :fixed="item.fixed ? item.fixed : false"
-          :label="item.label" :width="item.width ? item.width : 'auto'"
-          :sortable="item.sortable ? item.sortable : false">
+        <ElTableColumn
+          v-else-if="item.prop === 'operation'"
+          :fixed="item.fixed ? item.fixed : false"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        >
           <template #default="scope">
             <template v-for="(op, ind) in item.operations" :key="ind">
-              <ElButton :style="{
-                display: op.isShow && !op.isShow(scope.row) ? 'none' : '',
-              }" :type="op.type !== 'text' ? op.type : 'primary'" :link="op.type === 'text' ? true : false"
-                @click="handleClick(scope.row, op.label)">
+              <ElButton
+                :style="{
+                  display: op.isShow && !op.isShow(scope.row) ? 'none' : '',
+                }"
+                :type="op.type !== 'text' ? op.type : 'primary'"
+                :link="op.type === 'text' ? true : false"
+                @click="handleClick(scope.row, op.label)"
+              >
                 {{ op.label }}
               </ElButton>
             </template>
           </template>
         </ElTableColumn>
         <!-- 正常列 -->
-        <ElTableColumn v-else :prop="item.prop" :label="item.label" :width="item.width ? item.width : 'auto'"
-          :sortable="item.sortable ? item.sortable : false" />
+        <ElTableColumn
+          v-else
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        />
       </template>
     </ElTable>
     <!-- 分页 -->
-    <div v-if="props.pagination === false ? false : true" class="table-pagination">
-      <ElPagination v-model:current-page="page.currentPage" v-model:page-size="page.pageSize"
-        :page-sizes="[10, 20, 30, 40, 50]" background layout="total, sizes, prev, pager, next, jumper"
-        :total="props.total" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    <div
+      v-if="props.pagination === false ? false : true"
+      class="table-pagination"
+    >
+      <ElPagination
+        v-model:current-page="page.currentPage"
+        v-model:page-size="page.pageSize"
+        :page-sizes="[10, 20, 30, 40, 50]"
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="props.total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
     </div>
   </div>
 </template>

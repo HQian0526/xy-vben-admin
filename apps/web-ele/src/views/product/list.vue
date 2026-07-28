@@ -204,11 +204,6 @@ const editRules = reactive({
   ],
 });
 
-// 点击展开收起
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
-
 // 左侧树单选：按分类筛选商品
 const handleTreeSelected = (currentData: any) => {
   console.log('currentData', currentData);
@@ -478,15 +473,7 @@ onMounted(async () => {
         <!-- 头部搜索框 -->
         <Filter :form-config="formConfig" @search="search" @reset="reset">
           <template #extra>
-            <el-button link type="primary" @click="toggleCollapse">
-              {{
-                isCollapsed
-                  ? $t('global.btn.expandMore')
-                  : $t('global.btn.collapseMore')
-              }}
-            </el-button>
-
-            <div v-show="!isCollapsed" class="button-group">
+            <div class="button-group">
               <el-button type="success" :icon="Plus" @click="handleAdd">
                 {{ $t('global.btn.add') }}
               </el-button>

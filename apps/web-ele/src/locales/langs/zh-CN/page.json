@@ -8,6 +8,7 @@
   },
   "dashboard": {
     "title": "概览",
+    "home": "系统首页",
     "analytics": "分析页",
     "workspace": "工作台"
   }

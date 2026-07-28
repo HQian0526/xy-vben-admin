@@ -1,3 +1,6 @@
+<!-- eslint-disable vue/no-unused-refs -->
+<!-- eslint-disable unicorn/prefer-spread -->
+<!-- eslint-disable no-console -->
 <script lang="ts" setup>
 import { Refresh, Search } from '@element-plus/icons-vue';
 import {
