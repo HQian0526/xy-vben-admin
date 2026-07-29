@@ -447,7 +447,15 @@ const getUserListByRoleId = async (roleId: number) => {
     selectedUsers.value = [];
     const res = await getUsersByRoleId(roleId);
     if (res.code === 200) {
-      selectedUsers.value = res.data;
+      // 兼容数组或分页结构，保证选人组件能回填已分配用户
+      const users = Array.isArray(res.data)
+        ? res.data
+        : res.data?.list || [];
+      selectedUsers.value = users.map((item: any) => ({
+        userId: item.userId ?? item.id,
+        userName: item.userName,
+        realName: item.realName,
+      }));
       userVisible.value = true;
     } else {
       userVisible.value = false;

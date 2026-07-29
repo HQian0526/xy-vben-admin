@@ -6,6 +6,7 @@ import { Plus, Close, Check } from '@element-plus/icons-vue';
 
 import SelectPeople from '#/components/selectPeople/index.vue';
 import { $t } from '#/locales';
+import { resolveFileUrl, toRelativeFilePath } from '#/utils';
 
 const props = defineProps({
   // 是否展示弹窗
@@ -61,7 +62,7 @@ const dialogImageUrl = ref(''); // 图片预览地址
 const dialogVisible = ref(false); // 图片预览弹窗
 const token = ref(localStorage.getItem('token')); // 从存储中获取token
 // 上传配置
-const uploadAction = `${import.meta.env.VITE_API_BASE}/api/file/upload`; // 根据环境变量配置
+const uploadAction = '/api/file/upload'; // 根据环境变量配置
 
 //* *************选择用户相关变量**************
 const selectPeopleVisible = ref(false); // 是否展示弹窗
@@ -82,26 +83,24 @@ const initData = () => {
   props.formConfig.forEach((item: any) => {
     // 处理上传图片回显
     if (item.type === 'uploadImg') {
-      if (Array.isArray(props.formInfo[item.name])) {
-        // 已经是数组格式
-        newFormData[item.name] = props.formInfo[item.name].map((url: any) => ({
-          url: url.startsWith('http')
-            ? url
-            : `${import.meta.env.VITE_API_BASE}${url}`,
+      const toFileItem = (raw: any) => {
+        const path = typeof raw === 'string' ? raw : raw?.path || raw?.url || '';
+        // 统一存相对路径，回显时拼全局文件前缀
+        const relativePath = toRelativeFilePath(path);
+        return {
+          url: resolveFileUrl(relativePath),
+          path: relativePath,
           status: 'success',
-          name: url.split('/').pop(),
-        }));
+          name: relativePath.split('/').pop(),
+        };
+      };
+      if (Array.isArray(props.formInfo[item.name])) {
+        newFormData[item.name] = props.formInfo[item.name].map(toFileItem);
       } else if (props.formInfo[item.name]) {
-        // 字符串逗号格式
-        newFormData[item.name] = props.formInfo[item.name]
+        newFormData[item.name] = String(props.formInfo[item.name])
           .split(',')
-          .map((url: any) => ({
-            url: url.startsWith('http')
-              ? url
-              : `${import.meta.env.VITE_API_BASE}${url}`,
-            status: 'success',
-            name: url.split('/').pop(),
-          }));
+          .filter(Boolean)
+          .map(toFileItem);
       } else {
         newFormData[item.name] = [];
       }
@@ -253,7 +252,10 @@ const handleSuccessImg = (response: any, file: any, item: any) => {
   console.log('file', file);
   if (response.data) {
     ElMessage.success('上传成功');
-    file.url = `${import.meta.env.VITE_API_BASE}/api${response.data}`; // 将返回的URL绑定到文件对象
+    // 接口返回相对路径：预览拼全局前缀，提交时仍用相对路径
+    const path = toRelativeFilePath(response.data);
+    file.path = path;
+    file.url = resolveFileUrl(path);
   }
   console.log('yyyy', formData);
 };
@@ -264,8 +266,10 @@ const handleSuccessFile = (response: any, file: any, item: any) => {
   console.log('file', file);
   if (response.data) {
     ElMessage.success('上传成功');
-    file.url = `${response.data.split('/upload-images')[1]}`; // 将返回的URL绑定到文件对象
-    file.name = file.name || response.data.split('/').pop();
+    const path = toRelativeFilePath(response.data);
+    file.path = path;
+    file.url = resolveFileUrl(path);
+    file.name = file.name || path.split('/').pop();
   }
 
   // 手动更新文件列表
@@ -279,6 +283,7 @@ const handleSuccessFile = (response: any, file: any, item: any) => {
     formData[item.name].push({
       name: file.name,
       url: file.url,
+      path: file.path,
       status: 'success',
       uid: file.uid,
       size: file.size,

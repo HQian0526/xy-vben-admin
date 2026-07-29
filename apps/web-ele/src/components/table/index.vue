@@ -12,6 +12,8 @@ import {
   ElTableColumn,
 } from 'element-plus';
 
+import { resolveFileUrl } from '#/utils';
+
 const props = defineProps({
   tableConfig: {
     type: Object,
@@ -51,11 +53,9 @@ const page = reactive({
   pageSize: 10,
 });
 
-// 拼接图片完整地址
+// 拼接图片完整地址（相对路径拼全局文件前缀）
 const getImageUrl = (url: string) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return `${import.meta.env.VITE_API_BASE}${url}`;
+  return resolveFileUrl(url);
 };
 
 // 点击操作按钮

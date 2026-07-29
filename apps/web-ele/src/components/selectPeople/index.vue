@@ -21,7 +21,7 @@ const props = defineProps({
   selectMore: {
     type: Boolean,
     default: true,
-  }
+  },
 });
 
 const emit = defineEmits<{
@@ -40,6 +40,12 @@ interface Option {
   userName: string;
 }
 
+// 统一 key 类型，避免 number/string 不一致导致已选无法回显
+const normalizeKey = (id: any) => {
+  if (id === null || id === undefined || id === '') return '';
+  return String(id);
+};
+
 const generateData = async () => {
   const data: Option[] = [];
   try {
@@ -49,17 +55,17 @@ const generateData = async () => {
       pageSize: 10_000,
     });
     if (res.code === 200) {
-      const states = res.data.list.map((item, index) => {
+      const states = res.data.list.map((item: any) => {
         return {
           id: item.id,
           realName: item.realName,
           userName: item.userName,
         };
       });
-      states.forEach((item, index) => {
+      states.forEach((item: any) => {
         data.push({
           label: item.realName,
-          key: item.id,
+          key: normalizeKey(item.id),
           userName: item.userName,
         });
       });
@@ -75,11 +81,26 @@ const generateData = async () => {
   return data;
 };
 
-const data = ref<Option[]>();
-const value = ref([]);
+const data = ref<Option[]>([]);
+const value = ref<string[]>([]);
 
-const filterMethod = (query, item) => {
-  return item.userName.toLowerCase().includes(query.toLowerCase());
+const filterMethod = (query: string, item: Option) => {
+  return item.userName?.toLowerCase?.().includes(query.toLowerCase());
+};
+
+// 根据 props.selectedUsers 回填右侧已选
+const applySelectedUsers = () => {
+  if (!data.value?.length || !props.selectedUsers?.length) {
+    value.value = [];
+    return;
+  }
+  const selectedKeys = props.selectedUsers
+    .map((item: any) => normalizeKey(item.userId ?? item.id))
+    .filter(Boolean);
+  // 只保留仍存在于用户列表中的 key，保证穿梭框能正确展示
+  const dataKeySet = new Set(data.value.map((item) => item.key));
+  value.value = selectedKeys.filter((key) => dataKeySet.has(key));
+  console.log('已选中的用户：', value.value);
 };
 
 // 关闭弹窗
@@ -108,29 +129,25 @@ const confirm = async () => {
   emit('confirm', selectedUsers);
 };
 
-// 监听formConfig变化
+// 打开弹窗时加载用户列表并回填已选
 watch(
   () => props.visible,
   async (val) => {
-    if (val) {
-      // 获取总用户列表数据
-      data.value = await generateData();
-      if (
-        data.value &&
-        data.value.length > 0 &&
-        props.selectedUsers &&
-        props.selectedUsers.length > 0
-      ) {
-        // 获取已选中的用户
-        value.value = props.selectedUsers.map((item) => item.userId);
-        console.log('已选中的用户：', value.value);
-      } else {
-        value.value = []; // 确保没有选中用户时清空
-        console.log('未选中任何用户');
-      }
+    if (!val) return;
+    data.value = await generateData();
+    applySelectedUsers();
+  },
+);
+
+// 已选用户异步到达时（弹窗已打开）再次回填，避免被覆盖成空
+watch(
+  () => props.selectedUsers,
+  () => {
+    if (props.visible) {
+      applySelectedUsers();
     }
   },
-  { immediate: true },
+  { deep: true },
 );
 </script>
 

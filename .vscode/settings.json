@@ -110,7 +110,7 @@
     "**/elehukouben": true,
     "**/.git": true,
     "**/.github": true,
-    "**/.gitignore": true,
+    "**/.gitignore": false,
     "**/.svn": true,
     "**/.DS_Store": true,
     "**/.vitepress/cache": true,

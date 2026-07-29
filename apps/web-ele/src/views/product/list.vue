@@ -20,7 +20,7 @@ import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import Tree from '#/components/tree/index.vue';
 import { $t } from '#/locales';
-import { getDict } from '#/utils';
+import { getDict, toRelativeFilePath } from '#/utils';
 
 const isLoading = ref(false);
 //* *************左侧树相关变量**************
@@ -296,10 +296,13 @@ const closeDialog = () => {
 const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
-  // 处理商品图片上传字段
+  // 处理商品图片：提交相对路径，不传完整回显地址
   const productImg = Array.isArray(data.productImg)
-    ? data.productImg.map((item: any) => item.url).join(',')
-    : data.productImg;
+    ? data.productImg
+        .map((item: any) => toRelativeFilePath(item))
+        .filter(Boolean)
+        .join(',')
+    : toRelativeFilePath(data.productImg);
   const payload = {
     ...data,
     productImg,
