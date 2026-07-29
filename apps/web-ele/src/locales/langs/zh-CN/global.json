@@ -248,6 +248,8 @@
     "saleNum": "已售",
     "remark": "描述",
     "createdBy": "创建人",
-    "catagory": "商品分类"
+    "catagory": "商品分类",
+    "belongCatagory": "所属分类",
+    "orderNum": "排序"
   }
 }

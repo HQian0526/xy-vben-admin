@@ -237,6 +237,8 @@
     "saleNum": "sold",
     "remark": "remark",
     "createdBy": "created by",
-    "catagory": "category"
+    "catagory": "category",
+    "belongCatagory": "category",
+    "orderNum": "order number"
   }
 }

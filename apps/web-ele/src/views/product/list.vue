@@ -26,6 +26,8 @@ const isLoading = ref(false);
 //* *************左侧树相关变量**************
 const treeData = ref<Array<{ id: any; label: string }>>([]); // 一层分类树数据
 const selectedCatagoryId = ref<any>(null); // 当前选中的分类id
+// 弹窗「所属分类」下拉选项（与左侧树同源）
+const catagoryOptions = reactive<Array<{ label: string; value: any }>>([]);
 //* *************table相关变量**************
 const productStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 商品状态字典
 const total = ref(10);
@@ -141,6 +143,13 @@ const formInfo = ref<Record<string, any>>({}); // 弹窗其他信息
 // 弹窗表单配置
 const editConfig = reactive([
   {
+    label: $t('global.product.belongCatagory'),
+    name: 'catagoryId',
+    type: 'select',
+    span: 24,
+    options: catagoryOptions,
+  },
+  {
     label: $t('global.product.productName'),
     name: 'productName',
     type: 'input',
@@ -181,6 +190,13 @@ const editConfig = reactive([
 ]);
 // 弹窗表单校验规则
 const editRules = reactive({
+  catagoryId: [
+    {
+      required: true,
+      message: $t('global.product.belongCatagory') + $t('global.required'),
+      trigger: 'change',
+    },
+  ],
   productName: [
     {
       required: true,
@@ -312,17 +328,10 @@ const confirmDialog = async (title: string, data: any) => {
 
 // 新增
 const handleAdd = () => {
-  if (!selectedCatagoryId.value) {
-    ElMessage({
-      type: 'warning',
-      message: `${$t('global.pleaseSelect')}${$t('global.product.catagory')}`,
-    });
-    return;
-  }
   formTitle.value = $t('global.btn.add');
-  // 默认挂到当前选中分类，状态默认上架（1）
+  // 默认挂到当前选中分类（可在弹窗下拉中修改），状态默认上架（1）
   formInfo.value = {
-    catagoryId: selectedCatagoryId.value,
+    catagoryId: selectedCatagoryId.value || undefined,
     productStatus: 1,
   };
   itemVisible.value = true;
@@ -428,12 +437,22 @@ const getCatagoryTree = async () => {
     const res = await getCatagoryListApi();
     if (res.code === 200) {
       const source = res.data?.list || res.data || [];
+      const listData = Array.isArray(source) ? source : [];
       // 转成树组件需要的一层结构：id / label
-      treeData.value = (Array.isArray(source) ? source : []).map(
-        (item: any) => ({
-          id: item.catagoryId,
+      treeData.value = listData.map((item: any) => ({
+        id: item.catagoryId,
+        label: item.catagoryName,
+      }));
+      // 同步弹窗「所属分类」下拉选项
+      catagoryOptions.splice(
+        0,
+        catagoryOptions.length,
+        ...listData.map((item: any) => ({
           label: item.catagoryName,
-        }),
+          value: item.catagoryId,
+          // 分类id可能为雪花算法长整型，避免被转 Number 丢精度
+          keepValue: true,
+        })),
       );
     } else {
       ElMessage({

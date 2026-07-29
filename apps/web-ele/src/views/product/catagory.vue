@@ -40,6 +40,11 @@ const tableConfig = reactive({
       label: $t('global.product.catagoryName'),
     },
     {
+      prop: 'orderNum',
+      label: $t('global.product.orderNum'),
+      type: 'number',
+    },
+    {
       prop: 'createdTime',
       label: $t('global.createdTime'),
       filter: (value: any) => {
@@ -112,6 +117,12 @@ const editConfig = reactive([
     type: 'select',
     span: 24,
     options: catagoryStatusDict,
+  },
+  {
+    label: $t('global.product.orderNum'),
+    name: 'orderNum',
+    type: 'number',
+    span: 24,
   },
 ]);
 // 弹窗表单校验规则

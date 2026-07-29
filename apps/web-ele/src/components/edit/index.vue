@@ -419,7 +419,7 @@ watch(
                 :readonly="item.readonly ? item.readonly : false"
                 :placeholder="`${$t('global.pleaseSelect')}${item.label}`" style="width: 100%">
                 <ElOption v-for="(itemSelect, indexSelect) in item.options" :label="itemSelect.label"
-                  :value="Number(itemSelect.value)" :key="indexSelect" />
+                  :value="itemSelect.keepValue ? itemSelect.value : Number(itemSelect.value)" :key="indexSelect" />
               </ElSelect>
               <el-radio-group v-if="item.type === 'radio'" v-model="formData[item.name]">
                 <el-radio v-for="(itemRadio, indexRadio) in item.options" :key="indexRadio" :value="itemRadio.value">
