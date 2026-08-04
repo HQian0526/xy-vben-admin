@@ -1,6 +1,6 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
+import { computed, defineEmits, defineProps, nextTick, reactive, ref, watch } from 'vue';
 import { Plus, Close, Check } from '@element-plus/icons-vue';
 import {
   ElButton,
@@ -16,6 +16,7 @@ import {
   ElRow,
   ElSelect,
 } from 'element-plus';
+import { useAccessStore } from '@vben/stores';
 
 import SelectPeople from '#/components/selectPeople/index.vue';
 import { $t } from '#/locales';
@@ -73,7 +74,11 @@ const formData = reactive<Record<string, any>>({}); // 表单数据
 // 图片上传相关
 const dialogImageUrl = ref(''); // 图片预览地址
 const dialogVisible = ref(false); // 图片预览弹窗
-const token = ref(localStorage.getItem('token')); // 从存储中获取token
+const accessStore = useAccessStore();
+// 与普通接口保持一致：从 accessStore 取 token，并带 Bearer 前缀
+const uploadHeaders = computed(() => ({
+  Authorization: accessStore.accessToken ? `Bearer ${accessStore.accessToken}` : '',
+}));
 // 上传配置
 const uploadAction = '/api/file/upload'; // 根据环境变量配置
 
@@ -453,7 +458,7 @@ watch(
               <!-- 图片上传 -->
               <template v-if="item.type === 'uploadImg'">
                 <el-upload v-model:file-list="formData[item.name]" :class="formData[item.name]?.length === item.limit ? 'hide' : ''
-                  " :action="uploadAction" :headers="{ Authorization: token }" list-type="picture-card"
+                  " :action="uploadAction" :headers="uploadHeaders" list-type="picture-card"
                   :limit="item.limit || 5" :on-preview="handlePictureCardPreview" :on-remove="handleRemoveImg"
                   :on-exceed="handleExceed" :before-upload="beforeUploadImg" @success="
                     (response, file) => handleSuccessImg(response, file, item)
@@ -470,7 +475,7 @@ watch(
               <!-- 文件上传 -->
               <template v-if="item.type === 'uploadFile'">
                 <el-upload :file-list="formData[item.name]" class="upload-demo" :action="uploadAction"
-                  :accept="item.accept" :before-remove="beforeRemove"
+                  :headers="uploadHeaders" :accept="item.accept" :before-remove="beforeRemove"
                   :on-remove="(uploadFilled, uploadFiles) => handleRemoveFile(uploadFilled, uploadFiles, item.name)"
                   :limit="item.limit" :on-exceed="handleExceed" :before-upload="(file) => beforeUploadFile(file, item)"
                   :on-error="handleError" @success="
