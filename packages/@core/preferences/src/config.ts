@@ -43,8 +43,8 @@ const defaultPreferences: Preferences = {
     companySiteLink: '',
     date: '2025',
     enable: true,
-    icp: '',
-    icpLink: '',
+    icp: '粤ICP备2024284312号',
+    icpLink: 'https://beian.miit.gov.cn/',
     settingShow: true,
   },
   footer: {

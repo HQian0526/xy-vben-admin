@@ -11,4 +11,11 @@ export const overridesPreferences = defineOverridesPreferences({
     name: import.meta.env.VITE_APP_TITLE,
     defaultHomePath: '/dashboard/index',
   },
+  copyright: {
+    companyName: '广州市星萤网络有限公司',
+    enable: true,
+    // 与系统首页/官网一致的备案信息
+    icp: '粤ICP备2024284312号',
+    icpLink: 'https://beian.miit.gov.cn/',
+  },
 });

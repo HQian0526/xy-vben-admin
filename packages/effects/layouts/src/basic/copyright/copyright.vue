@@ -22,16 +22,6 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="text-md flex-center">
-    <!-- ICP Link -->
-    <a
-      v-if="icp"
-      :href="icpLink || 'javascript:void(0)'"
-      class="hover:text-primary-hover mx-1"
-      target="_blank"
-    >
-      {{ icp }}
-    </a>
-
     <!-- Copyright Text -->
     Copyright © {{ date }}
 
@@ -43,6 +33,16 @@ withDefaults(defineProps<Props>(), {
       target="_blank"
     >
       {{ companyName }}
+    </a>
+
+    <!-- ICP Link：展示在公司名后面 -->
+    <a
+      v-if="icp"
+      :href="icpLink || 'javascript:void(0)'"
+      class="hover:text-primary-hover mx-1"
+      target="_blank"
+    >
+      {{ icp }}
     </a>
   </div>
 </template>
