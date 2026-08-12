@@ -17,9 +17,11 @@ import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
+import { getDict } from '#/utils';
 
 const isLoading = ref(false);
 //* *************table相关变量**************
+const storeStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 店铺状态字典
 const total = ref(10);
 const pageInfo = reactive({
   pageNum: 1,
@@ -72,12 +74,22 @@ const tableConfig = reactive({
       },
     },
     {
-      prop: 'deleted',
+      prop: 'storeStatus',
       label: $t('global.store.storeStatus'),
       filter: (value: any) => {
-        return value ? $t('global.store.lock') : $t('global.store.normal');
+        const hit = storeStatusDict.find(
+          (item) => Number(item.value) === Number(value),
+        );
+        return hit ? hit.label : value;
       },
     },
+    // {
+    //   prop: 'deleted',
+    //   label: $t('global.store.status'),
+    //   filter: (value: any) => {
+    //     return value ? $t('global.store.lock') : $t('global.store.normal');
+    //   },
+    // },
     {
       prop: 'operation',
       label: $t('global.operation'),
@@ -137,10 +149,18 @@ const formConfig = reactive({
     },
     {
       type: 'select',
-      prop: 'deleted',
+      prop: 'storeStatus',
       label: $t('global.store.storeStatus'),
       value: '',
       placeholder: `${$t('global.pleaseSelect')}${$t('global.store.storeStatus')}`,
+      options: storeStatusDict,
+    },
+    {
+      type: 'select',
+      prop: 'deleted',
+      label: $t('global.store.status'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.store.status')}`,
       options: [
         {
           label: $t('global.store.normal'),
@@ -225,20 +245,27 @@ const editConfig = reactive([
   },
   {
     label: $t('global.store.storeStatus'),
-    name: 'deleted',
+    name: 'storeStatus',
     type: 'select',
     readonly: false,
-    options: [
-      {
-        label: $t('global.store.normal'),
-        value: 0,
-      },
-      {
-        label: $t('global.store.lock'),
-        value: 1,
-      },
-    ],
+    options: storeStatusDict,
   },
+  // {
+  //   label: $t('global.store.status'),
+  //   name: 'deleted',
+  //   type: 'select',
+  //   readonly: false,
+  //   options: [
+  //     {
+  //       label: $t('global.store.normal'),
+  //       value: 0,
+  //     },
+  //     {
+  //       label: $t('global.store.lock'),
+  //       value: 1,
+  //     },
+  //   ],
+  // },
   {
     label: $t('global.store.storeType'),
     name: 'storeType',
@@ -546,7 +573,10 @@ const selectedUser = (key: string, value: any) => {
   selectedUsers[key] = value;
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 获取店铺状态字典值
+  const dict1 = await getDict('store_status');
+  storeStatusDict.splice(0, storeStatusDict.length, ...dict1);
   getStoreList(); // 获取商户列表
 });
 </script>
