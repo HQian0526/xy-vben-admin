@@ -533,8 +533,9 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .product-list-page {
   display: flex;
+  flex-direction: row;
   gap: 10px;
-  height: calc(100vh - 120px);
+  height: 100%;
 }
 
 .tree-card {
@@ -553,6 +554,7 @@ onMounted(async () => {
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
 .table-box {

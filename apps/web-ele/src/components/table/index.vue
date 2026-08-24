@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineEmits, defineProps, reactive } from 'vue';
+import { computed, defineEmits, defineProps, reactive } from 'vue';
 
 import {
   ElButton,
@@ -53,6 +53,12 @@ const page = reactive({
   pageSize: 10,
 });
 
+// ElPagination 要求 total 必须是 number，否则会直接不渲染
+const paginationTotal = computed(() => {
+  const n = Number(props.total);
+  return Number.isFinite(n) ? n : 0;
+});
+
 // 拼接图片完整地址（相对路径拼全局文件前缀）
 const getImageUrl = (url: string) => {
   return resolveFileUrl(url);
@@ -77,13 +83,15 @@ const handleSizeChange = (pageSize: number) => {
 </script>
 
 <template>
-  <div class="table-container">
-    <ElTable
-      :data="props.list"
-      :stripe="props.stripe ? props.stripe : false"
-      :row-key="props.isTree ? 'id' : undefined"
-      style="width: 100%; height: 100%"
-    >
+  <div class="table-container" :class="{ 'is-fill': props.pagination !== false }">
+    <div class="table-body">
+      <ElTable
+        :data="props.list"
+        :stripe="props.stripe ? props.stripe : false"
+        :row-key="props.isTree ? 'id' : undefined"
+        :height="props.pagination !== false ? '100%' : undefined"
+        style="width: 100%"
+      >
       <template
         v-for="(item, index) in props.tableConfig.list"
         :key="item.prop"
@@ -216,10 +224,11 @@ const handleSizeChange = (pageSize: number) => {
           :sortable="item.sortable ? item.sortable : false"
         />
       </template>
-    </ElTable>
-    <!-- 分页 -->
+      </ElTable>
+    </div>
+    <!-- 分页：单独占位，避免被表格 height:100% 挤出卡片 -->
     <div
-      v-if="props.pagination === false ? false : true"
+      v-if="props.pagination !== false"
       class="table-pagination"
     >
       <ElPagination
@@ -228,7 +237,7 @@ const handleSizeChange = (pageSize: number) => {
         :page-sizes="[10, 20, 30, 40, 50]"
         background
         layout="total, sizes, prev, pager, next, jumper"
-        :total="props.total"
+        :total="paginationTotal"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -237,21 +246,32 @@ const handleSizeChange = (pageSize: number) => {
 </template>
 
 <style lang="scss" scoped>
-/* 关键样式 */
 .table-container {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
+}
+
+.table-container.is-fill {
   height: 100%;
+  overflow: hidden;
+}
+
+.table-body {
+  min-height: 0;
+}
+
+.table-container.is-fill .table-body {
+  flex: 1;
+  overflow: hidden;
 }
 
 .table-pagination {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
-
-  /* 居右 */
   margin-top: 10px;
-
-  /* 可选：与表格的间距 */
 }
 
 .table-img-cell {
