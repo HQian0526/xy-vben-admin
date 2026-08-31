@@ -217,7 +217,7 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
 
 // 图片上传前校验
 const beforeUploadImg = (file) => {
-  const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
   const isLt20M = file.size / 1024 / 1024 < 20;
 
   if (!isImage) {

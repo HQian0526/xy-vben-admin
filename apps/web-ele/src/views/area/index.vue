@@ -88,7 +88,7 @@ const tableConfig = reactive({
 const list = reactive([]);
 
 //* *************filter相关变量**************
-const isCollapsed = ref(false);
+// const isCollapsed = ref(false);
 // 头部搜索框
 const formConfig = reactive({
   list: [
@@ -184,9 +184,9 @@ const editRules = reactive({
 });
 
 // 点击展开收起
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
+// const toggleCollapse = () => {
+//   isCollapsed.value = !isCollapsed.value;
+// };
 
 const search = (form: any) => {
   console.log('form', form);
@@ -404,15 +404,15 @@ onMounted(() => {
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
         <template #extra>
-          <el-button link type="primary" @click="toggleCollapse">
+          <!-- <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
                 ? $t('global.btn.expandMore')
                 : $t('global.btn.collapseMore')
             }}
-          </el-button>
-
-          <div v-show="!isCollapsed" class="button-group">
+          </el-button> -->
+          <!-- v-show="!isCollapsed" -->
+          <div class="button-group">
             <el-button type="success" :icon="Plus" @click="handleAdd">
               {{ $t('global.btn.add') }}
             </el-button>
@@ -447,6 +447,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+@import "#/styles/style.scss";
 .table-box {
   height: calc(100vh - 180px);
   overflow-y: auto;

@@ -115,7 +115,7 @@ const tableConfig = reactive({
 const list = reactive([]);
 
 //* *************filter相关变量**************
-const isCollapsed = ref(false);
+// const isCollapsed = ref(false);
 // 头部搜索框：商品名称、状态模糊/筛选
 const formConfig = reactive({
   list: [
@@ -160,6 +160,10 @@ const editConfig = reactive([
     name: 'price',
     type: 'input',
     span: 24,
+    onlyNumber: true,
+    append: {
+      label: '元',
+    },
   },
   {
     label: $t('global.product.productNum'),
@@ -208,6 +212,11 @@ const editRules = reactive({
     {
       required: true,
       message: $t('global.product.price') + $t('global.required'),
+      trigger: 'blur',
+    },
+    {
+      pattern: /^\d+(\.\d+)?$/,
+      message: `${$t('global.pleaseEnter')}数字`,
       trigger: 'blur',
     },
   ],
@@ -531,6 +540,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+@import "#/styles/style.scss";
 .product-list-page {
   display: flex;
   flex-direction: row;

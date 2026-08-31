@@ -119,7 +119,7 @@ const tableConfig = reactive({
 const list = reactive([]);
 
 //* *************filter相关变量**************
-const isCollapsed = ref(false);
+// const isCollapsed = ref(false);
 // 头部搜索框
 const formConfig = reactive({
   list: [
@@ -186,16 +186,11 @@ const formInfo = ref({}); // 弹窗其他信息
 // 弹窗表单配置
 const editConfig = reactive([
   {
-    label: $t('global.store.storeCode'),
-    name: 'storeId',
-    type: 'input',
-    readonly: false,
-  },
-  {
     label: $t('global.store.storeName'),
     name: 'storeName',
     type: 'input',
     readonly: false,
+    span: 24,
   },
   {
     label: $t('global.store.storeManager'),
@@ -321,13 +316,6 @@ const editConfig = reactive([
 ]);
 // 弹窗表单校验规则
 const editRules = reactive({
-  storeId: [
-    {
-      required: true,
-      message: $t('global.store.storeCode') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
   storeName: [
     {
       required: true,
@@ -339,6 +327,13 @@ const editRules = reactive({
     {
       required: true,
       message: $t('global.store.storeManager') + $t('global.required'),
+      trigger: 'blur',
+    },
+  ],
+  identityName: [
+    {
+      required: true,
+      message: $t('global.store.businessOwner') + $t('global.required'),
       trigger: 'blur',
     },
   ],
@@ -359,9 +354,9 @@ const editRules = reactive({
 });
 
 // 点击展开收起
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
+// const toggleCollapse = () => {
+//   isCollapsed.value = !isCollapsed.value;
+// };
 
 const search = (form: any) => {
   console.log('form', form);
@@ -452,10 +447,16 @@ const confirmDialog = async (title: string, data: any) => {
       : data.realName,
   };
   try {
+    const payload = { ...data, ...obj };
+    // 新增时由后端雪花生成 id / storeId，避免空串导致反序列化失败
+    if (title === $t('global.btn.add')) {
+      delete payload.id;
+      delete payload.storeId;
+    }
     const res =
       title === $t('global.btn.add')
-        ? await addStoreApi({ ...data, ...obj })
-        : await editStoreApi({ ...data, ...obj });
+        ? await addStoreApi(payload)
+        : await editStoreApi(payload);
     if (res.code === 200) {
       ElMessage({
         type: 'success',
@@ -469,7 +470,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 新增
@@ -587,15 +588,15 @@ onMounted(async () => {
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
         <template #extra>
-          <el-button link type="primary" @click="toggleCollapse">
+          <!-- <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
                 ? $t('global.btn.expandMore')
                 : $t('global.btn.collapseMore')
             }}
-          </el-button>
-
-          <div v-show="!isCollapsed" class="button-group">
+          </el-button> -->
+          <!-- v-show="!isCollapsed" -->
+          <div class="button-group">
             <el-button type="success" :icon="Plus" @click="handleAdd">
               {{ $t('global.btn.add') }}
             </el-button>
@@ -605,32 +606,18 @@ onMounted(async () => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange"
-        @handle-size-change="handleSizeChange"
-      />
+      <Table :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
     </el-card>
     <!-- 编辑弹窗 -->
-    <Edit
-      ref="editForm"
-      label-width="100px"
-      :form-config="editConfig"
-      :form-rules="editRules"
-      :title="formTitle"
-      :form-info="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-      @selected-user="selectedUser"
-    />
+    <Edit ref="editForm" label-width="100px" :form-config="editConfig" :form-rules="editRules" :title="formTitle"
+      :form-info="formInfo" :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog"
+      @selected-user="selectedUser" />
   </div>
 </template>
 
 <style lang="scss" scoped>
+@import "#/styles/style.scss";
 .table-box {
   height: calc(100vh - 180px);
   overflow-y: auto;

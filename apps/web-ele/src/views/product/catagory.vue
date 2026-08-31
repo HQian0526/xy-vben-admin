@@ -86,7 +86,7 @@ const tableConfig = reactive({
 const list = reactive([]);
 
 //* *************filter相关变量**************
-const isCollapsed = ref(false);
+// const isCollapsed = ref(false);
 // 头部搜索框：分类名称模糊查询
 const formConfig = reactive({
   list: [
@@ -359,6 +359,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+@import "#/styles/style.scss";
 .table-box {
   height: calc(100vh - 180px);
   overflow-y: auto;

@@ -231,7 +231,7 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
 
 // 图片上传前校验
 const beforeUploadImg = (file) => {
-  const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
   const isLt20M = file.size / 1024 / 1024 < 20;
 
   if (!isImage) {
@@ -372,6 +372,14 @@ const validateForm = () => {
   return valid;
 };
 
+// 仅允许数字和小数点
+const onNumberInput = (name: string, val: string) => {
+  const next = String(val ?? '')
+    .replace(/[^\d.]/g, '')
+    .replace(/(\..*)\./g, '$1');
+  formData[name] = next;
+};
+
 // 父组件同步获取表单最新字段
 const getFormData = () => {
   return formData;
@@ -406,7 +414,8 @@ watch(
               <!--输入框-->
               <ElInput v-if="item.type === 'input'" :readonly="item.readonly ? item.readonly : false"
                 :placeholder="item.placeholder ? item.placeholder : `${$t('global.pleaseEnter')}${item.label}`"
-                v-model="formData[item.name]">
+                v-model="formData[item.name]"
+                @input="(val) => item.onlyNumber && onNumberInput(item.name, val)">
                 <template v-if="item.append" #append>
                   <div @click="item.append.filter ? item.append.filter() : null">
                     {{ item.append.label }}

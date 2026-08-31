@@ -4,17 +4,17 @@
 <script lang="ts" setup>
 import { Refresh, Search } from '@element-plus/icons-vue';
 import {
-ElButton,
-ElCheckbox,
-ElCheckboxGroup,
-ElDatePicker,
-ElForm,
-ElFormItem,
-ElInput,
-ElOption,
-ElRadio,
-ElRadioGroup,
-ElSelect
+  ElButton,
+  ElCheckbox,
+  ElCheckboxGroup,
+  ElDatePicker,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElOption,
+  ElRadio,
+  ElRadioGroup,
+  ElSelect
 } from 'element-plus';
 import { defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
 
@@ -75,59 +75,22 @@ watch(() => props.formConfig.list, initFormData, { deep: true });
 </script>
 
 <template>
-  <ElForm
-    ref="formRef"
-    :inline="true"
-    :model="form"
-    class="demo-form-inline"
-    @submit.prevent
-  >
-    <ElFormItem
-      v-for="(item, index) in formConfig.list"
-      :key="index"
-      :label="item.label"
-    >
+  <ElForm ref="formRef" :inline="true" :model="form" class="demo-form-inline" @submit.prevent>
+    <ElFormItem v-for="(item, index) in formConfig.list" :key="index" :label="item.label">
       <!-- input输入框 -->
-      <ElInput
-        v-if="item.type === 'input'"
-        v-model="form[item.prop]"
-        :placeholder="item.placeholder"
-        :clearable="item.clearable || true"
-        @keyup.enter.native="search"
-      />
+      <ElInput v-if="item.type === 'input'" v-model="form[item.prop]" :placeholder="item.placeholder"
+        :clearable="item.clearable || true" @keyup.enter.native="search" />
       <!-- select下拉框 -->
-      <ElSelect
-        v-if="item.type === 'select'"
-        v-model="form[item.prop]"
-        :placeholder="item.placeholder"
-        :clearable="item.clearable || true"
-      >
-        <ElOption
-          v-for="(it, ind) in item.options"
-          :key="ind"
-          :label="it.label"
-          :value="it.value"
-        />
+      <ElSelect v-if="item.type === 'select'" v-model="form[item.prop]" :placeholder="item.placeholder"
+        :clearable="item.clearable || true">
+        <ElOption v-for="(it, ind) in item.options" :key="ind" :label="it.label" :value="it.value" />
       </ElSelect>
       <!-- date-picker日期选择器 -->
-      <ElDatePicker
-        v-if="item.type === 'date'"
-        v-model="form[item.prop]"
-        type="date"
-        :placeholder="item.placeholder"
-        :clearable="item.clearable || true"
-      />
+      <ElDatePicker v-if="item.type === 'date'" v-model="form[item.prop]" type="date" :placeholder="item.placeholder"
+        :clearable="item.clearable || true" />
       <!-- checkbox-group多选框 -->
-      <ElCheckboxGroup
-        v-if="item.type === 'checkbox'"
-        v-model="form[item.prop]"
-      >
-        <ElCheckbox
-          v-for="(it, ind) in item.options"
-          :key="ind"
-          :value="it.value"
-          name="type"
-        >
+      <ElCheckboxGroup v-if="item.type === 'checkbox'" v-model="form[item.prop]">
+        <ElCheckbox v-for="(it, ind) in item.options" :key="ind" :value="it.value" name="type">
           {{ it.value }}
         </ElCheckbox>
       </ElCheckboxGroup>
@@ -152,7 +115,7 @@ watch(() => props.formConfig.list, initFormData, { deep: true });
 
 <style>
 .demo-form-inline {
-  height: 32px;
+  /* height: 32px; */
 }
 
 .demo-form-inline .el-input {
@@ -161,5 +124,9 @@ watch(() => props.formConfig.list, initFormData, { deep: true });
 
 .demo-form-inline .el-select {
   --el-select-width: 160px;
+}
+
+::v-deep.el-form-item {
+  margin-bottom: 0 !important;
 }
 </style>

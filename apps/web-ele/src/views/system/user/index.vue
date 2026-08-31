@@ -19,6 +19,7 @@ const pageInfo = reactive({
   pageNum: 1,
   pageSize: 10,
 });
+const identityDict = reactive<Array<{ label: string; value: any }>>([]); // 身份字典
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -54,13 +55,10 @@ const tableConfig = reactive({
       prop: 'identityType',
       label: $t('global.user.identity'),
       filter: (value: any) => {
-        if (value === 1) {
-          return $t('global.user.normalUser');
-        } else if (value === 2) {
-          return $t('global.user.vipUser');
-        } else {
-          return $t('global.user.adminUser');
-        }
+        const hit = identityDict.find(
+          (item) => Number(item.value) === Number(value),
+        );
+        return hit ? hit.label : value;
       },
     },
     {
@@ -105,7 +103,7 @@ const tableConfig = reactive({
 // 表格数据
 const list = reactive([]);
 //* *************filter相关变量**************
-const isCollapsed = ref(false);
+// const isCollapsed = ref(false);
 // 头部搜索框
 const formConfig = reactive({
   list: [
@@ -144,7 +142,6 @@ const formConfig = reactive({
 });
 
 //* *************edit相关变量**************
-const identityDict = reactive<Array<{ label: string; value: any }>>([]); // 身份字典
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
 const formInfo = ref({}); // 弹窗其他信息
@@ -255,9 +252,9 @@ const editConfig = reactive([
 ]);
 
 // 点击展开收起
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
+// const toggleCollapse = () => {
+//   isCollapsed.value = !isCollapsed.value;
+// };
 
 const search = (form: any) => {
   console.log('form', form);
@@ -339,7 +336,7 @@ const confirmDialog = async (title: string, data: any) => {
         message: res.msg,
       });
     }
-  } catch {}
+  } catch { }
 };
 
 // 新增
@@ -450,15 +447,15 @@ onMounted(async () => {
       <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
         <template #extra>
-          <el-button link type="primary" @click="toggleCollapse">
+          <!-- <el-button link type="primary" @click="toggleCollapse">
             {{
               isCollapsed
                 ? $t('global.btn.expandMore')
                 : $t('global.btn.collapseMore')
             }}
-          </el-button>
-
-          <div v-show="!isCollapsed" class="button-group">
+          </el-button> -->
+          <!-- v-show="!isCollapsed" -->
+          <div class="button-group">
             <el-button type="success" :icon="Plus" @click="handleAdd">
               {{ $t('global.btn.add') }}
             </el-button>
@@ -468,31 +465,17 @@ onMounted(async () => {
     </el-card>
     <el-card class="table-box mgt5">
       <!-- 表格 -->
-      <Table
-        ref="table"
-        :table-config="tableConfig"
-        :list="list"
-        :total="total"
-        @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange"
-        @handle-size-change="handleSizeChange"
-      />
+      <Table ref="table" :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
     </el-card>
     <!-- 弹窗 -->
-    <Edit
-      ref="editForm"
-      :form-config="editConfig"
-      :form-rules="editRules"
-      :title="formTitle"
-      :form-info="formInfo"
-      :visible="itemVisible"
-      @close="closeDialog"
-      @confirm="confirmDialog"
-    />
+    <Edit ref="editForm" :form-config="editConfig" :form-rules="editRules" :title="formTitle" :form-info="formInfo"
+      :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog" />
   </div>
 </template>
 
 <style lang="scss" scoped>
+@import "#/styles/style.scss";
 .table-box {
   height: calc(100vh - 180px);
   overflow-y: auto;
