@@ -35,6 +35,7 @@
     "confirmDelete": "confirm delete?",
     "confirmLock": "confirm lock?",
     "confirmUnlock": "confirm unlock?",
+    "confirmResetPassword": "confirm reset this user's password?",
     "confirmOffShelf": "confirm off shelf?",
     "confirmSave": "confirm save?",
     "confirmImport": "confirm import?",
@@ -100,7 +101,11 @@
     "next": "next",
     "previous": "previous",
     "addVariable": "addVariable",
-    "offShelf": "off shelf"
+    "offShelf": "off shelf",
+    "resetPassword": "reset password",
+    "copyPassword": "copy password",
+    "changePassword": "change password",
+    "confirmChange": "confirm change"
   },
   "user": {
     "userName": "account",
@@ -121,7 +126,23 @@
     "vipUser": "VIP user",
     "adminUser": "admin user",
     "man": "man",
-    "woman": "woman"
+    "woman": "woman",
+    "newPassword": "new password",
+    "oldPassword": "old password",
+    "confirmPassword": "confirm password",
+    "passwordStrength": "password strength",
+    "passwordWeak": "weak",
+    "passwordMedium": "medium",
+    "passwordStrong": "strong",
+    "needLetter": "include letters",
+    "needNumber": "include numbers",
+    "needSpecial": "include special characters",
+    "needLength": "longer than 6 characters",
+    "passwordRuleTip": "Must include letters, numbers and special characters, and be longer than 6 characters",
+    "passwordMinLength": "New password must be longer than 6 characters",
+    "passwordMismatch": "The two new passwords do not match",
+    "passwordSameAsOld": "New password cannot be the same as the old password",
+    "resetPasswordOnceTip": "Note: The new password is shown only once. Please remember it."
   },
   "dict": {
     "code": "dictionary code",
@@ -241,5 +262,11 @@
     "catagory": "category",
     "belongCatagory": "category",
     "orderNum": "order number"
+  },
+  "otherBusiness": {
+    "businessName": "business name",
+    "businessDesc": "description",
+    "businessFee": "fee",
+    "storeName": "store"
   }
 }

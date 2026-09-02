@@ -6,7 +6,7 @@ import type { AnyFunction } from '@vben/types';
 import { computed, useTemplateRef, watch } from 'vue';
 
 import { useHoverToggle } from '@vben/hooks';
-import { LockKeyhole, LogOut } from '@vben/icons';
+import { KeyRound, LockKeyhole, LogOut } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore } from '@vben/stores';
@@ -64,6 +64,8 @@ interface Props {
   trigger?: 'both' | 'click' | 'hover';
   /** hover触发时，延迟响应的时间 */
   hoverDelay?: number;
+  /** 是否展示修改密码 */
+  enableChangePassword?: boolean;
 }
 
 defineOptions({
@@ -80,9 +82,10 @@ const props = withDefaults(defineProps<Props>(), {
   text: '',
   trigger: 'click',
   hoverDelay: 500,
+  enableChangePassword: false,
 });
 
-const emit = defineEmits<{ logout: [] }>();
+const emit = defineEmits<{ logout: []; changePassword: [] }>();
 
 const { globalLockScreenShortcutKey, globalLogoutShortcutKey } =
   usePreferences();
@@ -138,6 +141,11 @@ function handleOpenLock() {
 function handleSubmitLock(lockScreenPassword: string) {
   lockModalApi.close();
   accessStore.lockScreen(lockScreenPassword);
+}
+
+function handleChangePassword() {
+  openPopover.value = false;
+  emit('changePassword');
 }
 
 function handleLogout() {
@@ -246,6 +254,15 @@ if (enableShortcutKey.value) {
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator v-if="preferences.widget.lockScreen" />
+        <DropdownMenuItem
+          v-if="enableChangePassword"
+          class="mx-1 flex cursor-pointer items-center rounded-sm py-1 leading-8"
+          @click="handleChangePassword"
+        >
+          <KeyRound class="mr-2 size-4" />
+          {{ $t('ui.widgets.changePassword') }}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator v-if="enableChangePassword" />
         <DropdownMenuItem
           class="mx-1 flex cursor-pointer items-center rounded-sm py-1 leading-8"
           @click="handleLogout"

@@ -4,7 +4,13 @@ import { onMounted, reactive, ref } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
-import { addUserApi, deleteUserApi, editUserApi, getUserListApi } from '#/api';
+import {
+  addUserApi,
+  deleteUserApi,
+  editUserApi,
+  getUserListApi,
+  resetPasswordApi,
+} from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
@@ -79,11 +85,15 @@ const tableConfig = reactive({
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '180px',
+      width: '280px',
       operations: [
         {
           type: 'primary',
           label: $t('global.btn.detail'),
+        },
+        {
+          type: 'warning',
+          label: $t('global.btn.resetPassword'),
         },
         {
           type: 'success',
@@ -145,6 +155,9 @@ const formConfig = reactive({
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
 const formInfo = ref({}); // 弹窗其他信息
+//* *************重置密码相关变量**************
+const pwdVisible = ref(false); // 是否展示新密码弹窗
+const newPassword = ref(''); // 接口返回的明文密码
 // 弹窗表单校验规则
 const editRules = reactive({
   userName: [
@@ -291,6 +304,11 @@ const handleClick = (row: any, label: string) => {
 
       break;
     }
+    case $t('global.btn.resetPassword'): {
+      handleResetPassword(row);
+
+      break;
+    }
     // No default
   }
 };
@@ -372,6 +390,70 @@ const handleDelete = (row: any) => {
     });
   } catch (error) {
     console.log(error);
+  }
+};
+
+// 重置密码
+const handleResetPassword = (row: any) => {
+  console.log('row', row);
+  try {
+    ElMessageBox.confirm(
+      $t('global.message.confirmResetPassword'),
+      $t('global.tip'),
+      {
+        confirmButtonText: $t('global.btn.confirm'),
+        cancelButtonText: $t('global.btn.cancel'),
+        type: 'warning',
+      },
+    ).then(async () => {
+      const res = await resetPasswordApi({ id: row.id });
+      console.log('res', res);
+      if (res.code === 200) {
+        newPassword.value = res.data?.newPassword || '';
+        pwdVisible.value = true;
+      } else {
+        ElMessage({
+          type: 'error',
+          message: res.msg || $t('global.message.error'),
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const closePwdDialog = () => {
+  pwdVisible.value = false;
+  newPassword.value = '';
+};
+
+const copyPassword = async () => {
+  const text = newPassword.value;
+  if (!text) return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+    ElMessage({
+      type: 'success',
+      message: $t('global.message.success'),
+    });
+  } catch (error) {
+    console.log(error);
+    ElMessage({
+      type: 'error',
+      message: $t('global.message.error'),
+    });
   }
 };
 
@@ -471,6 +553,26 @@ onMounted(async () => {
     <!-- 弹窗 -->
     <Edit ref="editForm" :form-config="editConfig" :form-rules="editRules" :title="formTitle" :form-info="formInfo"
       :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog" />
+    <!-- 重置密码成功弹窗 -->
+    <el-dialog
+      v-model="pwdVisible"
+      :title="$t('global.btn.resetPassword')"
+      width="420px"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      @close="closePwdDialog"
+    >
+      <div class="pwd-dialog-body">
+        <div class="pwd-label">{{ $t('global.user.newPassword') }}</div>
+        <div class="pwd-value">{{ newPassword }}</div>
+        <div class="pwd-tip">{{ $t('global.user.resetPasswordOnceTip') }}</div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="copyPassword">
+          {{ $t('global.btn.copyPassword') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -484,5 +586,34 @@ onMounted(async () => {
 .button-group {
   display: inline-flex;
   margin-left: 10px;
+}
+
+.pwd-dialog-body {
+  padding: 4px 0 8px;
+}
+
+.pwd-label {
+  margin-bottom: 8px;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+}
+
+.pwd-value {
+  padding: 10px 12px;
+  color: var(--el-text-color-primary);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  word-break: break-all;
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+}
+
+.pwd-tip {
+  margin-top: 12px;
+  color: var(--el-color-danger);
+  font-size: 13px;
+  line-height: 1.5;
 }
 </style>

@@ -99,6 +99,7 @@
       "errorPasswordTip": "Password error, please re-enter",
       "backToLogin": "Back to login",
       "entry": "Enter the system"
-    }
+    },
+    "changePassword": "Change Password"
   }
 }

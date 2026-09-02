@@ -15,6 +15,7 @@ import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 
 import logoUrl from '#/assets/logo.png';
+import ChangePasswordDialog from '#/layouts/change-password-dialog.vue';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
@@ -105,8 +106,14 @@ const avatar = computed(() => {
   return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
 });
 
+const changePwdVisible = ref(false);
+
 async function handleLogout() {
   await authStore.logout(false);
+}
+
+function handleOpenChangePassword() {
+  changePwdVisible.value = true;
 }
 
 function handleNoticeClear() {
@@ -138,11 +145,13 @@ watch(
     <template #user-dropdown>
       <!-- 需要额外下拉可传:menus -->
       <UserDropdown
+        enable-change-password
         :avatar
         :text="userStore.userInfo?.realName"
         :description="userStore.userInfo?.userName"
         :tag-text="getTag"
         @logout="handleLogout"
+        @change-password="handleOpenChangePassword"
       />
     </template>
     <template #notification>
@@ -165,4 +174,5 @@ watch(
       <LockScreen :avatar @to-login="handleLogout" />
     </template>
   </BasicLayout>
+  <ChangePasswordDialog v-model:visible="changePwdVisible" @success="handleLogout" />
 </template>

@@ -41,3 +41,17 @@ export async function deleteUserApi(data: any) {
     data,
   });
 }
+
+/**
+ * 重置密码
+ */
+export async function resetPasswordApi(data: any) {
+  return requestClient.post('/user/resetPassword', data);
+}
+
+/**
+ * 修改当前登录用户密码
+ */
+export async function changePasswordApi(data: any) {
+  return requestClient.post('/user/changePassword', data);
+}

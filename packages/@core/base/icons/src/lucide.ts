@@ -34,6 +34,7 @@ export {
   Menu as IconDefault,
   Info,
   InspectionPanel,
+  KeyRound,
   Languages,
   LoaderCircle,
   LockKeyhole,

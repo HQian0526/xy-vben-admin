@@ -511,7 +511,9 @@ onMounted(() => {
       @confirm="confirmUserDialog" />
     <!-- 分配权限弹窗 -->
     <Dialog :visible="authVisible" :title="$t('global.devideAuth')" @close="closeAuthDialog" @confirm="confirmAuthDialog">
-      <AuthTree :key="authKey" :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected" />
+      <div class="auth-tree-wrap">
+        <AuthTree :key="authKey" :tree-data="treeData" :default-checked-keys="menuIds" @selected="authSelected" />
+      </div>
     </Dialog>
   </div>
 </template>
@@ -526,5 +528,11 @@ onMounted(() => {
 .button-group {
   display: inline-flex;
   margin-left: 10px;
+}
+
+.auth-tree-wrap {
+  height: 420px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 </style>
