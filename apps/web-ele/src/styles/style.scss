@@ -95,8 +95,9 @@ $font-values: 14, 16, 18, 20, 22;
 .pd5 {
   display: flex;
   flex-direction: column;
-  height: 100%;
   box-sizing: border-box;
+  height: var(--vben-content-height, 100%);
+  max-height: var(--vben-content-height, 100%);
   overflow: hidden;
 }
 
@@ -108,7 +109,7 @@ $font-values: 14, 16, 18, 20, 22;
   height: auto !important;
   overflow: hidden !important;
 
-  > .el-card__body {
+  :deep(.el-card__body) {
     display: flex;
     flex: 1;
     flex-direction: column;

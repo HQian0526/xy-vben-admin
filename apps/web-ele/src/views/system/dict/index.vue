@@ -403,10 +403,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 @import "#/styles/style.scss";
-.table-box {
-  height: calc(100vh - 180px);
-  overflow-y: auto;
-}
 
 .button-group {
   display: inline-flex;

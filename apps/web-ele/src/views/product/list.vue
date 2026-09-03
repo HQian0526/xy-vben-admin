@@ -541,16 +541,16 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 @import "#/styles/style.scss";
+
 .product-list-page {
-  display: flex;
   flex-direction: row;
   gap: 10px;
-  height: 100%;
 }
 
 .tree-card {
   flex-shrink: 0;
   width: 240px;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -565,11 +565,13 @@ onMounted(async () => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .table-box {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .button-group {
