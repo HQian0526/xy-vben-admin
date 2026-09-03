@@ -2,8 +2,9 @@
 <!-- eslint-disable unicorn/prefer-spread -->
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 
+import { useUserStore } from '@vben/stores';
 import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -19,6 +20,11 @@ import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 
+const userStore = useUserStore();
+const isAdmin = computed(
+  () => Number(userStore.userInfo?.identityType) === 3,
+);
+
 const isLoading = ref(false);
 //* *************table相关变量**************
 const total = ref(10);
@@ -26,6 +32,7 @@ const pageInfo = reactive({
   pageNum: 1,
   pageSize: 10,
 });
+const searchParams = ref<Record<string, any>>({}); // 缓存查询条件，供分页复用
 const storeDict = reactive<Array<{ label: string; value: any }>>([]); // 商户下拉
 // 表格配置
 const tableConfig = reactive({
@@ -82,7 +89,7 @@ const list = reactive([]);
 
 //* *************filter相关变量**************
 // const isCollapsed = ref(false);
-// 头部搜索框
+// 头部搜索框（所属商户仅管理员动态插入）
 const formConfig = reactive({
   list: [
     {
@@ -92,15 +99,7 @@ const formConfig = reactive({
       value: '',
       placeholder: `${$t('global.pleaseEnter')}${$t('global.otherBusiness.businessName')}`,
     },
-    {
-      type: 'select',
-      prop: 'storeId',
-      label: $t('global.otherBusiness.storeName'),
-      value: '',
-      placeholder: `${$t('global.pleaseSelect')}${$t('global.otherBusiness.storeName')}`,
-      options: storeDict,
-    },
-  ],
+  ] as Array<Record<string, any>>,
 });
 //* *************edit相关变量**************
 const itemVisible = ref(false); // 是否展示弹窗
@@ -152,7 +151,9 @@ const editRules = reactive({
 
 const search = (form: any) => {
   console.log('form', form);
-  getOtherBusinessList(form);
+  searchParams.value = { ...form };
+  pageInfo.pageNum = 1;
+  getOtherBusinessList();
 };
 
 const reset = (form: any) => {
@@ -160,7 +161,9 @@ const reset = (form: any) => {
   formConfig.list.forEach((item) => {
     item.value = null;
   });
-  getOtherBusinessList(form);
+  searchParams.value = {};
+  pageInfo.pageNum = 1;
+  getOtherBusinessList();
 };
 
 // 点击操作列按钮
@@ -274,12 +277,16 @@ const handleDelete = (row: any) => {
 };
 
 // 获取其他业务列表
-const getOtherBusinessList = async (form: any = undefined) => {
+const getOtherBusinessList = async () => {
   const obj = {
-    ...form,
+    ...searchParams.value,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
   };
+  // 非管理员不传 storeId，由后端按身份限制本店
+  if (!isAdmin.value) {
+    delete obj.storeId;
+  }
   try {
     isLoading.value = true;
     const res = await getOtherBusinessListApi(obj);
@@ -302,7 +309,7 @@ const getOtherBusinessList = async (form: any = undefined) => {
   }
 };
 
-// 获取商户列表
+// 获取商户列表（仅管理员）
 const getStoreList = async () => {
   try {
     const res = await getStoreListApi({ pageSize: 9999, pageNum: 1 });
@@ -326,9 +333,20 @@ const getStoreList = async () => {
   }
 };
 
-onMounted(() => {
-  getOtherBusinessList(); // 获取其他业务列表
-  getStoreList(); // 获取商户下拉
+onMounted(async () => {
+  // 仅管理员展示「所属商户」筛选
+  if (isAdmin.value) {
+    formConfig.list.push({
+      type: 'select',
+      prop: 'storeId',
+      label: $t('global.otherBusiness.storeName'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.otherBusiness.storeName')}`,
+      options: storeDict,
+    });
+    await getStoreList();
+  }
+  getOtherBusinessList();
 });
 </script>
 
@@ -381,7 +399,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@import "#/styles/style.scss";
+@use "#/styles/style.scss";
 
 .button-group {
   display: inline-flex;

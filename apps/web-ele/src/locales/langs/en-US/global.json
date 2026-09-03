@@ -105,7 +105,9 @@
     "resetPassword": "reset password",
     "copyPassword": "copy password",
     "changePassword": "change password",
-    "confirmChange": "confirm change"
+    "confirmChange": "confirm change",
+    "viewProducts": "view products",
+    "refund": "refund"
   },
   "user": {
     "userName": "account",
@@ -302,6 +304,21 @@
     "closed": "closed",
     "refunding": "refunding",
     "partialRefund": "partial refund",
-    "fullRefund": "full refund"
+    "fullRefund": "full refund",
+    "productList": "products",
+    "productName": "product name",
+    "productImg": "image",
+    "price": "price",
+    "quantity": "quantity",
+    "amount": "amount",
+    "refundType": "refund type",
+    "fullRefundType": "full refund",
+    "partialRefundType": "partial refund",
+    "refundMoney": "refund amount",
+    "remainRefund": "refundable",
+    "refundReason": "reason",
+    "confirmRefund": "confirm refund",
+    "pleaseEnterRefundAmount": "please enter refund amount",
+    "refundAmountInvalid": "refund amount must be > 0 and not exceed refundable amount"
   }
 }
