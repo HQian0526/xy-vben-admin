@@ -16,7 +16,7 @@ async function cleanTargetsRecursively(currentDir, targets) {
       const itemPath = normalize(join(currentDir, item));
       const stat = await fs.lstat(itemPath);
 
-      if (targets.includes(item)) {
+      if (targets.includes(item) || /^dist\d{12}\.zip$/.test(item)) {
         // 匹配到目标目录或文件时直接删除
         await fs.rm(itemPath, { force: true, recursive: true });
         console.log(`Deleted: ${itemPath}`);

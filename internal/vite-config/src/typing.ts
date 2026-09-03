@@ -78,8 +78,8 @@ interface NitroMockPluginOptions {
  */
 interface ArchiverPluginOptions {
   /**
-   * 输出文件名
-   * @default 'dist'
+   * 输出文件名（不含 .zip）
+   * @default dist + yyyyMMddHHmm，例如 dist202609031101
    */
   name?: string;
   /**

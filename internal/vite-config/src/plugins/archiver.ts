@@ -8,6 +8,13 @@ import { join } from 'node:path';
 
 import archiver from 'archiver';
 
+/** 生成压缩包名：dist + yyyyMMddHHmm */
+function getDefaultZipName() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `dist${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
 export const viteArchiverPlugin = (
   options: ArchiverPluginOptions = {},
 ): PluginOption => {
@@ -15,7 +22,7 @@ export const viteArchiverPlugin = (
     apply: 'build',
     closeBundle: {
       handler() {
-        const { name = 'dist', outputDir = '.' } = options;
+        const { name = getDefaultZipName(), outputDir = '.' } = options;
 
         setTimeout(async () => {
           const folderToZip = 'dist';
