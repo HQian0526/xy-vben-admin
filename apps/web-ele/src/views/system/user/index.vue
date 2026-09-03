@@ -8,6 +8,7 @@ import {
   addUserApi,
   deleteUserApi,
   editUserApi,
+  getStoreListApi,
   getUserListApi,
   resetPasswordApi,
 } from '#/api';
@@ -26,6 +27,7 @@ const pageInfo = reactive({
   pageSize: 10,
 });
 const identityDict = reactive<Array<{ label: string; value: any }>>([]); // 身份字典
+const storeDict = reactive<Array<{ label: string; value: any }>>([]); // 所属店铺下拉
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -130,6 +132,14 @@ const formConfig = reactive({
       label: $t('global.user.phone'),
       value: '',
       placeholder: `${$t('global.pleaseEnter')}${$t('global.user.phone')}`,
+    },
+    {
+      type: 'select',
+      prop: 'bindStoreId',
+      label: $t('global.user.bindStore'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.user.bindStore')}`,
+      options: storeDict,
     },
     {
       type: 'select',
@@ -515,10 +525,35 @@ const getUserList = async (form: any = undefined) => {
   }
 };
 
+// 获取所属店铺下拉
+const getStoreList = async () => {
+  try {
+    const res = await getStoreListApi({ pageSize: 9999, pageNum: 1 });
+    if (res.code === 200) {
+      storeDict.splice(
+        0,
+        storeDict.length,
+        ...(res.data.list || []).map((item: any) => ({
+          label: item.storeName,
+          value: String(item.storeId),
+        })),
+      );
+    } else {
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.error'),
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 onMounted(async () => {
   // 获取身份字典值
   const dict1 = await getDict('identity_type');
   identityDict.splice(0, identityDict.length, ...dict1);
+  getStoreList(); // 获取所属店铺下拉
   getUserList();
 });
 </script>

@@ -115,6 +115,7 @@
     "email": "email",
     "role": "role",
     "identity": "identity",
+    "bindStore": "store",
     "createTime": "createTime",
     "status": "status",
     "lock": "lock",
@@ -150,6 +151,22 @@
     "remark": "remark",
     "key": "key",
     "value": "value"
+  },
+  "operLog": {
+    "id": "log id",
+    "operModule": "module",
+    "operType": "operation type",
+    "operUser": "operator",
+    "ipAddress": "ip address",
+    "ipLocation": "ip location",
+    "operResult": "result",
+    "operTime": "operation time",
+    "add": "add",
+    "delete": "delete",
+    "update": "update",
+    "query": "query",
+    "success": "success",
+    "fail": "fail"
   },
   "role": {
     "roleName": "role name",
