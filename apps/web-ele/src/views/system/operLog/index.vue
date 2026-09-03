@@ -183,5 +183,5 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@import "#/styles/style.scss";
+@use "#/styles/style.scss";
 </style>

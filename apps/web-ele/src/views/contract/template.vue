@@ -514,7 +514,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-@import "#/styles/style.scss";
+@use "#/styles/style.scss";
 
 .button-group {
   display: inline-flex;

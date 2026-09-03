@@ -540,7 +540,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-@import "#/styles/style.scss";
+@use "#/styles/style.scss";
 
 .product-list-page {
   flex-direction: row;
