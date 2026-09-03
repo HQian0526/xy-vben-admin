@@ -3,6 +3,7 @@ node_modules
 dist
 dist-ssr
 dist.zip
+dist*.zip
 dist.tar
 dist.war
 .nitro
