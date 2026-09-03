@@ -359,7 +359,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-@use "#/styles/style.scss";
+@use "#/styles/style.scss" as *;
 
 .button-group {
   display: inline-flex;

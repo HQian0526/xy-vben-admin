@@ -552,7 +552,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-@use "#/styles/style.scss";
+@use "#/styles/style.scss" as *;
 
 .filter-card {
   flex-shrink: 0;

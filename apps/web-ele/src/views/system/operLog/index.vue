@@ -183,5 +183,5 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@use "#/styles/style.scss";
+@use "#/styles/style.scss" as *;
 </style>
