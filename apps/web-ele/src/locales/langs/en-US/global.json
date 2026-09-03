@@ -285,5 +285,23 @@
     "businessDesc": "description",
     "businessFee": "fee",
     "storeName": "store"
+  },
+  "order": {
+    "orderNo": "order no",
+    "storeName": "store",
+    "contact": "contact",
+    "address": "address",
+    "goodsAmount": "goods amount",
+    "deliveryFee": "delivery fee",
+    "payAmount": "pay amount",
+    "payStatus": "pay status",
+    "paidTime": "paid time",
+    "refundAmount": "refund amount",
+    "pendingPay": "pending",
+    "paid": "paid",
+    "closed": "closed",
+    "refunding": "refunding",
+    "partialRefund": "partial refund",
+    "fullRefund": "full refund"
   }
 }
