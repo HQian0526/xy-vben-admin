@@ -36,6 +36,8 @@
     "success": "操作成功",
     "error": "操作失败",
     "confirmDelete": "确认删除？",
+    "confirmRemoveBlacklist": "确认解除拉黑？",
+    "confirmBlacklist": "确认拉黑该顾客？",
     "confirmLock": "确认冻结？",
     "confirmUnlock": "确认解冻？",
     "confirmResetPassword": "确认重置该用户密码？",
@@ -111,7 +113,9 @@
     "changePassword": "修改密码",
     "confirmChange": "确认修改",
     "viewProducts": "查看商品",
-    "refund": "退款"
+    "refund": "退款",
+    "removeBlacklist": "解除拉黑",
+    "blacklist": "拉黑"
   },
   "userModule": "********************用户管理模块********************",
   "user": {
@@ -150,7 +154,10 @@
     "passwordMinLength": "新密码长度必须大于6位",
     "passwordMismatch": "两次输入的新密码不一致",
     "passwordSameAsOld": "新密码不能与原密码相同",
-    "resetPasswordOnceTip": "注：新密码只展示一次，请牢记新密码。"
+    "changePasswordSuccess": "修改成功，请重新登录系统，正在跳转登录页...",
+    "resetPasswordOnceTip": "注：新密码只展示一次，请牢记新密码。",
+    "addSuccessLoginPassword": "添加成功，登录密码为：",
+    "addPasswordOnceTip": "（注意：该密码仅展示一次，请务必牢记！）"
   },
   "dictModule": "********************字典管理模块********************",
   "dict": {
@@ -334,5 +341,19 @@
     "confirmRefund": "确认退款",
     "pleaseEnterRefundAmount": "请输入退款金额",
     "refundAmountInvalid": "退款金额必须大于0且不超过可退金额"
+  },
+  "blackListModule": "********************黑名单管理模块********************",
+  "blackList": {
+    "phone": "手机号",
+    "storeName": "所属店铺",
+    "realName": "姓名",
+    "remark": "备注",
+    "reason": "拉黑原因"
+  },
+  "customerListModule": "********************顾客列表模块********************",
+  "customerList": {
+    "phone": "手机号",
+    "realName": "姓名",
+    "storeName": "所属店铺"
   }
 }

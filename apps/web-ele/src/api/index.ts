@@ -1,4 +1,5 @@
 export * from './area';
+export * from './blackList';
 export * from './contract';
 export * from './core';
 export * from './order';

@@ -33,6 +33,8 @@
     "success": "success",
     "error": "error",
     "confirmDelete": "confirm delete?",
+    "confirmRemoveBlacklist": "confirm remove from blacklist?",
+    "confirmBlacklist": "confirm blacklist this customer?",
     "confirmLock": "confirm lock?",
     "confirmUnlock": "confirm unlock?",
     "confirmResetPassword": "confirm reset this user's password?",
@@ -107,7 +109,9 @@
     "changePassword": "change password",
     "confirmChange": "confirm change",
     "viewProducts": "view products",
-    "refund": "refund"
+    "refund": "refund",
+    "removeBlacklist": "remove blacklist",
+    "blacklist": "blacklist"
   },
   "user": {
     "userName": "account",
@@ -145,7 +149,10 @@
     "passwordMinLength": "New password must be longer than 6 characters",
     "passwordMismatch": "The two new passwords do not match",
     "passwordSameAsOld": "New password cannot be the same as the old password",
-    "resetPasswordOnceTip": "Note: The new password is shown only once. Please remember it."
+    "changePasswordSuccess": "Password updated. Please sign in again. Redirecting to login...",
+    "resetPasswordOnceTip": "Note: The new password is shown only once. Please remember it.",
+    "addSuccessLoginPassword": "Added successfully. Login password:",
+    "addPasswordOnceTip": "Note: this password is shown only once, please remember it!"
   },
   "dict": {
     "code": "dictionary code",
@@ -320,5 +327,17 @@
     "confirmRefund": "confirm refund",
     "pleaseEnterRefundAmount": "please enter refund amount",
     "refundAmountInvalid": "refund amount must be > 0 and not exceed refundable amount"
+  },
+  "blackList": {
+    "phone": "phone",
+    "storeName": "store",
+    "realName": "name",
+    "remark": "remark",
+    "reason": "reason"
+  },
+  "customerList": {
+    "phone": "phone",
+    "realName": "name",
+    "storeName": "store"
   }
 }

@@ -55,3 +55,12 @@ export async function resetPasswordApi(data: any) {
 export async function changePasswordApi(data: any) {
   return requestClient.post('/user/changePassword', data);
 }
+
+/**
+ * 店铺顾客列表（已进店且未拉黑）
+ */
+export async function getCustomerListApi(param: any) {
+  return requestClient.get('/user/findCustomer', {
+    params: param,
+  });
+}
