@@ -140,11 +140,13 @@ const handleConfirm = async () => {
       confirmPassword: form.confirmPassword,
     });
     if (res.code === 200) {
+      visible.value = false;
       ElMessage({
         type: 'success',
-        message: $t('global.message.success'),
+        duration: 2500,
+        message: $t('global.user.changePasswordSuccess'),
       });
-      visible.value = false;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       emit('success');
     } else {
       ElMessage({

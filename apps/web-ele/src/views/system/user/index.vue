@@ -165,9 +165,10 @@ const formConfig = reactive({
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
 const formInfo = ref({}); // 弹窗其他信息
-//* *************重置密码相关变量**************
-const pwdVisible = ref(false); // 是否展示新密码弹窗
+//* *************重置密码 / 新增初始密码相关变量**************
+const pwdVisible = ref(false); // 是否展示密码弹窗
 const newPassword = ref(''); // 接口返回的明文密码
+const pwdDialogMode = ref<'add' | 'reset'>('reset');
 // 弹窗表单校验规则
 const editRules = reactive({
   userName: [
@@ -352,12 +353,20 @@ const confirmDialog = async (title: string, data: any) => {
         ? await addUserApi(data)
         : await editUserApi(data);
     if (res.code === 200) {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
       getUserList();
       itemVisible.value = false;
+      const initialPassword =
+        res.data?.initialPassword || res.initialPassword;
+      if (title === $t('global.btn.add') && initialPassword) {
+        pwdDialogMode.value = 'add';
+        newPassword.value = initialPassword;
+        pwdVisible.value = true;
+      } else {
+        ElMessage({
+          type: 'success',
+          message: $t('global.message.success'),
+        });
+      }
     } else {
       ElMessage({
         type: 'error',
@@ -419,6 +428,7 @@ const handleResetPassword = (row: any) => {
       const res = await resetPasswordApi({ id: row.id });
       console.log('res', res);
       if (res.code === 200) {
+        pwdDialogMode.value = 'reset';
         newPassword.value = res.data?.newPassword || '';
         pwdVisible.value = true;
       } else {
@@ -436,6 +446,7 @@ const handleResetPassword = (row: any) => {
 const closePwdDialog = () => {
   pwdVisible.value = false;
   newPassword.value = '';
+  pwdDialogMode.value = 'reset';
 };
 
 const copyPassword = async () => {
@@ -588,19 +599,30 @@ onMounted(async () => {
     <!-- 弹窗 -->
     <Edit ref="editForm" :form-config="editConfig" :form-rules="editRules" :title="formTitle" :form-info="formInfo"
       :visible="itemVisible" @close="closeDialog" @confirm="confirmDialog" />
-    <!-- 重置密码成功弹窗 -->
+    <!-- 新增初始密码 / 重置密码成功弹窗 -->
     <el-dialog
       v-model="pwdVisible"
-      :title="$t('global.btn.resetPassword')"
-      width="420px"
+      :title="
+        pwdDialogMode === 'add'
+          ? $t('global.tip')
+          : $t('global.btn.resetPassword')
+      "
+      width="460px"
       :append-to-body="true"
       :close-on-click-modal="false"
       @close="closePwdDialog"
     >
       <div class="pwd-dialog-body">
-        <div class="pwd-label">{{ $t('global.user.newPassword') }}</div>
-        <div class="pwd-value">{{ newPassword }}</div>
-        <div class="pwd-tip">{{ $t('global.user.resetPasswordOnceTip') }}</div>
+        <template v-if="pwdDialogMode === 'add'">
+          <div class="pwd-label">{{ $t('global.user.addSuccessLoginPassword') }}</div>
+          <div class="pwd-value">{{ newPassword }}</div>
+          <div class="pwd-tip">{{ $t('global.user.addPasswordOnceTip') }}</div>
+        </template>
+        <template v-else>
+          <div class="pwd-label">{{ $t('global.user.newPassword') }}</div>
+          <div class="pwd-value">{{ newPassword }}</div>
+          <div class="pwd-tip">{{ $t('global.user.resetPasswordOnceTip') }}</div>
+        </template>
       </div>
       <template #footer>
         <el-button type="primary" @click="copyPassword">
