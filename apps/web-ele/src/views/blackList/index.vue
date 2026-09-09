@@ -139,6 +139,16 @@ const editRules = reactive({
   ],
 });
 
+function showErrorMessage(message: string) {
+  ElMessage({
+    type: 'error',
+    message,
+    duration: 5000,
+    showClose: true,
+    grouping: true,
+  });
+}
+
 const search = (form: any) => {
   console.log('form', form);
   searchParams.value = { ...form };
@@ -209,12 +219,17 @@ const confirmDialog = async (_title: string, data: any) => {
       getBlackList();
       itemVisible.value = false;
     } else {
-      ElMessage({
-        type: 'error',
-        message: res.msg || $t('global.message.error'),
-      });
+      showErrorMessage(res.msg || $t('global.message.error'));
     }
-  } catch {}
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.msg ||
+      error?.response?.data?.message ||
+      error?.msg;
+    if (msg) {
+      showErrorMessage(msg);
+    }
+  }
 };
 
 // 新增
