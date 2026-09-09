@@ -3,8 +3,9 @@
 <!-- eslint-disable no-console -->
 <!-- 商品列表页：左侧分类树 + 右侧模糊查询与列表 -->
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 
+import { useUserStore } from '@vben/stores';
 import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -14,6 +15,7 @@ import {
   editProductApi,
   getCatagoryListApi,
   getProductListApi,
+  getStoreListApi,
 } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
@@ -22,7 +24,14 @@ import Tree from '#/components/tree/index.vue';
 import { $t } from '#/locales';
 import { getDict, toRelativeFilePath } from '#/utils';
 
+const userStore = useUserStore();
+const isAdmin = computed(
+  () => Number(userStore.userInfo?.identityType) === 3,
+);
+
 const isLoading = ref(false);
+const storeDict = reactive<Array<{ label: string; value: any }>>([]);
+const treeKey = ref(0);
 //* *************左侧树相关变量**************
 const treeData = ref<Array<{ id: any; label: string }>>([]); // 一层分类树数据
 const selectedCatagoryId = ref<any>(null); // 当前选中的分类id
@@ -112,7 +121,7 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-const list = reactive([]);
+const list = reactive<any[]>([]);
 
 //* *************filter相关变量**************
 // const isCollapsed = ref(false);
@@ -134,7 +143,7 @@ const formConfig = reactive({
       placeholder: `${$t('global.pleaseSelect')}${$t('global.product.productStatus')}`,
       options: productStatusDict,
     },
-  ],
+  ] as Array<Record<string, any>>,
 });
 //* *************edit相关变量**************
 const itemVisible = ref(false); // 是否展示弹窗
@@ -237,21 +246,47 @@ const handleTreeSelected = (currentData: any) => {
   getProductList();
 };
 
-const search = (form: any) => {
-  console.log('form', form);
-  searchParams.value = { ...form };
-  pageInfo.pageNum = 1;
-  getProductList(form);
+const clearCatagoryAndList = () => {
+  selectedCatagoryId.value = null;
+  treeKey.value += 1;
+  treeData.value = [];
+  catagoryOptions.splice(0, catagoryOptions.length);
+  list.length = 0;
+  total.value = 0;
 };
 
-const reset = (form: any) => {
-  console.log('form', form);
+const search = async (form: any) => {
+  const prevStoreId = String(searchParams.value.storeId || '');
+  const nextStoreId = String(form?.storeId || '');
+  searchParams.value = { ...form };
+  pageInfo.pageNum = 1;
+  if (isAdmin.value && !nextStoreId) {
+    ElMessage.warning($t('global.product.selectStore'));
+    clearCatagoryAndList();
+    return;
+  }
+  if (isAdmin.value && prevStoreId !== nextStoreId) {
+    selectedCatagoryId.value = null;
+    treeKey.value += 1;
+    await getCatagoryTree();
+  }
+  getProductList();
+};
+
+const reset = () => {
   formConfig.list.forEach((item) => {
     item.value = null;
   });
   searchParams.value = {};
   pageInfo.pageNum = 1;
-  getProductList(form);
+  if (isAdmin.value) {
+    clearCatagoryAndList();
+    return;
+  }
+  selectedCatagoryId.value = null;
+  treeKey.value += 1;
+  getCatagoryTree();
+  getProductList();
 };
 
 // 点击操作列按钮
@@ -317,6 +352,13 @@ const confirmDialog = async (title: string, data: any) => {
     productImg,
     catagoryId: data.catagoryId || selectedCatagoryId.value,
   };
+  if (isAdmin.value) {
+    const storeId = searchParams.value.storeId;
+    payload.storeId =
+      storeId != null && storeId !== '' ? String(storeId) : undefined;
+  } else {
+    delete payload.storeId;
+  }
   try {
     const res =
       title === $t('global.btn.add')
@@ -340,6 +382,10 @@ const confirmDialog = async (title: string, data: any) => {
 
 // 新增
 const handleAdd = () => {
+  if (isAdmin.value && !searchParams.value.storeId) {
+    ElMessage.warning($t('global.product.selectStore'));
+    return;
+  }
   formTitle.value = $t('global.btn.add');
   // 默认挂到当前选中分类（可在弹窗下拉中修改），状态默认上架（1）
   formInfo.value = {
@@ -411,16 +457,31 @@ const handleDelete = (row: any) => {
   }
 };
 
+const resolveStoreId = () => {
+  const storeId = searchParams.value.storeId;
+  return storeId != null && storeId !== '' ? String(storeId) : '';
+};
+
 // 获取商品列表
-const getProductList = async (form: any = undefined) => {
-  const query = form === undefined ? searchParams.value : form;
-  const obj = {
-    ...query,
+const getProductList = async () => {
+  const obj: Record<string, any> = {
+    ...searchParams.value,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
-    // 左侧树选中的分类
+    // 左侧树选中的分类；未选则查该店全部商品
     catagoryId: selectedCatagoryId.value || undefined,
   };
+  if (isAdmin.value) {
+    const storeId = resolveStoreId();
+    if (!storeId) {
+      list.length = 0;
+      total.value = 0;
+      return;
+    }
+    obj.storeId = storeId;
+  } else {
+    delete obj.storeId;
+  }
   try {
     isLoading.value = true;
     const res = await getProductListApi(obj);
@@ -443,29 +504,40 @@ const getProductList = async (form: any = undefined) => {
   }
 };
 
-// 获取左侧分类树（不传参，返回一层数据）
+const applyCatagorySource = (listData: any[]) => {
+  treeData.value = listData.map((item: any) => ({
+    id: item.catagoryId,
+    label: item.catagoryName,
+  }));
+  catagoryOptions.splice(
+    0,
+    catagoryOptions.length,
+    ...listData.map((item: any) => ({
+      label: item.catagoryName,
+      value: item.catagoryId,
+      // 分类id可能为雪花算法长整型，避免被转 Number 丢精度
+      keepValue: true,
+    })),
+  );
+};
+
+// 获取左侧分类树：管理员按所选店铺，商户由后端限定本店
 const getCatagoryTree = async () => {
+  const params: Record<string, any> = {};
+  if (isAdmin.value) {
+    const storeId = resolveStoreId();
+    if (!storeId) {
+      applyCatagorySource([]);
+      return;
+    }
+    params.storeId = storeId;
+  }
   try {
-    const res = await getCatagoryListApi();
+    const res = await getCatagoryListApi(params);
     if (res.code === 200) {
       const source = res.data?.list || res.data || [];
       const listData = Array.isArray(source) ? source : [];
-      // 转成树组件需要的一层结构：id / label
-      treeData.value = listData.map((item: any) => ({
-        id: item.catagoryId,
-        label: item.catagoryName,
-      }));
-      // 同步弹窗「所属分类」下拉选项
-      catagoryOptions.splice(
-        0,
-        catagoryOptions.length,
-        ...listData.map((item: any) => ({
-          label: item.catagoryName,
-          value: item.catagoryId,
-          // 分类id可能为雪花算法长整型，避免被转 Number 丢精度
-          keepValue: true,
-        })),
-      );
+      applyCatagorySource(listData);
     } else {
       ElMessage({
         type: 'error',
@@ -477,13 +549,49 @@ const getCatagoryTree = async () => {
   }
 };
 
+const getStoreList = async () => {
+  try {
+    const res = await getStoreListApi({ pageSize: 9999, pageNum: 1, deleted: 0 });
+    if (res.code === 200) {
+      storeDict.splice(
+        0,
+        storeDict.length,
+        ...(res.data.list || []).map((item: any) => ({
+          label: item.storeName,
+          value: String(item.storeId),
+          keepValue: true,
+        })),
+      );
+    } else {
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.error'),
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 onMounted(async () => {
   // 获取商品状态字典值
   const dict1 = await getDict('product_status');
   productStatusDict.splice(0, productStatusDict.length, ...dict1);
-  console.log('productStatusDict', productStatusDict);
-  await getCatagoryTree(); // 获取左侧分类树
-  getProductList(); // 获取商品列表
+  if (isAdmin.value) {
+    formConfig.list.unshift({
+      type: 'select',
+      prop: 'storeId',
+      label: $t('global.product.storeName'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.product.storeName')}`,
+      options: storeDict,
+      searchOnChange: true,
+    });
+    await getStoreList();
+    return;
+  }
+  await getCatagoryTree();
+  getProductList();
 });
 </script>
 
@@ -493,6 +601,7 @@ onMounted(async () => {
     <el-card class="tree-card">
       <div class="tree-title">{{ $t('global.product.catagory') }}</div>
       <Tree
+        :key="treeKey"
         :tree-data="treeData"
         :show-checkbox="false"
         @selected="handleTreeSelected"

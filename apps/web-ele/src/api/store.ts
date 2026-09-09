@@ -31,3 +31,10 @@ export async function deleteStoreApi(data: any) {
     data,
   });
 }
+
+/**
+ * 设置营业时间。rules 空数组 = 全天可下单；管理员需传 storeId
+ */
+export async function updateBusinessHoursApi(data: any) {
+  return requestClient.put('/store/updateBusinessHours', data);
+}

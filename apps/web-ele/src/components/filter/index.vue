@@ -82,7 +82,7 @@ watch(() => props.formConfig.list, initFormData, { deep: true });
         :clearable="item.clearable || true" @keyup.enter.native="search" />
       <!-- select下拉框 -->
       <ElSelect v-if="item.type === 'select'" v-model="form[item.prop]" :placeholder="item.placeholder"
-        :clearable="item.clearable || true">
+        :clearable="item.clearable || true" @change="item.searchOnChange ? search() : undefined">
         <ElOption v-for="(it, ind) in item.options" :key="ind" :label="it.label" :value="it.value" />
       </ElSelect>
       <!-- date-picker日期选择器 -->

@@ -3,8 +3,9 @@
 <!-- eslint-disable no-console -->
 <!-- 商品分类列表页 -->
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 
+import { useUserStore } from '@vben/stores';
 import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -13,6 +14,7 @@ import {
   deleteCatagoryApi,
   editCatagoryApi,
   getCatagoryListApi,
+  getStoreListApi,
 } from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
@@ -20,7 +22,13 @@ import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { getDict } from '#/utils';
 
+const userStore = useUserStore();
+const isAdmin = computed(
+  () => Number(userStore.userInfo?.identityType) === 3,
+);
+
 const isLoading = ref(false);
+const storeDict = reactive<Array<{ label: string; value: any }>>([]);
 //* *************table相关变量**************
 const catagoryStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 商品分类状态字典
 const total = ref(10);
@@ -28,6 +36,7 @@ const pageInfo = reactive({
   pageNum: 1,
   pageSize: 10,
 });
+const searchParams = ref<Record<string, any>>({});
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -83,7 +92,7 @@ const tableConfig = reactive({
   ],
 });
 // 表格数据
-const list = reactive([]);
+const list = reactive<any[]>([]);
 
 //* *************filter相关变量**************
 // const isCollapsed = ref(false);
@@ -97,7 +106,7 @@ const formConfig = reactive({
       value: '',
       placeholder: `${$t('global.pleaseEnter')}${$t('global.product.catagoryName')}`,
     },
-  ],
+  ] as Array<Record<string, any>>,
 });
 //* *************edit相关变量**************
 const itemVisible = ref(false); // 是否展示弹窗
@@ -144,16 +153,29 @@ const editRules = reactive({
 });
 
 const search = (form: any) => {
-  console.log('form', form);
-  getCatagoryList(form);
+  searchParams.value = { ...form };
+  pageInfo.pageNum = 1;
+  if (isAdmin.value && !resolveStoreId()) {
+    ElMessage.warning($t('global.product.selectStore'));
+    list.length = 0;
+    total.value = 0;
+    return;
+  }
+  getCatagoryList();
 };
 
-const reset = (form: any) => {
-  console.log('form', form);
+const reset = () => {
   formConfig.list.forEach((item) => {
     item.value = null;
   });
-  getCatagoryList(form);
+  searchParams.value = {};
+  pageInfo.pageNum = 1;
+  if (isAdmin.value) {
+    list.length = 0;
+    total.value = 0;
+    return;
+  }
+  getCatagoryList();
 };
 
 // 点击操作列按钮
@@ -220,11 +242,18 @@ const closeDialog = () => {
 const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
+  const payload = { ...data };
+  if (isAdmin.value) {
+    const storeId = resolveStoreId();
+    payload.storeId = storeId || undefined;
+  } else {
+    delete payload.storeId;
+  }
   try {
     const res =
       title === $t('global.btn.add')
-        ? await addCatagoryApi({ ...data })
-        : await editCatagoryApi({ ...data });
+        ? await addCatagoryApi(payload)
+        : await editCatagoryApi(payload);
     if (res.code === 200) {
       ElMessage({
         type: 'success',
@@ -244,6 +273,10 @@ const confirmDialog = async (title: string, data: any) => {
 
 // 新增
 const handleAdd = () => {
+  if (isAdmin.value && !resolveStoreId()) {
+    ElMessage.warning($t('global.product.selectStore'));
+    return;
+  }
   formTitle.value = $t('global.btn.add');
   // 状态默认选中 value 为 1 的项
   formInfo.value = {
@@ -281,21 +314,37 @@ const handleDelete = (row: any) => {
   }
 };
 
+const resolveStoreId = () => {
+  const storeId = searchParams.value.storeId;
+  return storeId != null && storeId !== '' ? String(storeId) : '';
+};
+
 // 获取商品分类列表
-const getCatagoryList = async (form: any = undefined) => {
-  const obj = {
-    ...form,
+const getCatagoryList = async () => {
+  const obj: Record<string, any> = {
+    ...searchParams.value,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
   };
+  if (isAdmin.value) {
+    const storeId = resolveStoreId();
+    if (!storeId) {
+      list.length = 0;
+      total.value = 0;
+      return;
+    }
+    obj.storeId = storeId;
+  } else {
+    delete obj.storeId;
+  }
   try {
     isLoading.value = true;
     const res = await getCatagoryListApi(obj);
     if (res.code === 200) {
       // 正确的方式：先清空数组再添加新数据
       list.length = 0; // 清空数组但保持响应性
-      list.push(...res.data.list); // 添加新数据
-      total.value = res.data.total;
+      list.push(...(res.data.list || [])); // 添加新数据
+      total.value = res.data.total || 0;
       isLoading.value = false;
     } else {
       isLoading.value = false;
@@ -310,11 +359,48 @@ const getCatagoryList = async (form: any = undefined) => {
   }
 };
 
+const getStoreList = async () => {
+  try {
+    const res = await getStoreListApi({ pageSize: 9999, pageNum: 1, deleted: 0 });
+    if (res.code === 200) {
+      storeDict.splice(
+        0,
+        storeDict.length,
+        ...(res.data.list || []).map((item: any) => ({
+          label: item.storeName,
+          value: String(item.storeId),
+          keepValue: true,
+        })),
+      );
+    } else {
+      ElMessage({
+        type: 'error',
+        message: $t('global.message.error'),
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 onMounted(async () => {
   // 获取商品分类状态字典值
   const dict1 = await getDict('product_status');
   catagoryStatusDict.splice(0, catagoryStatusDict.length, ...dict1);
-  getCatagoryList(); // 获取商品分类列表
+  if (isAdmin.value) {
+    formConfig.list.unshift({
+      type: 'select',
+      prop: 'storeId',
+      label: $t('global.product.storeName'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.product.storeName')}`,
+      options: storeDict,
+      searchOnChange: true,
+    });
+    await getStoreList();
+    return;
+  }
+  getCatagoryList();
 });
 </script>
 
