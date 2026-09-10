@@ -37,6 +37,7 @@
     "error": "操作失败",
     "confirmDelete": "确认删除？",
     "confirmRemoveBlacklist": "确认解除拉黑？",
+    "confirmDisable": "确认停用？",
     "confirmBlacklist": "确认拉黑该顾客？",
     "confirmLock": "确认冻结？",
     "confirmUnlock": "确认解冻？",
@@ -115,7 +116,10 @@
     "viewProducts": "查看商品",
     "refund": "退款",
     "removeBlacklist": "解除拉黑",
-    "blacklist": "拉黑"
+    "blacklist": "拉黑",
+    "enable": "启用",
+    "disable": "停用",
+    "grant": "发放"
   },
   "userModule": "********************用户管理模块********************",
   "user": {
@@ -139,6 +143,7 @@
     "adminUser": "管理员",
     "man": "男",
     "woman": "女",
+    "sexUnset": "未填写",
     "newPassword": "新密码",
     "oldPassword": "原密码",
     "confirmPassword": "确认新密码",
@@ -248,7 +253,7 @@
     "confirmOpen": "确定要开始营业吗？",
     "confirmCloseUntil": "确定要打烊吗？将关至 {time} 自动开始营业",
     "confirmCloseForever": "确定要打烊吗？未设置营业时间将一直打烊，直到点击开始营业",
-    "confirmOpenUntil": "确定要开始营业吗？将营业至 {time}，之后按营业时间自动休息",
+    "confirmOpenUntil": "确定要开始营业吗？将立即营业至 {time}，之后按营业时间自动休息",
     "confirmOpenForever": "确定要开始营业吗？未设置营业时间将一直营业，直到点击打烊",
     "allDay": "全天",
     "everyDay": "每天",
@@ -386,7 +391,9 @@
     "refundReason": "退款原因",
     "confirmRefund": "确认退款",
     "pleaseEnterRefundAmount": "请输入退款金额",
-    "refundAmountInvalid": "退款金额必须大于0且不超过可退金额"
+    "refundAmountInvalid": "退款金额必须大于0且不超过可退金额",
+    "discountAmount": "优惠金额",
+    "discountDesc": "优惠说明"
   },
   "orderFlow": {
     "title": "流水查询",
@@ -437,5 +444,48 @@
     "phone": "手机号",
     "realName": "姓名",
     "storeName": "所属店铺"
+  },
+  "promo": {
+    "name": "活动名称",
+    "storeName": "所属店铺",
+    "tiers": "满减档位",
+    "threshold": "满",
+    "discount": "减",
+    "addTier": "添加档位",
+    "expire": "有效期",
+    "forever": "永久有效",
+    "until": "指定过期时间",
+    "endTime": "过期时间",
+    "status": "状态",
+    "enabled": "进行中",
+    "disabled": "已停用",
+    "expired": "已过期",
+    "yuan": "元"
+  },
+  "coupon": {
+    "name": "优惠券名称",
+    "storeName": "所属店铺",
+    "threshold": "使用门槛",
+    "discount": "减免金额",
+    "noThreshold": "无门槛",
+    "totalCount": "发放总量",
+    "unlimited": "不限",
+    "issuedCount": "已领取",
+    "perUserLimit": "每人限领",
+    "expire": "有效期",
+    "forever": "永久有效",
+    "until": "指定过期时间",
+    "endTime": "过期时间",
+    "status": "状态",
+    "enabled": "领取中",
+    "disabled": "已停领",
+    "expired": "已过期",
+    "yuan": "元",
+    "issueType": "发放方式",
+    "issueClaim": "顾客领取",
+    "issueGrant": "直接发放",
+    "selectUsers": "发放用户",
+    "selectUsersPlaceholder": "选择本店顾客，发放后无需领取",
+    "grantTitle": "发放优惠券"
   }
 }

@@ -10,7 +10,6 @@ import {
   ALL_DAYS,
   formatBusinessHoursText,
   getOpenStatus,
-  isManuallyClosed,
   parseBusinessHours,
   sameDays,
   STORE_STATUS_CLOSED,
@@ -48,7 +47,7 @@ const weekdayOptions = computed(() => [
 ])
 
 const openStatus = computed(() => getOpenStatus(localStore))
-const isManualOpen = computed(() => !isManuallyClosed(localStore))
+const isOpenNow = computed(() => openStatus.value === 'open')
 const statusLabel = computed(() => {
   if (openStatus.value === 'closed') return $t('global.businessTime.closed')
   if (openStatus.value === 'rest') return $t('global.businessTime.rest')
@@ -118,10 +117,10 @@ function applyPreset(type: 'all' | 'everyday' | 'weekdays') {
 
 async function handleToggle() {
   if (statusSubmitting.value || !localStore.id) return
-  const nextCode = isManualOpen.value ? STORE_STATUS_CLOSED : STORE_STATUS_OPEN
+  const nextCode = isOpenNow.value ? STORE_STATUS_CLOSED : STORE_STATUS_OPEN
   try {
     await ElMessageBox.confirm(
-      isManualOpen.value
+      isOpenNow.value
         ? localStore.nextOpenText
           ? $t('global.businessTime.confirmCloseUntil', {
               time: localStore.nextOpenText,
@@ -240,12 +239,12 @@ async function handleSaveDeliveryFee() {
       <div class="status-tip">{{ statusTip }}</div>
       <el-button
         class="status-btn"
-        :type="isManualOpen ? 'info' : 'success'"
+        :type="isOpenNow ? 'info' : 'success'"
         :loading="statusSubmitting"
         @click="handleToggle"
       >
         {{
-          isManualOpen
+          isOpenNow
             ? $t('global.businessTime.closeBusiness')
             : $t('global.businessTime.startBusiness')
         }}

@@ -18,6 +18,19 @@ import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { getDict } from '#/utils';
 
+/** 0女 1男；空/null 未填写，不能当假值处理 */
+function formatSex(value: any) {
+  if (value === 0 || value === '0') return $t('global.user.woman');
+  if (value === 1 || value === '1') return $t('global.user.man');
+  return $t('global.user.sexUnset');
+}
+
+function normalizeSex(value: any): '0' | '1' | null {
+  if (value === 0 || value === '0') return '0';
+  if (value === 1 || value === '1') return '1';
+  return null;
+}
+
 const isLoading = ref(false);
 //* *************table相关变量**************
 const table = ref();
@@ -45,11 +58,7 @@ const tableConfig = reactive({
     {
       prop: 'sex',
       label: $t('global.user.sex'),
-      filter: (value: any) => {
-        return value === '0' || !value
-          ? $t('global.user.woman')
-          : $t('global.user.man');
-      },
+      filter: (value: any) => formatSex(value),
     },
     {
       prop: 'phone',
@@ -185,13 +194,6 @@ const editRules = reactive({
       trigger: 'blur',
     },
   ],
-  sex: [
-    {
-      required: true,
-      message: $t('global.user.sex') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
   phone: [
     {
       required: true,
@@ -227,11 +229,13 @@ const editConfig = reactive([
     options: [
       {
         label: $t('global.user.woman'),
-        value: 0,
+        value: '0',
+        keepValue: true,
       },
       {
         label: $t('global.user.man'),
-        value: 1,
+        value: '1',
+        keepValue: true,
       },
     ],
   },
@@ -300,7 +304,7 @@ const handleClick = (row: any, label: string) => {
   switch (label) {
     case $t('global.btn.detail'): {
       formTitle.value = label;
-      formInfo.value = { ...row }; // 确保是新的对象引用
+      formInfo.value = { ...row, sex: normalizeSex(row.sex) };
       itemVisible.value = true;
 
       break;
@@ -348,10 +352,15 @@ const confirmDialog = async (title: string, data: any) => {
   console.log('title', title);
   console.log('data', data);
   try {
+    const sex = normalizeSex(data?.sex);
+    const payload = {
+      ...data,
+      sex: sex == null ? null : Number(sex),
+    };
     const res =
       title === $t('global.btn.add')
-        ? await addUserApi(data)
-        : await editUserApi(data);
+        ? await addUserApi(payload)
+        : await editUserApi(payload);
     if (res.code === 200) {
       getUserList();
       itemVisible.value = false;

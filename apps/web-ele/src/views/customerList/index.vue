@@ -38,9 +38,9 @@ const tableConfig = reactive({
       prop: 'sex',
       label: $t('global.user.sex'),
       filter: (value: any) => {
-        return value === '0' || value === 0 || !value
-          ? $t('global.user.woman')
-          : $t('global.user.man');
+        if (value === 0 || value === '0') return $t('global.user.woman');
+        if (value === 1 || value === '1') return $t('global.user.man');
+        return $t('global.user.sexUnset');
       },
     },
     {

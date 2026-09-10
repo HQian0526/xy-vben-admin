@@ -65,6 +65,14 @@ const tableConfig = reactive({
       width: '100px',
     },
     {
+      prop: 'discountAmount',
+      label: $t('global.order.discountAmount'),
+      width: '100px',
+      filter: (value: any) => {
+        return value == null || value === '' ? '0' : value;
+      },
+    },
+    {
       prop: 'payStatus',
       label: $t('global.order.payStatus'),
       width: '110px',
@@ -148,6 +156,7 @@ const productVisible = ref(false);
 const productLoading = ref(false);
 const productList = ref<any[]>([]);
 const productOrderNo = ref('');
+const productDiscountDesc = ref('');
 
 //* *************退款相关**************
 const refundVisible = ref(false);
@@ -289,6 +298,7 @@ const getOrderList = async () => {
 // 查看商品
 const handleViewProducts = async (row: any) => {
   productOrderNo.value = row.orderNo || '';
+  productDiscountDesc.value = row.discountDesc || '';
   productVisible.value = true;
   productList.value = [];
   // 列表里已带 items 时直接展示；否则再查详情
@@ -302,6 +312,9 @@ const handleViewProducts = async (row: any) => {
     const res = await getMallOrderDetailApi(row.orderNo);
     if (res.code === 200) {
       productList.value = res.data?.items || [];
+      if (res.data?.discountDesc) {
+        productDiscountDesc.value = res.data.discountDesc;
+      }
     } else {
       ElMessage({
         type: 'error',
@@ -319,6 +332,7 @@ const closeProductDialog = () => {
   productVisible.value = false;
   productList.value = [];
   productOrderNo.value = '';
+  productDiscountDesc.value = '';
 };
 
 // 打开退款弹窗
@@ -439,6 +453,9 @@ onMounted(async () => {
     >
       <div v-if="productOrderNo" class="product-order-no">
         {{ $t('global.order.orderNo') }}：{{ productOrderNo }}
+      </div>
+      <div v-if="productDiscountDesc" class="product-order-no">
+        {{ $t('global.order.discountDesc') }}：{{ productDiscountDesc }}
       </div>
       <el-table
         v-loading="productLoading"

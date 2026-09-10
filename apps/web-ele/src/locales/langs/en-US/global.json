@@ -34,6 +34,7 @@
     "error": "error",
     "confirmDelete": "confirm delete?",
     "confirmRemoveBlacklist": "confirm remove from blacklist?",
+    "confirmDisable": "Disable this item?",
     "confirmBlacklist": "confirm blacklist this customer?",
     "confirmLock": "confirm lock?",
     "confirmUnlock": "confirm unlock?",
@@ -111,7 +112,10 @@
     "viewProducts": "view products",
     "refund": "refund",
     "removeBlacklist": "remove blacklist",
-    "blacklist": "blacklist"
+    "blacklist": "blacklist",
+    "enable": "enable",
+    "disable": "disable",
+    "grant": "grant"
   },
   "user": {
     "userName": "account",
@@ -134,6 +138,7 @@
     "adminUser": "admin user",
     "man": "man",
     "woman": "woman",
+    "sexUnset": "unset",
     "newPassword": "new password",
     "oldPassword": "old password",
     "confirmPassword": "confirm password",
@@ -239,7 +244,7 @@
     "confirmOpen": "Open the store now?",
     "confirmCloseUntil": "Close the store until {time}, then it will reopen automatically.",
     "confirmCloseForever": "No hours set. The store will stay closed until you open it.",
-    "confirmOpenUntil": "Open until {time}, then follow business hours.",
+    "confirmOpenUntil": "Open immediately until {time}, then follow business hours.",
     "confirmOpenForever": "No hours set. The store will stay open until you close it.",
     "allDay": "All day",
     "everyDay": "Every day",
@@ -372,7 +377,9 @@
     "refundReason": "reason",
     "confirmRefund": "confirm refund",
     "pleaseEnterRefundAmount": "please enter refund amount",
-    "refundAmountInvalid": "refund amount must be > 0 and not exceed refundable amount"
+    "refundAmountInvalid": "refund amount must be > 0 and not exceed refundable amount",
+    "discountAmount": "discount",
+    "discountDesc": "discount detail"
   },
   "orderFlow": {
     "title": "Income Flow",
@@ -421,5 +428,48 @@
     "phone": "phone",
     "realName": "name",
     "storeName": "store"
+  },
+  "promo": {
+    "name": "Name",
+    "storeName": "Store",
+    "tiers": "Tiers",
+    "threshold": "Spend",
+    "discount": "Off",
+    "addTier": "Add tier",
+    "expire": "Validity",
+    "forever": "Never expires",
+    "until": "Expires at",
+    "endTime": "Expire time",
+    "status": "Status",
+    "enabled": "Active",
+    "disabled": "Disabled",
+    "expired": "Expired",
+    "yuan": "CNY"
+  },
+  "coupon": {
+    "name": "Name",
+    "storeName": "Store",
+    "threshold": "Min spend",
+    "discount": "Amount off",
+    "noThreshold": "No min spend",
+    "totalCount": "Stock",
+    "unlimited": "Unlimited",
+    "issuedCount": "Claimed",
+    "perUserLimit": "Per user",
+    "expire": "Validity",
+    "forever": "Never expires",
+    "until": "Expires at",
+    "endTime": "Expire time",
+    "status": "Status",
+    "enabled": "Open",
+    "disabled": "Stopped",
+    "expired": "Expired",
+    "yuan": "CNY",
+    "issueType": "Issue mode",
+    "issueClaim": "Customer claim",
+    "issueGrant": "Direct grant",
+    "selectUsers": "Recipients",
+    "selectUsersPlaceholder": "Select store customers; they get the coupon immediately",
+    "grantTitle": "Grant coupon"
   }
 }
