@@ -38,3 +38,17 @@ export async function deleteStoreApi(data: any) {
 export async function updateBusinessHoursApi(data: any) {
   return requestClient.put('/store/updateBusinessHours', data);
 }
+
+export async function getStoreWxConfigListApi() {
+  return requestClient.get('/storeWxConfig/list');
+}
+
+export async function getStoreWxConfigApi(storeId: string | number) {
+  return requestClient.get('/storeWxConfig', {
+    params: { storeId },
+  });
+}
+
+export async function saveStoreWxConfigApi(data: any) {
+  return requestClient.put('/storeWxConfig', data);
+}
