@@ -63,6 +63,13 @@ const tableConfig = reactive({
       label: $t('global.product.price'),
     },
     {
+      prop: 'memberPrice',
+      label: $t('global.product.memberPrice'),
+      filter: (value: any) => {
+        return value == null || value === '' ? '-' : value;
+      },
+    },
+    {
       prop: 'productNum',
       label: $t('global.product.productNum'),
     },
@@ -170,6 +177,17 @@ const editConfig = reactive([
     type: 'input',
     span: 24,
     onlyNumber: true,
+    append: {
+      label: '元',
+    },
+  },
+  {
+    label: $t('global.product.memberPrice'),
+    name: 'memberPrice',
+    type: 'input',
+    span: 24,
+    onlyNumber: true,
+    placeholder: '选填，须低于常规价',
     append: {
       label: '元',
     },
@@ -351,7 +369,19 @@ const confirmDialog = async (title: string, data: any) => {
     ...data,
     productImg,
     catagoryId: data.catagoryId || selectedCatagoryId.value,
+    memberPrice:
+      data.memberPrice === '' || data.memberPrice == null
+        ? 0
+        : Number(data.memberPrice),
   };
+  if (
+    payload.memberPrice > 0 &&
+    Number(payload.price) > 0 &&
+    payload.memberPrice >= Number(payload.price)
+  ) {
+    ElMessage.warning('会员价须低于常规价');
+    return;
+  }
   if (isAdmin.value) {
     const storeId = searchParams.value.storeId;
     payload.storeId =

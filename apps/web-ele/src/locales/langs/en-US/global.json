@@ -33,6 +33,7 @@
     "success": "success",
     "error": "error",
     "confirmDelete": "confirm delete?",
+    "confirmSettle": "Mark this store as settled? Actual payout is handled offline.",
     "confirmRemoveBlacklist": "confirm remove from blacklist?",
     "confirmDisable": "Disable this item?",
     "confirmBlacklist": "confirm blacklist this customer?",
@@ -111,6 +112,7 @@
     "confirmChange": "confirm change",
     "viewProducts": "view products",
     "refund": "refund",
+    "settle": "Settle",
     "removeBlacklist": "remove blacklist",
     "blacklist": "blacklist",
     "enable": "enable",
@@ -330,6 +332,7 @@
     "productStatus": "status",
     "productImg": "image",
     "price": "price",
+    "memberPrice": "member price",
     "productNum": "stock",
     "saleNum": "sold",
     "remark": "remark",
@@ -417,6 +420,20 @@
     "selectStore": "Please select a store",
     "selectDate": "Please select a date"
   },
+  "settlement": {
+    "title": "Pending Settlement",
+    "storeName": "Store",
+    "pendingAmount": "Pending Amount",
+    "orderCount": "Pending Orders",
+    "lastPaidTime": "Last Paid Time",
+    "lastSettleTime": "Last Settled Time",
+    "status": "Status",
+    "selectStatus": "Select status",
+    "pending": "Pending",
+    "settled": "Settled",
+    "adminOnly": "Admins only",
+    "tip": "Settlement is on the 1st and 15th. This page only updates status; payout is offline."
+  },
   "blackList": {
     "phone": "phone",
     "storeName": "store",
@@ -427,7 +444,11 @@
   "customerList": {
     "phone": "phone",
     "realName": "name",
-    "storeName": "store"
+    "storeName": "store",
+    "memberStatus": "status",
+    "basicUser": "Basic",
+    "memberUser": "Member",
+    "memberBalance": "balance"
   },
   "promo": {
     "name": "Name",

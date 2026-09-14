@@ -8,3 +8,4 @@ export * from './otherBusiness';
 export * from './product';
 export * from './promo';
 export * from './store';
+export * from './storeMember';

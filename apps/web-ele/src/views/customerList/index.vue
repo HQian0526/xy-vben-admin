@@ -7,7 +7,8 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useUserStore } from '@vben/stores';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
-import { addStoreBlacklistApi, getCustomerListApi } from '#/api';
+import { addStoreBlacklistApi, getCustomerListApi, updateStoreMemberStatusApi } from '#/api';
+import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
@@ -48,6 +49,25 @@ const tableConfig = reactive({
       label: $t('global.customerList.storeName'),
     },
     {
+      prop: 'isMember',
+      type: 'tag',
+      label: $t('global.customerList.memberStatus'),
+      width: '110px',
+      tagType: (row: any) => (Number(row.isMember) === 1 ? 'success' : 'info'),
+      filter: (value: any) =>
+        Number(value) === 1
+          ? $t('global.customerList.memberUser')
+          : $t('global.customerList.basicUser'),
+    },
+    {
+      prop: 'memberBalance',
+      label: $t('global.customerList.memberBalance'),
+      filter: (value: any) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n.toFixed(2) : '0.00';
+      },
+    },
+    {
       prop: 'email',
       label: $t('global.user.email'),
     },
@@ -62,8 +82,13 @@ const tableConfig = reactive({
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '120px',
+      width: '180px',
       operations: [
+        {
+          type: 'primary',
+          label: $t('global.btn.edit'),
+          isShow: () => true,
+        },
         {
           type: 'danger',
           label: $t('global.btn.blacklist'),
@@ -74,6 +99,31 @@ const tableConfig = reactive({
   ],
 });
 const list = reactive([]);
+const itemVisible = ref(false);
+const formTitle = ref($t('global.btn.edit'));
+const formInfo = ref<Record<string, any>>({});
+const editConfig = reactive([
+  {
+    label: $t('global.customerList.memberStatus'),
+    name: 'isMember',
+    type: 'select',
+    span: 24,
+    options: [
+      { label: $t('global.customerList.basicUser'), value: 0 },
+      { label: $t('global.customerList.memberUser'), value: 1 },
+    ],
+  },
+]);
+const editRules = reactive({
+  isMember: [
+    {
+      required: true,
+      type: 'number',
+      message: $t('global.pleaseSelect') + $t('global.customerList.memberStatus'),
+      trigger: 'change',
+    },
+  ],
+});
 
 const formConfig = reactive({
   list: [
@@ -104,12 +154,56 @@ const reset = () => {
 
 const handleClick = (row: any, label: string) => {
   switch (label) {
+    case $t('global.btn.edit'): {
+      handleEdit(row);
+      break;
+    }
     case $t('global.btn.blacklist'): {
       handleBlacklist(row);
       break;
     }
     // No default
   }
+};
+
+const handleEdit = (row: any) => {
+  formTitle.value = $t('global.btn.edit');
+  formInfo.value = {
+    userId: row.id != null ? String(row.id) : '',
+    storeId: row.bindStoreId != null ? String(row.bindStoreId) : '',
+    isMember: Number(row.isMember) === 1 ? 1 : 0,
+  };
+  itemVisible.value = true;
+};
+
+const closeDialog = () => {
+  itemVisible.value = false;
+};
+
+const confirmDialog = async (_title: string, data: any) => {
+  const payload: Record<string, any> = {
+    userId: data.userId,
+    isMember: Number(data.isMember) === 1 ? 1 : 0,
+  };
+  if (isAdmin.value && data.storeId) {
+    payload.storeId = data.storeId;
+  }
+  try {
+    const res = await updateStoreMemberStatusApi(payload);
+    if (res.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: $t('global.message.success'),
+      });
+      itemVisible.value = false;
+      getCustomerList();
+    } else {
+      ElMessage({
+        type: 'error',
+        message: res.msg || res.message || $t('global.message.error'),
+      });
+    }
+  } catch {}
 };
 
 const handleCurrentChange = (currentPage: number) => {
@@ -208,6 +302,15 @@ onMounted(() => {
         @handle-size-change="handleSizeChange"
       />
     </el-card>
+    <Edit
+      :form-config="editConfig"
+      :form-rules="editRules"
+      :title="formTitle"
+      :form-info="formInfo"
+      :visible="itemVisible"
+      @close="closeDialog"
+      @confirm="confirmDialog"
+    />
   </div>
 </template>
 

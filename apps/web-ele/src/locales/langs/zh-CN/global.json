@@ -36,6 +36,7 @@
     "success": "操作成功",
     "error": "操作失败",
     "confirmDelete": "确认删除？",
+    "confirmSettle": "确认将该店铺标记为已结算？实际资金打款请线下完成。",
     "confirmRemoveBlacklist": "确认解除拉黑？",
     "confirmDisable": "确认停用？",
     "confirmBlacklist": "确认拉黑该顾客？",
@@ -115,6 +116,7 @@
     "confirmChange": "确认修改",
     "viewProducts": "查看商品",
     "refund": "退款",
+    "settle": "结算",
     "removeBlacklist": "解除拉黑",
     "blacklist": "拉黑",
     "enable": "启用",
@@ -342,6 +344,7 @@
     "productStatus": "状态",
     "productImg": "图片",
     "price": "价格",
+    "memberPrice": "会员价",
     "productNum": "库存",
     "saleNum": "已售",
     "remark": "描述",
@@ -431,6 +434,20 @@
     "selectStore": "请选择店铺",
     "selectDate": "请选择日期"
   },
+  "settlement": {
+    "title": "待结算店铺",
+    "storeName": "店铺名称",
+    "pendingAmount": "待结算金额",
+    "orderCount": "待结算订单数",
+    "lastPaidTime": "最近支付时间",
+    "lastSettleTime": "上次结算时间",
+    "status": "结算状态",
+    "selectStatus": "请选择状态",
+    "pending": "待结算",
+    "settled": "已结算",
+    "adminOnly": "仅管理员可查看待结算店铺并标记结算",
+    "tip": "每月1日和15日结算。此处仅标记状态，实际打款请线下完成。"
+  },
   "blackListModule": "********************黑名单管理模块********************",
   "blackList": {
     "phone": "手机号",
@@ -443,7 +460,11 @@
   "customerList": {
     "phone": "手机号",
     "realName": "姓名",
-    "storeName": "所属店铺"
+    "storeName": "所属店铺",
+    "memberStatus": "身份",
+    "basicUser": "基础用户",
+    "memberUser": "会员用户",
+    "memberBalance": "会员余额"
   },
   "promo": {
     "name": "活动名称",

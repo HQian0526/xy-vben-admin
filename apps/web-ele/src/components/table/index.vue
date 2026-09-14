@@ -10,6 +10,7 @@ import {
   ElSelect,
   ElTable,
   ElTableColumn,
+  ElTag,
 } from 'element-plus';
 
 import { resolveFileUrl } from '#/utils';
@@ -103,6 +104,29 @@ const handleSizeChange = (pageSize: number) => {
           type="index"
           width="50"
         />
+        <!-- 彩色标签列 -->
+        <ElTableColumn
+          v-else-if="item.type === 'tag'"
+          :prop="item.prop"
+          :label="item.label"
+          :width="item.width ? item.width : 'auto'"
+          :sortable="item.sortable ? item.sortable : false"
+        >
+          <template #default="scope">
+            <ElTag
+              :type="
+                item.tagType ? item.tagType(scope.row) : 'info'
+              "
+              size="small"
+            >
+              {{
+                item.filter
+                  ? item.filter(scope.row[item.prop], scope.row)
+                  : scope.row[item.prop]
+              }}
+            </ElTag>
+          </template>
+        </ElTableColumn>
         <!-- 字典/过滤器赋值列 如1男 2女 -->
         <ElTableColumn
           v-else-if="item.filter"

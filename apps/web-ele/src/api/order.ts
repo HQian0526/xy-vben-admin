@@ -44,3 +44,28 @@ export async function getMallFinanceLedgerApi(param: any) {
     params: param,
   });
 }
+
+/**
+ * 商家待结算金额、今日收入
+ */
+export async function getMallSettlementSummaryApi(param?: any) {
+  return requestClient.get('/mallOrder/settlementSummary', {
+    params: param,
+  });
+}
+
+/**
+ * 管理员：待结算店铺列表
+ */
+export async function getPendingSettlementStoresApi(param: any) {
+  return requestClient.get('/mallOrder/pendingSettlementStores', {
+    params: param,
+  });
+}
+
+/**
+ * 管理员：标记店铺已结算（打款线下进行）
+ */
+export async function settleStoreApi(data: { storeId: string | number }) {
+  return requestClient.post('/mallOrder/settleStore', data);
+}
