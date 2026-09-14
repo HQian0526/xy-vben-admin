@@ -7,15 +7,17 @@ import { useUserStore } from '@vben/stores';
 import { QuestionFilled } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
-import { getStoreWxConfigApi, getStoreWxConfigListApi, saveStoreWxConfigApi } from '#/api';
+import {
+  getStoreWxConfigApi,
+  getStoreWxConfigListApi,
+  saveStoreWxConfigApi,
+} from '#/api';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 
 const userStore = useUserStore();
-const isAdmin = computed(
-  () => Number(userStore.userInfo?.identityType) === 3,
-);
+const isAdmin = computed(() => Number(userStore.userInfo?.identityType) === 3);
 
 const isLoading = ref(false);
 const saving = ref(false);
@@ -226,7 +228,9 @@ const handleClick = (row: any, label: string) => {
 
 const confirmDialog = async () => {
   if (!form.storeId) {
-    ElMessage.error($t('global.pleaseSelect') + $t('global.wxConfig.storeName'));
+    ElMessage.error(
+      $t('global.pleaseSelect') + $t('global.wxConfig.storeName'),
+    );
     return;
   }
   saving.value = true;
@@ -266,173 +270,115 @@ onMounted(() => {
 
 <template>
   <div v-loading="isLoading" class="pd5">
-    <el-alert
-      v-if="!isAdmin"
-      type="warning"
-      :closable="false"
-      show-icon
-      class="mb-3"
-      :title="$t('global.wxConfig.adminOnly')"
-    />
-    <el-alert
-      type="info"
-      :closable="false"
-      show-icon
-      class="mb-3"
-      :title="$t('global.wxConfig.tip')"
-    />
+    <el-alert v-if="!isAdmin" type="warning" :closable="false" show-icon class="mb-3"
+      :title="$t('global.wxConfig.adminOnly')" />
+    <el-alert type="info" :closable="false" show-icon class="mb-3" :title="$t('global.wxConfig.tip')" />
     <el-card class="filter-card">
       <Filter :form-config="formConfig" @search="search" @reset="reset" />
     </el-card>
     <el-card class="table-box mgt5">
-      <Table
-        :table-config="tableConfig"
-        :list="list"
-        :total="list.length"
-        :pagination="false"
-        @handle-click="handleClick"
-      />
+      <Table :table-config="tableConfig" :list="list" :total="list.length" :pagination="false"
+        @handle-click="handleClick" />
     </el-card>
 
-    <el-dialog
-      v-model="dialogVisible"
-      :title="$t('global.wxConfig.dialogTitle')"
-      width="720px"
-      append-to-body
-      :close-on-click-modal="false"
-    >
+    <el-dialog v-model="dialogVisible" :title="$t('global.wxConfig.dialogTitle')" width="720px" append-to-body
+      :close-on-click-modal="false">
       <el-form label-width="140px">
         <el-form-item :label="$t('global.wxConfig.storeName')">
           <span>{{ form.storeName }}</span>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.enabled')">
-          <el-switch
-            v-model="form.enabled"
-            :active-value="1"
-            :inactive-value="0"
-          />
+          <el-switch v-model="form.enabled" :active-value="1" :inactive-value="0" />
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.appId')">
           <div class="field-with-tip">
             <el-input v-model="form.appId" maxlength="64" />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpAppId')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-tooltip :content="$t('global.wxConfig.helpAppId')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.appSecret')">
           <div class="field-with-tip">
-            <el-input
-              v-model="form.appSecret"
-              type="password"
-              show-password
-              :placeholder="
-                form.hasAppSecret
-                  ? $t('global.wxConfig.keepSecret')
-                  : $t('global.wxConfig.inputSecret')
-              "
-            />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpAppSecret')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-input v-model="form.appSecret" type="password" show-password :placeholder="form.hasAppSecret
+                ? $t('global.wxConfig.keepSecret')
+                : $t('global.wxConfig.inputSecret')
+              " />
+            <el-tooltip :content="$t('global.wxConfig.helpAppSecret')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.mchId')">
           <div class="field-with-tip">
             <el-input v-model="form.mchId" maxlength="32" />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpMchId')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-tooltip :content="$t('global.wxConfig.helpMchId')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.apiV3Key')">
           <div class="field-with-tip">
-            <el-input
-              v-model="form.apiV3Key"
-              type="password"
-              show-password
-              :placeholder="
-                form.hasApiV3Key
-                  ? $t('global.wxConfig.keepSecret')
-                  : $t('global.wxConfig.inputSecret')
-              "
-            />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpApiV3Key')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-input v-model="form.apiV3Key" type="password" show-password :placeholder="form.hasApiV3Key
+                ? $t('global.wxConfig.keepSecret')
+                : $t('global.wxConfig.inputSecret')
+              " />
+            <el-tooltip :content="$t('global.wxConfig.helpApiV3Key')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.merchantSerialNumber')">
           <div class="field-with-tip">
             <el-input v-model="form.merchantSerialNumber" maxlength="128" />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpMerchantSerialNumber')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-tooltip :content="$t('global.wxConfig.helpMerchantSerialNumber')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.publicKeyId')">
           <div class="field-with-tip">
             <el-input v-model="form.publicKeyId" maxlength="128" />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpPublicKeyId')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-tooltip :content="$t('global.wxConfig.helpPublicKeyId')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.privateKey')">
           <div class="field-with-tip field-with-tip--top">
-            <el-input
-              v-model="form.privateKey"
-              type="textarea"
-              :rows="4"
-              :placeholder="
-                form.hasPrivateKey
-                  ? $t('global.wxConfig.keepSecret')
-                  : $t('global.wxConfig.pemPlaceholder')
-              "
-            />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpPrivateKey')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-input v-model="form.privateKey" type="textarea" :rows="4" :placeholder="form.hasPrivateKey
+                ? $t('global.wxConfig.keepSecret')
+                : $t('global.wxConfig.pemPlaceholder')
+              " />
+            <el-tooltip :content="$t('global.wxConfig.helpPrivateKey')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.publicKey')">
           <div class="field-with-tip field-with-tip--top">
-            <el-input
-              v-model="form.publicKey"
-              type="textarea"
-              :rows="4"
-              :placeholder="
-                form.hasPublicKey
-                  ? $t('global.wxConfig.keepSecret')
-                  : $t('global.wxConfig.pemPlaceholder')
-              "
-            />
-            <el-tooltip
-              :content="$t('global.wxConfig.helpPublicKey')"
-              placement="top"
-            >
-              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            <el-input v-model="form.publicKey" type="textarea" :rows="4" :placeholder="form.hasPublicKey
+                ? $t('global.wxConfig.keepSecret')
+                : $t('global.wxConfig.pemPlaceholder')
+              " />
+            <el-tooltip :content="$t('global.wxConfig.helpPublicKey')" placement="top">
+              <el-icon class="field-tip-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </div>
         </el-form-item>
@@ -469,7 +415,9 @@ onMounted(() => {
         -->
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">{{ $t('global.btn.cancel') }}</el-button>
+        <el-button @click="dialogVisible = false">{{
+          $t('global.btn.cancel')
+          }}</el-button>
         <el-button type="primary" :loading="saving" @click="confirmDialog">
           {{ $t('global.btn.save') }}
         </el-button>
@@ -479,7 +427,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@use "#/styles/style.scss" as *;
+@use '#/styles/style.scss' as *;
 
 .filter-card {
   flex-shrink: 0;
