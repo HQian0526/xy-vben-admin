@@ -2,7 +2,7 @@
 <!-- eslint-disable unicorn/prefer-spread -->
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
 import { useUserStore } from '@vben/stores';
 import { ElMessage } from 'element-plus';
@@ -15,6 +15,10 @@ import {
 } from '#/api';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
+import {
+  registerOrderPageRefresh,
+  unregisterOrderPageRefresh,
+} from '#/layouts/use-order-alert';
 import { $t } from '#/locales';
 import { resolveFileUrl } from '#/utils';
 
@@ -407,6 +411,11 @@ const confirmRefund = async () => {
   }
 };
 
+const refreshOrderPageOnAlert = () => {
+  pageInfo.pageNum = 1;
+  getOrderList();
+};
+
 onMounted(async () => {
   // 仅管理员展示「所属商户」筛选
   if (isAdmin.value) {
@@ -421,6 +430,17 @@ onMounted(async () => {
     await getStoreList();
   }
   getOrderList();
+  registerOrderPageRefresh(refreshOrderPageOnAlert);
+});
+
+onActivated(() => {
+  registerOrderPageRefresh(refreshOrderPageOnAlert);
+});
+onDeactivated(() => {
+  unregisterOrderPageRefresh(refreshOrderPageOnAlert);
+});
+onUnmounted(() => {
+  unregisterOrderPageRefresh(refreshOrderPageOnAlert);
 });
 </script>
 

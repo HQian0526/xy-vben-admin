@@ -396,7 +396,13 @@
     "pleaseEnterRefundAmount": "请输入退款金额",
     "refundAmountInvalid": "退款金额必须大于0且不超过可退金额",
     "discountAmount": "优惠金额",
-    "discountDesc": "优惠说明"
+    "discountDesc": "优惠说明",
+    "alertToggle": "来单通知",
+    "alertTitle": "来新订单了",
+    "alertEnabled": "来单通知已开启，请保持本页打开并打开电脑声音",
+    "alertGoView": "去查看",
+    "payWechat": "微信支付",
+    "payBalance": "余额支付"
   },
   "orderFlow": {
     "title": "流水查询",

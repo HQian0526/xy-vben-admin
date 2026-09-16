@@ -16,6 +16,7 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 
 import logoUrl from '#/assets/logo.png';
 import ChangePasswordDialog from '#/layouts/change-password-dialog.vue';
+import OrderAlertToggle from '#/layouts/order-alert-toggle.vue';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
@@ -153,6 +154,9 @@ watch(
         @logout="handleLogout"
         @change-password="handleOpenChangePassword"
       />
+    </template>
+    <template #header-right-45>
+      <OrderAlertToggle />
     </template>
     <template #notification>
       <Notification

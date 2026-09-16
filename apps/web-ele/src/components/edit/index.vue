@@ -390,6 +390,22 @@ defineExpose({
   getFormData,
 });
 
+const isFieldDisabled = (item: any) => {
+  if (!item) {
+    return false;
+  }
+  if (item.readonly) {
+    return true;
+  }
+  const rule = item.disableWhen;
+  if (!rule || !rule.field) {
+    return false;
+  }
+  const current = formData[rule.field];
+  const values = Array.isArray(rule.values) ? rule.values : [rule.values];
+  return values.some((value: any) => String(value) === String(current));
+};
+
 watch(
   () => [props.visible, props.formInfo],
   ([visible, formInfo]) => {
@@ -399,6 +415,22 @@ watch(
     }
   },
   { immediate: true, deep: true },
+);
+
+watch(
+  formData,
+  () => {
+    (props.formConfig as any[]).forEach((item) => {
+      if (!item?.name || !item.clearWhenDisabled || !isFieldDisabled(item)) {
+        return;
+      }
+      const current = formData[item.name];
+      if (current != null && current !== '') {
+        formData[item.name] = null;
+      }
+    });
+  },
+  { deep: true },
 );
 </script>
 
@@ -431,7 +463,7 @@ watch(
                 :placeholder="`${$t('global.pleaseEnter')}${item.label}`" v-model="formData[item.name]" />
               <!--日期选择器-->
               <ElDatePicker v-if="item.type === 'date'" type="date"
-                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" :disabled="item.readonly"
+                :placeholder="`${$t('global.pleaseSelect')}${item.label}`" :disabled="isFieldDisabled(item)"
                 v-model="formData[item.name]" style="width: 100%" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
               <!--下拉框-->
               <ElSelect v-if="item.type === 'select'" v-model="formData[item.name]"

@@ -382,7 +382,13 @@
     "pleaseEnterRefundAmount": "please enter refund amount",
     "refundAmountInvalid": "refund amount must be > 0 and not exceed refundable amount",
     "discountAmount": "discount",
-    "discountDesc": "discount detail"
+    "discountDesc": "discount detail",
+    "alertToggle": "Order alert",
+    "alertTitle": "New paid order",
+    "alertEnabled": "Order alerts are on. Keep this tab open and unmute the computer.",
+    "alertGoView": "View",
+    "payWechat": "WeChat Pay",
+    "payBalance": "Balance"
   },
   "orderFlow": {
     "title": "Income Flow",

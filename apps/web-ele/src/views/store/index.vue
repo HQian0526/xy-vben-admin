@@ -282,6 +282,8 @@ const editConfig = reactive([
     name: 'storeTime',
     type: 'date',
     readonly: false,
+    disableWhen: { field: 'storeType', values: [1] },
+    clearWhenDisabled: true,
   },
   {
     label: $t('global.store.storeAddress'),
@@ -349,6 +351,13 @@ const editRules = reactive({
       required: true,
       message: $t('global.store.storeAddress') + $t('global.required'),
       trigger: 'blur',
+    },
+  ],
+  storeType: [
+    {
+      required: true,
+      message: $t('global.store.storeType') + $t('global.required'),
+      trigger: 'change',
     },
   ],
 });
@@ -448,6 +457,16 @@ const confirmDialog = async (title: string, data: any) => {
   };
   try {
     const payload = { ...data, ...obj };
+    const storeType = Number(payload.storeType);
+    if (storeType === 1) {
+      payload.storeTime = null;
+    } else if (storeType === 2 && !payload.storeTime) {
+      ElMessage({
+        type: 'error',
+        message: `${$t('global.store.expirationTime')}${$t('global.required')}`,
+      });
+      return;
+    }
     // 新增时由后端雪花生成 id / storeId，避免空串导致反序列化失败
     if (title === $t('global.btn.add')) {
       delete payload.id;
