@@ -455,7 +455,6 @@ onMounted(() => {
   cursor: pointer;
   outline: none;
 }
-
 .field-tip-icon:hover {
   color: var(--el-color-primary);
 }

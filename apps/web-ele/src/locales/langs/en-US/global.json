@@ -117,7 +117,10 @@
     "blacklist": "blacklist",
     "enable": "enable",
     "disable": "disable",
-    "grant": "grant"
+    "grant": "grant",
+    "reprint": "Reprint",
+    "testPrint": "Test print",
+    "queryStatus": "Check online"
   },
   "user": {
     "userName": "account",
@@ -388,7 +391,8 @@
     "alertEnabled": "Order alerts are on. Keep this tab open and unmute the computer.",
     "alertGoView": "View",
     "payWechat": "WeChat Pay",
-    "payBalance": "Balance"
+    "payBalance": "Balance",
+    "confirmReprint": "Reprint this receipt?"
   },
   "orderFlow": {
     "title": "Income Flow",
@@ -536,5 +540,29 @@
     "helpPublicKey": "WeChat Pay - Account Center - API Security - WeChat Pay Public Key",
     "helpNotifyUrl": "No need to copy from WeChat. Leave blank to use platform pay notify URL / storeId",
     "helpRefundNotifyUrl": "No need to copy from WeChat. Leave blank to use platform refund notify URL / storeId"
+  },
+  "printer": {
+    "storeName": "Store",
+    "printerSn": "Printer SN",
+    "printerKey": "Printer Key",
+    "printerName": "Remark",
+    "printEnabled": "Auto print on paid",
+    "voiceEnabled": "Voice alert",
+    "copies": "Copies",
+    "bound": "Bound",
+    "boundYes": "Bound",
+    "boundNo": "Not bound",
+    "lastStatus": "Online status",
+    "lastBindMsg": "Bind result",
+    "dialogTitle": "Cloud printer",
+    "adminOnly": "Only admins can bind store printers",
+    "tip": "The Feie developer account lives in server config. This page only stores the SN/Key on the printer sticker. Save again after ukey is filled to finish cloud binding.",
+    "ukeyMissing": "Platform Feie ukey is empty. Saving only stores SN/Key; bind and print will not work yet.",
+    "helpSn": "Number printed on the device sticker",
+    "helpKey": "Key printed next to the SN",
+    "helpName": "Optional label",
+    "keepKey": "Saved. Leave blank to keep",
+    "on": "On",
+    "off": "Off"
   }
 }

@@ -5,13 +5,14 @@
 import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
 import { useUserStore } from '@vben/stores';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
   getMallOrderDetailApi,
   getMallOrderListApi,
   getStoreListApi,
   refundMallOrderApi,
+  reprintMallOrderApi,
 } from '#/api';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
@@ -113,12 +114,20 @@ const tableConfig = reactive({
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '200px',
+      width: '260px',
       operations: [
         {
           type: 'primary',
           label: $t('global.btn.viewProducts'),
           isShow: () => true,
+        },
+        {
+          type: 'success',
+          label: $t('global.btn.reprint'),
+          isShow: (item: any) =>
+            Number(item.payStatus) === 1 ||
+            Number(item.payStatus) === 3 ||
+            Number(item.payStatus) === 4,
         },
         {
           type: 'danger',
@@ -218,6 +227,10 @@ const handleClick = (row: any, label: string) => {
   switch (label) {
     case $t('global.btn.viewProducts'): {
       handleViewProducts(row);
+      break;
+    }
+    case $t('global.btn.reprint'): {
+      handleReprint(row);
       break;
     }
     case $t('global.btn.refund'): {
@@ -346,6 +359,32 @@ const handleOpenRefund = (row: any) => {
   refundForm.refundAmount = remainRefundAmount.value;
   refundForm.reason = '';
   refundVisible.value = true;
+};
+
+const handleReprint = async (row: any) => {
+  const orderNo = row?.orderNo;
+  if (!orderNo) {
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      $t('global.order.confirmReprint'),
+      $t('global.tip'),
+      { type: 'warning' },
+    );
+  } catch {
+    return;
+  }
+  try {
+    const res = await reprintMallOrderApi(orderNo);
+    if (res.code === 200) {
+      ElMessage.success(res.data || $t('global.message.success'));
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const closeRefundDialog = () => {

@@ -52,3 +52,35 @@ export async function getStoreWxConfigApi(storeId: string | number) {
 export async function saveStoreWxConfigApi(data: any) {
   return requestClient.put('/storeWxConfig', data);
 }
+
+export async function getStorePrinterListApi() {
+  return requestClient.get('/storePrinter/list');
+}
+
+export async function getStorePrinterApi(storeId: string | number) {
+  return requestClient.get('/storePrinter', {
+    params: { storeId },
+  });
+}
+
+export async function saveStorePrinterApi(data: any) {
+  return requestClient.put('/storePrinter', data);
+}
+
+export async function queryStorePrinterStatusApi(storeId: string | number) {
+  return requestClient.get('/storePrinter/status', {
+    params: { storeId },
+  });
+}
+
+export async function testStorePrinterApi(storeId: string | number) {
+  return requestClient.post('/storePrinter/testPrint', {}, {
+    params: { storeId },
+  });
+}
+
+export async function reprintMallOrderApi(orderNo: string) {
+  return requestClient.post('/storePrinter/reprint', {}, {
+    params: { orderNo },
+  });
+}

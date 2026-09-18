@@ -121,7 +121,10 @@
     "blacklist": "拉黑",
     "enable": "启用",
     "disable": "停用",
-    "grant": "发放"
+    "grant": "发放",
+    "reprint": "补打小票",
+    "testPrint": "测试打印",
+    "queryStatus": "测在线"
   },
   "userModule": "********************用户管理模块********************",
   "user": {
@@ -402,7 +405,8 @@
     "alertEnabled": "来单通知已开启，请保持本页打开并打开电脑声音",
     "alertGoView": "去查看",
     "payWechat": "微信支付",
-    "payBalance": "余额支付"
+    "payBalance": "余额支付",
+    "confirmReprint": "确认补打这张小票？"
   },
   "orderFlow": {
     "title": "流水查询",
@@ -552,5 +556,29 @@
     "helpPublicKey": "微信支付商户平台-账号中心-API安全-微信支付公钥",
     "helpNotifyUrl": "不用去微信后台复制，留空则使用平台支付回调/店铺ID",
     "helpRefundNotifyUrl": "不用去微信后台复制，留空则使用平台退款回调/店铺ID"
+  },
+  "printer": {
+    "storeName": "所属店铺",
+    "printerSn": "打印机编号 SN",
+    "printerKey": "打印机识别码 Key",
+    "printerName": "备注名",
+    "printEnabled": "支付成功自动打印",
+    "voiceEnabled": "语音播报",
+    "copies": "打印联数",
+    "bound": "绑定",
+    "boundYes": "已绑定",
+    "boundNo": "未绑定",
+    "lastStatus": "在线状态",
+    "lastBindMsg": "绑定结果",
+    "dialogTitle": "云打印机",
+    "adminOnly": "仅管理员可代配各店飞鹅打印机",
+    "tip": "飞鹅开发者账号在服务器配置。本页只填机身贴纸上的 SN 和 Key，保存后挂到平台账号下。ukey 未配时可先保存，认证通过后再保存一次完成云端绑定。",
+    "ukeyMissing": "平台飞鹅密钥（ukey）尚未配置，现在保存只会写入店铺资料，不能真正绑定或打票。",
+    "helpSn": "机身或背面贴纸上的编号，一般是一串数字",
+    "helpKey": "贴纸上的识别码，与 SN 成对",
+    "helpName": "可选，方便区分店里的机子",
+    "keepKey": "已保存，留空不修改",
+    "on": "开",
+    "off": "关"
   }
 }
