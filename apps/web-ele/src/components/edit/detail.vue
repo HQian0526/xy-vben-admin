@@ -310,9 +310,7 @@ const handleExceed = () => {
 // 打开选择用户弹窗
 const openSelectPeopleDialog = (key: string) => {
   selectPeopleKey.value = key;
-  if (formData.selectedUsers) {
-    selectedUsers.value = formData.selectedUsers[key];
-  }
+  selectedUsers.value = formData.selectedUsers?.[key] || [];
   selectPeopleVisible.value = true;
 };
 

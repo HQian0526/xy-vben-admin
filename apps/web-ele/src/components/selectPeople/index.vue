@@ -83,6 +83,7 @@ const generateData = async () => {
 
 const data = ref<Option[]>([]);
 const value = ref<string[]>([]);
+let loadSeq = 0;
 
 const filterMethod = (query: string, item: Option) => {
   return item.userName?.toLowerCase?.().includes(query.toLowerCase());
@@ -129,14 +130,23 @@ const confirm = async () => {
   emit('confirm', selectedUsers);
 };
 
-// 打开弹窗时加载用户列表并回填已选
+// 打开弹窗时加载用户列表并回填已选。
+// 父组件用 :key 重建时，第一次可能带着 visible=true 挂载，必须 immediate，否则名单一直空。
 watch(
   () => props.visible,
   async (val) => {
-    if (!val) return;
-    data.value = await generateData();
+    if (!val) {
+      return;
+    }
+    const seq = ++loadSeq;
+    const list = await generateData();
+    if (seq !== loadSeq || !props.visible) {
+      return;
+    }
+    data.value = list;
     applySelectedUsers();
   },
+  { immediate: true },
 );
 
 // 已选用户异步到达时（弹窗已打开）再次回填，避免被覆盖成空
@@ -153,7 +163,7 @@ watch(
 
 <template>
   <ElDialog
-    v-model="props.visible"
+    :model-value="props.visible"
     :title="$t('global.choosePeople')"
     :before-close="closeDialog"
     top="10%"

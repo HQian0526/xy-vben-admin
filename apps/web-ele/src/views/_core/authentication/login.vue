@@ -93,9 +93,15 @@ const formSchema = computed((): VbenFormSchema[] => {
 </script>
 
 <template>
+  <!-- 仅保留账号密码登录：手机号、扫码、第三方、注册、忘记密码先关掉 -->
   <AuthenticationLogin
     :form-schema="formSchema"
     :loading="authStore.loginLoading"
+    :show-code-login="false"
+    :show-forget-password="false"
+    :show-qrcode-login="false"
+    :show-register="false"
+    :show-third-party-login="false"
     @submit="authStore.authLogin"
   />
 </template>
