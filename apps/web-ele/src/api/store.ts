@@ -53,6 +53,10 @@ export async function saveStoreWxConfigApi(data: any) {
   return requestClient.put('/storeWxConfig', data);
 }
 
+export async function saveStoreMiniappUiApi(data: any) {
+  return requestClient.put('/storeWxConfig/miniappUi', data);
+}
+
 export async function getStorePrinterListApi() {
   return requestClient.get('/storePrinter/list');
 }

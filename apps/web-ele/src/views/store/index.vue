@@ -21,7 +21,9 @@ import { getDict } from '#/utils';
 
 const isLoading = ref(false);
 //* *************table相关变量**************
-const storeStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 店铺状态字典
+const storeStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 营业状态字典
+const expiredDict = reactive<Array<{ label: string; value: any }>>([]); // 是否到期字典
+const shopStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 店铺状态字典
 const total = ref(10);
 const pageInfo = reactive({
   pageNum: 1,
@@ -78,6 +80,26 @@ const tableConfig = reactive({
       label: $t('global.store.storeStatus'),
       filter: (value: any) => {
         const hit = storeStatusDict.find(
+          (item) => Number(item.value) === Number(value),
+        );
+        return hit ? hit.label : value;
+      },
+    },
+    {
+      prop: 'expired',
+      label: $t('global.store.expired'),
+      filter: (value: any) => {
+        const hit = expiredDict.find(
+          (item) => Number(item.value) === Number(value),
+        );
+        return hit ? hit.label : value;
+      },
+    },
+    {
+      prop: 'shopStatus',
+      label: $t('global.store.shopStatus'),
+      filter: (value: any) => {
+        const hit = shopStatusDict.find(
           (item) => Number(item.value) === Number(value),
         );
         return hit ? hit.label : value;
@@ -154,6 +176,22 @@ const formConfig = reactive({
       value: '',
       placeholder: `${$t('global.pleaseSelect')}${$t('global.store.storeStatus')}`,
       options: storeStatusDict,
+    },
+    {
+      type: 'select',
+      prop: 'expired',
+      label: $t('global.store.expired'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.store.expired')}`,
+      options: expiredDict,
+    },
+    {
+      type: 'select',
+      prop: 'shopStatus',
+      label: $t('global.store.shopStatus'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.store.shopStatus')}`,
+      options: shopStatusDict,
     },
     {
       type: 'select',
@@ -244,6 +282,20 @@ const editConfig = reactive([
     type: 'select',
     readonly: false,
     options: storeStatusDict,
+  },
+  {
+    label: $t('global.store.expired'),
+    name: 'expired',
+    type: 'select',
+    readonly: false,
+    options: expiredDict,
+  },
+  {
+    label: $t('global.store.shopStatus'),
+    name: 'shopStatus',
+    type: 'select',
+    readonly: false,
+    options: shopStatusDict,
   },
   // {
   //   label: $t('global.store.status'),
@@ -594,9 +646,14 @@ const selectedUser = (key: string, value: any) => {
 };
 
 onMounted(async () => {
-  // 获取店铺状态字典值
-  const dict1 = await getDict('store_status');
+  const [dict1, dict2, dict3] = await Promise.all([
+    getDict('store_status'),
+    getDict('store_expired'),
+    getDict('shop_status'),
+  ]);
   storeStatusDict.splice(0, storeStatusDict.length, ...dict1);
+  expiredDict.splice(0, expiredDict.length, ...dict2);
+  shopStatusDict.splice(0, shopStatusDict.length, ...dict3);
   getStoreList(); // 获取商户列表
 });
 </script>

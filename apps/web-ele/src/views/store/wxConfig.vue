@@ -10,6 +10,7 @@ import { ElMessage } from 'element-plus';
 import {
   getStoreWxConfigApi,
   getStoreWxConfigListApi,
+  saveStoreMiniappUiApi,
   saveStoreWxConfigApi,
 } from '#/api';
 import Filter from '#/components/filter/index.vue';
@@ -26,6 +27,8 @@ const list = reactive<any[]>([]);
 const searchParams = ref<Record<string, any>>({});
 const storeDict = reactive<Array<{ label: string; value: any }>>([]);
 const dialogVisible = ref(false);
+const uiDialogVisible = ref(false);
+const uiSaving = ref(false);
 const form = reactive({
   storeId: '',
   storeName: '',
@@ -48,6 +51,51 @@ const form = reactive({
   payReady: false,
   platformFallback: true,
 });
+const uiForm = reactive({
+  storeId: '',
+  storeName: '',
+  miniappType: 1,
+  showStock: 1,
+  showAddress: 1,
+  showQuantity: 1,
+  showCart: 1,
+  enablePay: 1,
+  orderBtnText: '立即购买',
+  homeTabText: '逛店',
+  listBtnText: '预定',
+  showSaleNum: 1,
+  showDeliveryFee: 1,
+});
+
+function mallUiPreset() {
+  return {
+    miniappType: 1,
+    showStock: 1,
+    showAddress: 1,
+    showQuantity: 1,
+    showCart: 1,
+    showSaleNum: 1,
+    showDeliveryFee: 1,
+    orderBtnText: '立即购买',
+    homeTabText: '逛店',
+    listBtnText: '预定',
+  };
+}
+
+function bookingUiPreset() {
+  return {
+    miniappType: 2,
+    showStock: 0,
+    showAddress: 0,
+    showQuantity: 0,
+    showCart: 0,
+    showSaleNum: 0,
+    showDeliveryFee: 0,
+    orderBtnText: '立即预约',
+    homeTabText: '预约',
+    listBtnText: '预定',
+  };
+}
 
 const formConfig = reactive({
   list: [
@@ -98,11 +146,16 @@ const tableConfig = reactive({
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '120px',
+          width: '300px',
       operations: [
         {
           type: 'primary',
-          label: $t('global.btn.setting'),
+          label: $t('global.wxConfig.payConfig'),
+          isShow: () => true,
+        },
+        {
+          type: 'success',
+          label: $t('global.wxConfig.miniappUi'),
           isShow: () => true,
         },
       ],
@@ -206,6 +259,34 @@ function fillForm(detail: any) {
   form.platformFallback = detail.platformFallback !== false;
 }
 
+function fillUiForm(detail: any) {
+  const type = Number(detail.miniappType) === 2 ? 2 : 1;
+  const preset = type === 2 ? bookingUiPreset() : mallUiPreset();
+  uiForm.storeId = detail.storeId == null ? '' : String(detail.storeId);
+  uiForm.storeName = detail.storeName || '';
+  uiForm.miniappType = type;
+  uiForm.showStock = detail.showStock == null ? preset.showStock : Number(detail.showStock) === 1 ? 1 : 0;
+  uiForm.showAddress = detail.showAddress == null ? preset.showAddress : Number(detail.showAddress) === 1 ? 1 : 0;
+  uiForm.showQuantity = detail.showQuantity == null ? preset.showQuantity : Number(detail.showQuantity) === 1 ? 1 : 0;
+  uiForm.showCart = detail.showCart == null ? preset.showCart : Number(detail.showCart) === 1 ? 1 : 0;
+  uiForm.showSaleNum = detail.showSaleNum == null ? preset.showSaleNum : Number(detail.showSaleNum) === 1 ? 1 : 0;
+  uiForm.showDeliveryFee = detail.showDeliveryFee == null ? preset.showDeliveryFee : Number(detail.showDeliveryFee) === 1 ? 1 : 0;
+  uiForm.enablePay = detail.enablePay == null ? 1 : Number(detail.enablePay) === 1 ? 1 : 0;
+  uiForm.orderBtnText = String(detail.orderBtnText || preset.orderBtnText).trim() || preset.orderBtnText;
+  uiForm.homeTabText = String(detail.homeTabText || preset.homeTabText).trim() || preset.homeTabText;
+  uiForm.listBtnText = String(detail.listBtnText || preset.listBtnText).trim() || preset.listBtnText;
+}
+
+const onMiniappTypeChange = (value: number) => {
+  const preset = Number(value) === 2 ? bookingUiPreset() : mallUiPreset();
+  Object.assign(uiForm, preset, {
+    storeId: uiForm.storeId,
+    storeName: uiForm.storeName,
+    enablePay: uiForm.enablePay,
+    listBtnText: uiForm.listBtnText || preset.listBtnText,
+  });
+};
+
 const openEdit = async (row: any) => {
   try {
     const res = await getStoreWxConfigApi(row.storeId);
@@ -220,9 +301,89 @@ const openEdit = async (row: any) => {
   }
 };
 
+const openUi = async (row: any) => {
+  try {
+    const res = await getStoreWxConfigApi(row.storeId);
+    if (res.code !== 200) {
+      ElMessage.error(res.msg || $t('global.message.searchError'));
+      return;
+    }
+    fillUiForm(res.data || row);
+    uiDialogVisible.value = true;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const handleClick = (row: any, label: string) => {
-  if (label === $t('global.btn.setting')) {
+  if (label === $t('global.wxConfig.payConfig')) {
     openEdit(row);
+    return;
+  }
+  if (label === $t('global.wxConfig.miniappUi')) {
+    openUi(row);
+  }
+};
+
+const confirmUiDialog = async () => {
+  if (!uiForm.storeId) {
+    ElMessage.error(
+      $t('global.pleaseSelect') + $t('global.wxConfig.storeName'),
+    );
+    return;
+  }
+  if (uiForm.miniappType !== 1 && uiForm.miniappType !== 2) {
+    ElMessage.error($t('global.wxConfig.typeRequired'));
+    return;
+  }
+  const orderBtnText = String(uiForm.orderBtnText || '').trim();
+  if (!orderBtnText) {
+    ElMessage.error(
+      $t('global.pleaseEnter') + $t('global.wxConfig.orderBtnText'),
+    );
+    return;
+  }
+  const homeTabText = String(uiForm.homeTabText || '').trim();
+  if (!homeTabText) {
+    ElMessage.error(
+      $t('global.pleaseEnter') + $t('global.wxConfig.homeTabText'),
+    );
+    return;
+  }
+  const listBtnText = String(uiForm.listBtnText || '').trim();
+  if (!listBtnText) {
+    ElMessage.error(
+      $t('global.pleaseEnter') + $t('global.wxConfig.listBtnText'),
+    );
+    return;
+  }
+  uiSaving.value = true;
+  try {
+    const res = await saveStoreMiniappUiApi({
+      storeId: uiForm.storeId,
+      miniappType: Number(uiForm.miniappType),
+      showStock: Number(uiForm.showStock),
+      showAddress: Number(uiForm.showAddress),
+      showQuantity: Number(uiForm.showQuantity),
+      showCart: Number(uiForm.showCart),
+      showSaleNum: Number(uiForm.showSaleNum),
+      showDeliveryFee: Number(uiForm.showDeliveryFee),
+      enablePay: Number(uiForm.enablePay),
+      orderBtnText,
+      homeTabText,
+      listBtnText,
+    });
+    if (res.code === 200) {
+      ElMessage.success($t('global.message.success'));
+      uiDialogVisible.value = false;
+      await getList();
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    uiSaving.value = false;
   }
 };
 
@@ -423,6 +584,122 @@ onMounted(() => {
         </el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="uiDialogVisible" :title="$t('global.wxConfig.uiDialogTitle')" width="620px" append-to-body
+      :close-on-click-modal="false">
+      <el-form label-width="160px">
+        <el-form-item :label="$t('global.wxConfig.storeName')">
+          <div class="field-with-tip">
+            <span>{{ uiForm.storeName }}</span>
+            <el-tooltip :content="$t('global.wxConfig.helpStoreName')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.miniappType')" required>
+          <div class="field-with-tip">
+            <el-radio-group v-model="uiForm.miniappType" @change="onMiniappTypeChange">
+              <el-radio :value="1">{{ $t('global.wxConfig.mallType') }}</el-radio>
+              <el-radio :value="2">{{ $t('global.wxConfig.bookingType') }}</el-radio>
+            </el-radio-group>
+            <el-tooltip :content="$t('global.wxConfig.helpMiniappType')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.showStock')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.showStock" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpShowStock')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.showAddress')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.showAddress" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpShowAddress')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.showDeliveryFee')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.showDeliveryFee" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpShowDeliveryFee')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.showQuantity')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.showQuantity" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpShowQuantity')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.showCart')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.showCart" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpShowCart')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.showSaleNum')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.showSaleNum" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpShowSaleNum')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.enablePay')">
+          <div class="field-with-tip">
+            <el-switch v-model="uiForm.enablePay" :active-value="1" :inactive-value="0" />
+            <el-tooltip :content="$t('global.wxConfig.helpEnablePay')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.orderBtnText')" required>
+          <div class="field-with-tip">
+            <el-input v-model="uiForm.orderBtnText" maxlength="16"
+              :placeholder="$t('global.wxConfig.orderBtnPlaceholder')" />
+            <el-tooltip :content="$t('global.wxConfig.helpOrderBtnText')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.homeTabText')" required>
+          <div class="field-with-tip">
+            <el-input v-model="uiForm.homeTabText" maxlength="4"
+              :placeholder="$t('global.wxConfig.homeTabPlaceholder')" />
+            <el-tooltip :content="$t('global.wxConfig.helpHomeTabText')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.listBtnText')" required>
+          <div class="field-with-tip">
+            <el-input v-model="uiForm.listBtnText" maxlength="6"
+              :placeholder="$t('global.wxConfig.listBtnPlaceholder')" />
+            <el-tooltip :content="$t('global.wxConfig.helpListBtnText')" placement="top" popper-class="wx-config-ui-help">
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="uiDialogVisible = false">{{
+          $t('global.btn.cancel')
+          }}</el-button>
+        <el-button type="primary" :loading="uiSaving" @click="confirmUiDialog">
+          {{ $t('global.btn.save') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -457,5 +734,12 @@ onMounted(() => {
 }
 .field-tip-icon:hover {
   color: var(--el-color-primary);
+}
+</style>
+
+<style lang="scss">
+.wx-config-ui-help {
+  max-width: 360px;
+  line-height: 1.5;
 }
 </style>

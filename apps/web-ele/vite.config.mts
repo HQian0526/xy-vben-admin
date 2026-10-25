@@ -18,6 +18,7 @@ export default defineConfig(async () => {
             rewrite: (path) => path.replace(/^\/api/, ''),
             // mock代理目标地址
             target: 'http://localhost:8080/api',
+            // target: 'https://api.gzstarfly.com/api',
             ws: true,
           },
         },

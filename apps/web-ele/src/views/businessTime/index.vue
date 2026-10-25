@@ -50,12 +50,8 @@ const tableConfig = reactive({
       label: $t('global.businessTime.hoursText'),
     },
     {
-      prop: 'deliveryFee',
+      prop: 'deliveryFeeLabel',
       label: $t('global.businessTime.deliveryFee'),
-      filter: (value: any) => {
-        const n = Number(value);
-        return Number.isFinite(n) ? n.toFixed(2) : '0.00';
-      },
     },
     {
       prop: 'manualLabel',
@@ -104,6 +100,12 @@ function mapStoreRow(item: any) {
       item.businessHoursText ||
       formatBusinessHoursText(item.businessHours) ||
       $t('global.businessTime.allDayUnset'),
+    deliveryFeeLabel:
+      Number(item.showDeliveryFee) === 1
+        ? Number.isFinite(Number(item.deliveryFee))
+          ? Number(item.deliveryFee).toFixed(2)
+          : '0.00'
+        : '—',
     manualLabel:
       item.manuallyClosed === true || getOpenStatus(item) === 'closed'
         ? $t('global.businessTime.closed')

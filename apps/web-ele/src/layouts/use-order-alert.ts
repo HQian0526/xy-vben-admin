@@ -94,10 +94,13 @@ export function useOrderAlert() {
     const amount = order.payAmount == null ? '--' : order.payAmount;
     const contact = order.contact ? String(order.contact) : '';
     const address = order.address ? String(order.address) : '';
+    const channel = Number(order.payChannel)
     const payChannel =
-      Number(order.payChannel) === 2
+      channel === 2
         ? $t('global.order.payBalance')
-        : $t('global.order.payWechat');
+        : channel === 3
+          ? $t('global.order.paySkip')
+          : $t('global.order.payWechat');
 
     const nodes = [
       h('div', `${$t('global.order.orderNo')} ${orderNo || '--'}`),

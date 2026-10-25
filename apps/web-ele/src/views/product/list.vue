@@ -59,6 +59,11 @@ const tableConfig = reactive({
       label: $t('global.product.productName'),
     },
     {
+      prop: 'orderNum',
+      label: $t('global.product.orderNum'),
+      width: '90px',
+    },
+    {
       prop: 'price',
       label: $t('global.product.price'),
     },
@@ -80,6 +85,7 @@ const tableConfig = reactive({
     {
       prop: 'remark',
       label: $t('global.product.remark'),
+      width: '280px',
     },
     {
       prop: 'createdBy',
@@ -204,6 +210,13 @@ const editConfig = reactive([
     type: 'select',
     span: 24,
     options: productStatusDict,
+  },
+  {
+    label: $t('global.product.orderNum'),
+    name: 'orderNum',
+    type: 'number',
+    span: 24,
+    min: 0,
   },
   {
     label: $t('global.product.remark'),
@@ -421,6 +434,7 @@ const handleAdd = () => {
   formInfo.value = {
     catagoryId: selectedCatagoryId.value || undefined,
     productStatus: 1,
+    orderNum: 0,
   };
   itemVisible.value = true;
 };

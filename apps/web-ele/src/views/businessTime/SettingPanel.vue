@@ -59,6 +59,8 @@ const statusTip = computed(() => {
   if (openStatus.value === 'rest') return $t('global.businessTime.restTip')
   return $t('global.businessTime.openTip')
 })
+const showDeliveryFee = computed(() => Number(localStore.showDeliveryFee) === 1)
+
 const hoursPreview = computed(() => {
   if (hoursMode.value === 'all') {
     return $t('global.businessTime.hoursPreviewAll')
@@ -201,7 +203,7 @@ async function handleSaveHours() {
 }
 
 async function handleSaveDeliveryFee() {
-  if (feeSubmitting.value || !localStore.id) return
+  if (feeSubmitting.value || !localStore.id || !showDeliveryFee.value) return
   const fee = Number(deliveryFee.value)
   if (!Number.isFinite(fee) || fee < 0) {
     ElMessage.warning($t('global.businessTime.deliveryFeeInvalid'))
@@ -226,6 +228,7 @@ async function handleSaveDeliveryFee() {
     feeSubmitting.value = false
   }
 }
+
 </script>
 
 <template>
@@ -325,7 +328,7 @@ async function handleSaveDeliveryFee() {
       </div>
     </div>
 
-    <div class="hours-card">
+    <div v-if="showDeliveryFee" class="hours-card">
       <div class="hours-title">{{ $t('global.businessTime.deliveryFee') }}</div>
       <div class="hours-preview">{{ $t('global.businessTime.deliveryFeeTip') }}</div>
       <div class="fee-row">
