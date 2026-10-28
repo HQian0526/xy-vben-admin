@@ -56,3 +56,24 @@ export function toRelativeFilePath(input: any) {
   // 兜底：去掉任意域名，只保留 path
   return raw.replace(/^https?:\/\/[^/]+\/?/, '');
 }
+
+/** 商家当前经营门店：上次切换的店，否则名下第一家 */
+export function currentMerchantStoreId(userInfo?: null | Record<string, any>) {
+  if (!userInfo) {
+    return '';
+  }
+  const last = userInfo.lastStoreId;
+  if (last != null && String(last).trim() !== '') {
+    return String(last);
+  }
+  const owned = userInfo.ownedStores;
+  if (Array.isArray(owned)) {
+    for (const item of owned) {
+      const id = item?.storeId;
+      if (id != null && String(id).trim() !== '') {
+        return String(id);
+      }
+    }
+  }
+  return '';
+}

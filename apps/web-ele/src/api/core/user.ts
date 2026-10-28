@@ -11,6 +11,13 @@ export async function getUserInfoApi() {
 }
 
 /**
+ * 商家切换当前经营门店
+ */
+export async function switchStoreApi(data: { lastStoreId: number | string }) {
+  return requestClient.put('/user/switchStore', data);
+}
+
+/**
  * 获取用户列表
  */
 export async function getUserListApi(param: any) {

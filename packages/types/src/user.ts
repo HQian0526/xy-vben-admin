@@ -1,5 +1,13 @@
 import type { BasicUserInfo } from '@vben-core/typings';
 
+interface OwnedStore {
+  storeId: number | string;
+  storeName?: string;
+  expired?: boolean;
+  enablePay?: number;
+  shopStatus?: number;
+}
+
 /** 用户信息 */
 interface UserInfo extends BasicUserInfo {
   /**
@@ -15,6 +23,11 @@ interface UserInfo extends BasicUserInfo {
    * accessToken
    */
   token: string;
+
+  identityType?: number;
+  lastStoreId?: number | string | null;
+  ownedStores?: OwnedStore[];
+  storeExpired?: boolean;
 }
 
 export type { UserInfo };

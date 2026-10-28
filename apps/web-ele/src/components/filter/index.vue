@@ -86,8 +86,15 @@ watch(() => props.formConfig.list, initFormData, { deep: true });
         <ElOption v-for="(it, ind) in item.options" :key="ind" :label="it.label" :value="it.value" />
       </ElSelect>
       <!-- date-picker日期选择器 -->
-      <ElDatePicker v-if="item.type === 'date'" v-model="form[item.prop]" type="date" :placeholder="item.placeholder"
-        :clearable="item.clearable || true" />
+      <ElDatePicker
+        v-if="item.type === 'date'"
+        v-model="form[item.prop]"
+        type="date"
+        :placeholder="item.placeholder"
+        :clearable="item.clearable || true"
+        :value-format="item.valueFormat"
+        :format="item.format || item.valueFormat"
+      />
       <!-- checkbox-group多选框 -->
       <ElCheckboxGroup v-if="item.type === 'checkbox'" v-model="form[item.prop]">
         <ElCheckbox v-for="(it, ind) in item.options" :key="ind" :value="it.value" name="type">

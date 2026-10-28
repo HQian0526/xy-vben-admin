@@ -120,7 +120,8 @@
     "grant": "grant",
     "reprint": "Reprint",
     "testPrint": "Test print",
-    "queryStatus": "Check online"
+    "queryStatus": "Check online",
+    "viewRequest": "Request record"
   },
   "user": {
     "userName": "account",
@@ -185,7 +186,13 @@
     "update": "update",
     "query": "query",
     "success": "success",
-    "fail": "fail"
+    "fail": "fail",
+    "requestRecord": "Request record",
+    "requestApi": "API",
+    "requestParams": "Request params",
+    "responseBody": "Response",
+    "noPayload": "Request content was not recorded at the time",
+    "emptyValue": "None"
   },
   "role": {
     "roleName": "role name",
@@ -234,7 +241,10 @@
     "businessLicense": "Business License",
     "remark": "remark",
     "idCard": "idCard",
-    "next": "next"
+    "next": "next",
+    "currentStore": "Current store",
+    "switchSuccess": "Store switched",
+    "expiredTag": "Expired"
   },
   "businessTime": {
     "title": "Business Hours",
@@ -454,6 +464,37 @@
     "remark": "remark",
     "reason": "reason"
   },
+  "visitor": {
+    "visitorName": "name",
+    "phone": "phone",
+    "remark": "remark",
+    "storeName": "store"
+  },
+  "storeStaff": {
+    "phone": "phone",
+    "realName": "name",
+    "storeName": "store",
+    "status": "status",
+    "enabled": "enabled",
+    "disabled": "disabled",
+    "remark": "remark",
+    "phonePlaceholder": "Enter the staff mini-program phone number"
+  },
+  "verifyLog": {
+    "time": "time",
+    "date": "date",
+    "storeName": "store",
+    "customerPhone": "customer phone",
+    "customerName": "customer name",
+    "amount": "amount",
+    "operatorName": "operator",
+    "operatorType": "role",
+    "merchant": "merchant",
+    "staff": "staff",
+    "admin": "admin",
+    "remark": "remark",
+    "selectDate": "Select a date"
+  },
   "customerList": {
     "phone": "phone",
     "realName": "name",
@@ -461,7 +502,36 @@
     "memberStatus": "status",
     "basicUser": "Basic",
     "memberUser": "Member",
-    "memberBalance": "balance"
+    "memberBalance": "balance",
+    "confirmDemoteChain": "Membership is shared across this merchant's stores. The customer will lose member price at all branches. Continue?"
+  },
+  "memberVerify": {
+    "storeName": "Store",
+    "phone": "Customer phone",
+    "nickname": "Nickname",
+    "defaultNickname": "WeChat user",
+    "memberStatus": "Status",
+    "basicUser": "Not a member",
+    "memberUser": "Stored-value member",
+    "balance": "Balance",
+    "lookup": "Lookup",
+    "phoneInvalid": "Enter a valid phone number",
+    "amountInvalid": "Enter a valid amount",
+    "balanceNotEnough": "Insufficient balance",
+    "notMemberTip": "This customer is not a chain member yet. After a top-up they get member price at all branches.",
+    "debitTitle": "Verify / deduct",
+    "rechargeTitle": "Top up for customer",
+    "debitAmount": "Deduct amount",
+    "rechargeAmount": "Top-up amount",
+    "remark": "Remark",
+    "debitRemarkPlaceholder": "Optional, e.g. in-store consumption",
+    "rechargeRemarkPlaceholder": "Optional, e.g. cash or transfer",
+    "debitConfirm": "Confirm deduct",
+    "rechargeConfirm": "Confirm top-up",
+    "debitSuccess": "Deducted",
+    "rechargeSuccess": "Top-up succeeded",
+    "confirmDebit": "Deduct ¥{amount} from {name}'s stored-value balance",
+    "confirmRecharge": "Top up ¥{amount} for {name}. They will become a stored-value member"
   },
   "promo": {
     "name": "Name",
@@ -599,5 +669,25 @@
     "keepKey": "Saved. Leave blank to keep",
     "on": "On",
     "off": "Off"
+  },
+  "storeIntro": {
+    "title": "Store profile",
+    "storeName": "Store",
+    "avatar": "Photo",
+    "name": "Store name",
+    "intro": "About",
+    "introPlaceholder": "Tell customers about this store",
+    "contactPhone": "Contact phone",
+    "contactPhonePlaceholder": "One number shown on the store intro page",
+    "activityNotice": "Promo notice",
+    "activityNoticePlaceholder": "Shown in the activity block; spend-and-save offers are loaded automatically",
+    "showModules": "Intro modules",
+    "showHours": "Hours",
+    "showActivity": "Activity",
+    "showContact": "Phone",
+    "showOtherBusiness": "Other services",
+    "tip": "Hours, other services and spend-and-save offers stay on their existing pages. Turning a switch off hides that block on the mini-program intro tab.",
+    "noStore": "Store not found",
+    "phoneInvalid": "Enter a valid phone number"
   }
 }

@@ -188,6 +188,17 @@ const confirmDialog = async (_title: string, data: any) => {
   if (isAdmin.value && data.storeId) {
     payload.storeId = data.storeId;
   }
+  if (payload.isMember === 0) {
+    try {
+      await ElMessageBox.confirm(
+        $t('global.customerList.confirmDemoteChain'),
+        $t('global.tip'),
+        { type: 'warning' },
+      );
+    } catch {
+      return;
+    }
+  }
   try {
     const res = await updateStoreMemberStatusApi(payload);
     if (res.code === 200) {

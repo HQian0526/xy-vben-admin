@@ -39,6 +39,13 @@ export async function updateBusinessHoursApi(data: any) {
   return requestClient.put('/store/updateBusinessHours', data);
 }
 
+/**
+ * 本店介绍：简介、联系电话、活动公告、模块展示开关。管理员需传 storeId
+ */
+export async function updateStoreIntroApi(data: any) {
+  return requestClient.put('/store/updateStoreIntro', data);
+}
+
 export async function getStoreWxConfigListApi() {
   return requestClient.get('/storeWxConfig/list');
 }

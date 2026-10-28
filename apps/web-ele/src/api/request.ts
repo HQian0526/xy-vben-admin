@@ -11,7 +11,7 @@ import {
   errorMessageResponseInterceptor,
   RequestClient,
 } from '@vben/request';
-import { useAccessStore } from '@vben/stores';
+import { useAccessStore, useUserStore } from '@vben/stores';
 
 import { ElMessage } from 'element-plus';
 
@@ -67,6 +67,10 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
 
       config.headers.Authorization = formatToken(accessStore.accessToken);
       config.headers['Accept-Language'] = preferences.app.locale;
+      const lastStoreId = useUserStore().userInfo?.lastStoreId;
+      if (lastStoreId != null && String(lastStoreId).trim() !== '') {
+        config.headers['X-Store-Id'] = String(lastStoreId);
+      }
       return config;
     },
   });
@@ -99,8 +103,12 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
       const responseData = error?.response?.data ?? error?.data ?? {};
       const errorMessage =
         responseData?.msg ?? responseData?.message ?? responseData?.error ?? '';
-      // 如果没有错误信息，则会根据状态码进行提示
-      ElMessage.error(errorMessage || msg);
+      const raw = String(errorMessage || msg || '');
+      const loginExpired =
+        /token expired|jwt expired|invalid token|unauthorized/i.test(raw);
+      ElMessage.error(
+        loginExpired ? '登录信息已过期，请重新登录' : raw || msg,
+      );
     }),
   );
 

@@ -10,6 +10,7 @@ import { getStoreListApi } from '#/api';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
+import { currentMerchantStoreId } from '#/utils';
 
 import {
   formatBusinessHoursText,
@@ -114,15 +115,16 @@ function mapStoreRow(item: any) {
 }
 
 const getMerchantStore = async () => {
+  const storeId = currentMerchantStoreId(userStore.userInfo);
   const userId = userStore.userInfo?.id;
-  if (!userId) {
+  if (!storeId && !userId) {
     ElMessage.error($t('global.businessTime.noStore'));
     return;
   }
   try {
     isLoading.value = true;
     const res = await getStoreListApi({
-      userId,
+      ...(storeId ? { storeId } : { userId }),
       deleted: 0,
       pageNum: 1,
       pageSize: 1,

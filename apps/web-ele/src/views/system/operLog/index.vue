@@ -2,7 +2,7 @@
 <!-- eslint-disable unicorn/prefer-spread -->
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 
 import { ElMessage } from 'element-plus';
 
@@ -55,6 +55,8 @@ const tableConfig = reactive({
     {
       prop: 'ipLocation',
       label: $t('global.operLog.ipLocation'),
+      width: '200px',
+      filter: (value: any) => value || '—',
     },
     {
       prop: 'operResult',
@@ -71,6 +73,19 @@ const tableConfig = reactive({
       prop: 'operTime',
       label: $t('global.operLog.operTime'),
       width: '180px',
+    },
+    {
+      prop: 'operation',
+      label: $t('global.operation'),
+      fixed: 'right',
+      width: '110px',
+      operations: [
+        {
+          type: 'primary',
+          label: $t('global.btn.viewRequest'),
+          isShow: () => true,
+        },
+      ],
     },
   ],
 });
@@ -94,6 +109,14 @@ const formConfig = reactive({
       label: $t('global.operLog.operUser'),
       value: '',
       placeholder: `${$t('global.pleaseEnter')}${$t('global.operLog.operUser')}`,
+    },
+    {
+      type: 'date',
+      prop: 'operTime',
+      label: $t('global.operLog.operTime'),
+      value: '',
+      valueFormat: 'YYYY-MM-DD',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.operLog.operTime')}`,
     },
   ],
 });
@@ -129,13 +152,30 @@ const handleSizeChange = (pageSize: number) => {
   getOperLogList();
 };
 
+function formatOperDay(value: any) {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 // 获取操作日志列表
 const getOperLogList = async () => {
-  const obj = {
-    ...searchParams.value,
+  const { operTime, ...rest } = searchParams.value;
+  const day = formatOperDay(operTime);
+  const obj: Record<string, any> = {
+    ...rest,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
   };
+  if (day) {
+    obj.operTimeStart = `${day} 00:00:00`;
+    obj.operTimeEnd = `${day} 23:59:59`;
+  }
   try {
     isLoading.value = true;
     const res = await getOperLogListApi(obj);
@@ -158,6 +198,57 @@ const getOperLogList = async () => {
   }
 };
 
+const detailVisible = ref(false);
+const currentRow = ref<Record<string, any> | null>(null);
+
+const hasPayload = computed(() => {
+  const row = currentRow.value;
+  if (!row) return false;
+  return Boolean(row.requestMethod || row.requestUri || row.requestParams || row.responseBody);
+});
+
+const apiText = computed(() => {
+  const row = currentRow.value;
+  if (!row) return $t('global.operLog.emptyValue');
+  const method = row.requestMethod || '';
+  const uri = row.requestUri || '';
+  const text = `${method} ${uri}`.trim();
+  return text || $t('global.operLog.emptyValue');
+});
+
+const prettyParams = computed(() => formatPayload(currentRow.value?.requestParams));
+const prettyResponse = computed(() => formatPayload(currentRow.value?.responseBody));
+
+function formatPayload(raw: any) {
+  if (raw == null || raw === '') {
+    return $t('global.operLog.emptyValue');
+  }
+  if (typeof raw !== 'string') {
+    try {
+      return JSON.stringify(raw, null, 2);
+    } catch {
+      return String(raw);
+    }
+  }
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2);
+  } catch {
+    return raw;
+  }
+}
+
+const handleClick = (row: any, label: string) => {
+  if (label === $t('global.btn.viewRequest')) {
+    currentRow.value = row;
+    detailVisible.value = true;
+  }
+};
+
+const closeDetailDialog = () => {
+  detailVisible.value = false;
+  currentRow.value = null;
+};
+
 onMounted(() => {
   getOperLogList();
 });
@@ -175,13 +266,84 @@ onMounted(() => {
         :table-config="tableConfig"
         :list="list"
         :total="total"
+        @handle-click="handleClick"
         @handle-current-change="handleCurrentChange"
         @handle-size-change="handleSizeChange"
       />
     </el-card>
+
+    <el-dialog
+      v-model="detailVisible"
+      :title="$t('global.operLog.requestRecord')"
+      width="760px"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      @close="closeDetailDialog"
+    >
+      <div v-if="hasPayload" class="payload-box">
+        <div class="payload-item">
+          <div class="payload-label">{{ $t('global.operLog.requestApi') }}</div>
+          <div class="payload-value">{{ apiText }}</div>
+        </div>
+        <div class="payload-item">
+          <div class="payload-label">{{ $t('global.operLog.requestParams') }}</div>
+          <pre class="payload-pre">{{ prettyParams }}</pre>
+        </div>
+        <div class="payload-item">
+          <div class="payload-label">{{ $t('global.operLog.responseBody') }}</div>
+          <pre class="payload-pre">{{ prettyResponse }}</pre>
+        </div>
+      </div>
+      <div v-else class="payload-empty">
+        {{ $t('global.operLog.noPayload') }}
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <style lang="scss" scoped>
 @use "#/styles/style.scss" as *;
+
+.payload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.payload-item {
+  min-width: 0;
+}
+
+.payload-label {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.payload-value {
+  word-break: break-all;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.payload-pre {
+  margin: 0;
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.payload-empty {
+  padding: 32px 0;
+  color: var(--el-text-color-secondary);
+  text-align: center;
+}
 </style>

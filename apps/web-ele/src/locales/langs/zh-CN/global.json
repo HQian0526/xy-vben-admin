@@ -124,7 +124,8 @@
     "grant": "发放",
     "reprint": "补打小票",
     "testPrint": "测试打印",
-    "queryStatus": "测在线"
+    "queryStatus": "测在线",
+    "viewRequest": "请求记录"
   },
   "userModule": "********************用户管理模块********************",
   "user": {
@@ -192,7 +193,13 @@
     "update": "修改",
     "query": "查询",
     "success": "成功",
-    "fail": "失败"
+    "fail": "失败",
+    "requestRecord": "请求记录",
+    "requestApi": "请求接口",
+    "requestParams": "请求参数",
+    "responseBody": "响应内容",
+    "noPayload": "该记录产生时尚未保存请求内容",
+    "emptyValue": "无"
   },
   "roleModule": "********************角色管理模块********************",
   "role": {
@@ -243,7 +250,10 @@
     "expirationTime": "到期时间",
     "businessLicense": "营业执照",
     "remark": "备注",
-    "idCard": "身份证"
+    "idCard": "身份证",
+    "currentStore": "当前门店",
+    "switchSuccess": "已切换门店",
+    "expiredTag": "已到期"
   },
   "businessTime": {
     "title": "营业时间",
@@ -469,6 +479,40 @@
     "remark": "备注",
     "reason": "拉黑原因"
   },
+  "visitorModule": "********************留资客户模块********************",
+  "visitor": {
+    "visitorName": "姓名",
+    "phone": "手机号",
+    "remark": "备注",
+    "storeName": "所属店铺"
+  },
+  "storeStaffModule": "********************员工管理模块********************",
+  "storeStaff": {
+    "phone": "手机号",
+    "realName": "姓名",
+    "storeName": "所属店铺",
+    "status": "状态",
+    "enabled": "启用",
+    "disabled": "停用",
+    "remark": "备注",
+    "phonePlaceholder": "请输入已注册小程序的员工手机号"
+  },
+  "verifyLogModule": "********************核验记录模块********************",
+  "verifyLog": {
+    "time": "核验时间",
+    "date": "日期",
+    "storeName": "所属店铺",
+    "customerPhone": "顾客手机号",
+    "customerName": "顾客昵称",
+    "amount": "核验金额",
+    "operatorName": "核验人",
+    "operatorType": "身份",
+    "merchant": "商家",
+    "staff": "员工",
+    "admin": "管理员",
+    "remark": "备注",
+    "selectDate": "请选择日期"
+  },
   "customerListModule": "********************顾客列表模块********************",
   "customerList": {
     "phone": "手机号",
@@ -477,7 +521,36 @@
     "memberStatus": "身份",
     "basicUser": "基础用户",
     "memberUser": "会员用户",
-    "memberBalance": "会员余额"
+    "memberBalance": "会员余额",
+    "confirmDemoteChain": "会员身份按商家账号互通。取消后该顾客在所有分店都不再享受会员价，确认取消？"
+  },
+  "memberVerify": {
+    "storeName": "所属店铺",
+    "phone": "顾客手机号",
+    "nickname": "昵称",
+    "defaultNickname": "微信用户",
+    "memberStatus": "身份",
+    "basicUser": "尚未入会",
+    "memberUser": "储值会员",
+    "balance": "储值余额",
+    "lookup": "查询",
+    "phoneInvalid": "请输入正确的手机号",
+    "amountInvalid": "请输入正确的金额",
+    "balanceNotEnough": "余额不足",
+    "notMemberTip": "该顾客尚未成为连锁储值会员，储值成功后将在各分店享受会员价",
+    "debitTitle": "核验扣款",
+    "rechargeTitle": "帮顾客储值",
+    "debitAmount": "核验金额",
+    "rechargeAmount": "储值金额",
+    "remark": "备注",
+    "debitRemarkPlaceholder": "选填，如堂食核销、到店消费等",
+    "rechargeRemarkPlaceholder": "选填，如现金收款、转账等",
+    "debitConfirm": "确认核验",
+    "rechargeConfirm": "确认储值",
+    "debitSuccess": "核验成功",
+    "rechargeSuccess": "储值成功",
+    "confirmDebit": "将从「{name}」的储值余额扣除 ¥{amount}",
+    "confirmRecharge": "将为「{name}」储值 ¥{amount}，储值后成为本店储值会员"
   },
   "promo": {
     "name": "活动名称",
@@ -615,5 +688,25 @@
     "keepKey": "已保存，留空不修改",
     "on": "开",
     "off": "关"
+  },
+  "storeIntro": {
+    "title": "店铺资料",
+    "storeName": "所属店铺",
+    "avatar": "店铺照片",
+    "name": "店铺名称",
+    "intro": "店铺简介",
+    "introPlaceholder": "向顾客介绍本店特色、服务范围等",
+    "contactPhone": "联系电话",
+    "contactPhonePlaceholder": "本店介绍页展示的咨询/合作电话，仅填 1 个号码",
+    "activityNotice": "活动公告",
+    "activityNoticePlaceholder": "展示在本店介绍「店铺活动」里，满减活动会自动带出",
+    "showModules": "介绍页展示模块",
+    "showHours": "营业时间",
+    "showActivity": "店铺活动",
+    "showContact": "联系电话",
+    "showOtherBusiness": "其他业务",
+    "tip": "营业时间在「营业设置」维护，其他业务和满减活动仍在原菜单维护。关闭开关后，小程序本店介绍页不再展示对应模块。",
+    "noStore": "未找到店铺信息",
+    "phoneInvalid": "请输入正确的联系电话"
   }
 }
