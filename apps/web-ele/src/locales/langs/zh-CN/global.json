@@ -522,7 +522,22 @@
     "basicUser": "基础用户",
     "memberUser": "会员用户",
     "memberBalance": "会员余额",
-    "confirmDemoteChain": "会员身份按商家账号互通。取消后该顾客在所有分店都不再享受会员价，确认取消？"
+    "confirmDemoteChain": "会员身份按商家账号互通。取消后该顾客在所有分店都不再享受会员价，确认取消？",
+    "recharge": "帮顾客储值",
+    "verify": "核验",
+    "customerRequired": "顾客信息不完整",
+    "phoneRequired": "该顾客未绑定手机号，无法核验",
+    "amountRequired": "请输入正确的金额",
+    "rechargeAmount": "储值金额",
+    "verifyAmount": "核验金额",
+    "amountPlaceholder": "请输入金额，最多两位小数",
+    "yuan": "元",
+    "remark": "备注",
+    "remarkPlaceholder": "选填，如现金收款、转账等",
+    "confirmRecharge": "确认为该顾客储值 ¥{amount}？储值后将成为本店会员。",
+    "confirmVerify": "确认核销该顾客 ¥{amount} 储值余额？",
+    "rechargeSuccess": "储值成功",
+    "verifySuccess": "核验成功"
   },
   "memberVerify": {
     "storeName": "所属店铺",
@@ -663,7 +678,10 @@
     "helpPrivateKey": "微信支付商户平台-账号中心-API安全-申请API证书",
     "helpPublicKey": "微信支付商户平台-账号中心-API安全-微信支付公钥",
     "helpNotifyUrl": "不用去微信后台复制，留空则使用平台支付回调/店铺ID",
-    "helpRefundNotifyUrl": "不用去微信后台复制，留空则使用平台退款回调/店铺ID"
+    "helpRefundNotifyUrl": "不用去微信后台复制，留空则使用平台退款回调/店铺ID",
+    "enableRecharge": "是否接入储值功能",
+    "helpEnableRecharge": "需先开启「是否接入支付功能」。关闭后小程序端隐藏所有储值相关入口：首页储值公告栏、我的页储值按钮、储值会员标识、员工储值特权、会员核验等；商家也不能协助顾客储值或核验扣款。",
+    "confirmDisableRecharge": "关闭储值功能后，该店铺当前所有储值会员的余额将无法使用（不能储值、不能核验扣款，小程序端储值入口全部隐藏）。已有余额不会被清零，重新开启后即可恢复正常使用。确认关闭？"
   },
   "printer": {
     "storeName": "所属店铺",

@@ -4,6 +4,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 
+import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 
 import { getOperLogListApi } from '#/api';
@@ -19,6 +20,9 @@ const pageInfo = reactive({
   pageSize: 10,
 });
 const searchParams = ref<Record<string, any>>({}); // 缓存查询条件，供分页复用
+
+/** 操作日志默认查询今天 */
+const today = dayjs().format('YYYY-MM-DD');
 // 表格配置
 const tableConfig = reactive({
   list: [
@@ -114,12 +118,15 @@ const formConfig = reactive({
       type: 'date',
       prop: 'operTime',
       label: $t('global.operLog.operTime'),
-      value: '',
+      value: today,
       valueFormat: 'YYYY-MM-DD',
       placeholder: `${$t('global.pleaseSelect')}${$t('global.operLog.operTime')}`,
     },
   ],
 });
+
+// 首次进入 / 重置后默认带今天
+searchParams.value = { operTime: today };
 
 const search = (form: any) => {
   console.log('form', form);
@@ -130,10 +137,18 @@ const search = (form: any) => {
 
 const reset = (form: any) => {
   console.log('form', form);
-  formConfig.list.forEach((item) => {
+  formConfig.list.forEach((item: any) => {
     item.value = null;
   });
-  searchParams.value = {};
+  // 日期项重置回今天，其余清空
+  const dateItem = formConfig.list.find(
+    (item: any) => item.prop === 'operTime',
+  );
+  if (dateItem) {
+    dateItem.value = today;
+    form.operTime = today;
+  }
+  searchParams.value = { operTime: today };
   pageInfo.pageNum = 1;
   getOperLogList();
 };

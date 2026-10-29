@@ -89,7 +89,9 @@ const tableConfig = reactive({
       prop: 'deleted',
       label: $t('global.user.status'),
       filter: (value: any) => {
-        return value ? $t('global.user.lock') : $t('global.user.normal');
+        return Number(value) === 1
+          ? $t('global.user.lock')
+          : $t('global.user.normal');
       },
     },
     {

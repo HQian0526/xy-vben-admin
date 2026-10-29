@@ -5,7 +5,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 
 import { useUserStore } from '@vben/stores';
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
   getStoreWxConfigApi,
@@ -60,6 +60,7 @@ const uiForm = reactive({
   showQuantity: 1,
   showCart: 1,
   enablePay: 1,
+  enableRecharge: 1,
   orderBtnText: '立即购买',
   homeTabText: '逛店',
   listBtnText: '预定',
@@ -272,10 +273,75 @@ function fillUiForm(detail: any) {
   uiForm.showSaleNum = detail.showSaleNum == null ? preset.showSaleNum : Number(detail.showSaleNum) === 1 ? 1 : 0;
   uiForm.showDeliveryFee = detail.showDeliveryFee == null ? preset.showDeliveryFee : Number(detail.showDeliveryFee) === 1 ? 1 : 0;
   uiForm.enablePay = detail.enablePay == null ? 1 : Number(detail.enablePay) === 1 ? 1 : 0;
+  // 未接入支付时储值无意义，按关闭展示
+  const payOn = Number(uiForm.enablePay) === 1;
+  let rechargeSaved = 1;
+  if (
+    detail.enableRecharge !== null &&
+    detail.enableRecharge !== undefined &&
+    Number(detail.enableRecharge) !== 1
+  ) {
+    rechargeSaved = 0;
+  }
+  uiForm.enableRecharge = payOn ? rechargeSaved : 0;
   uiForm.orderBtnText = String(detail.orderBtnText || preset.orderBtnText).trim() || preset.orderBtnText;
   uiForm.homeTabText = String(detail.homeTabText || preset.homeTabText).trim() || preset.homeTabText;
   uiForm.listBtnText = String(detail.listBtnText || preset.listBtnText).trim() || preset.listBtnText;
 }
+
+/**
+ * 关闭支付时储值没有意义，联动关闭。
+ * 若原本开着储值，同样要提醒会员余额将不可用。
+ */
+const onEnablePayChange = async (value: any) => {
+  if (Number(value) === 1) {
+    return;
+  }
+  const rechargeWasOn = Number(uiForm.enableRecharge) === 1;
+  uiForm.enableRecharge = 0;
+  if (!rechargeWasOn) {
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      $t('global.wxConfig.confirmDisableRecharge'),
+      $t('global.tip'),
+      {
+        type: 'warning',
+        confirmButtonText: $t('global.btn.confirm'),
+        cancelButtonText: $t('global.btn.cancel'),
+      },
+    );
+  } catch {
+    // 用户取消：支付与储值一并恢复
+    uiForm.enablePay = 1;
+    uiForm.enableRecharge = 1;
+  }
+};
+
+/**
+ * 关闭储值前二次确认：提醒关闭后所有储值会员的余额将无法使用。
+ * 取消时把开关恢复为开启。
+ */
+const onEnableRechargeChange = async (value: any) => {
+  if (Number(value) === 1) {
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      $t('global.wxConfig.confirmDisableRecharge'),
+      $t('global.tip'),
+      {
+        type: 'warning',
+        confirmButtonText: $t('global.btn.confirm'),
+        cancelButtonText: $t('global.btn.cancel'),
+      },
+    );
+  } catch {
+    // 用户取消：恢复开关
+    uiForm.enableRecharge = 1;
+  }
+};
 
 const onMiniappTypeChange = (value: number) => {
   const preset = Number(value) === 2 ? bookingUiPreset() : mallUiPreset();
@@ -369,6 +435,7 @@ const confirmUiDialog = async () => {
       showSaleNum: Number(uiForm.showSaleNum),
       showDeliveryFee: Number(uiForm.showDeliveryFee),
       enablePay: Number(uiForm.enablePay),
+      enableRecharge: Number(uiForm.enablePay) === 1 ? Number(uiForm.enableRecharge) : 0,
       orderBtnText,
       homeTabText,
       listBtnText,
@@ -657,8 +724,35 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="$t('global.wxConfig.enablePay')">
           <div class="field-with-tip">
-            <el-switch v-model="uiForm.enablePay" :active-value="1" :inactive-value="0" />
-            <el-tooltip :content="$t('global.wxConfig.helpEnablePay')" placement="top" popper-class="wx-config-ui-help">
+            <el-switch
+              v-model="uiForm.enablePay"
+              :active-value="1"
+              :inactive-value="0"
+              @change="onEnablePayChange"
+            />
+            <el-tooltip
+              :content="$t('global.wxConfig.helpEnablePay')"
+              placement="top"
+              popper-class="wx-config-ui-help"
+            >
+              <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.wxConfig.enableRecharge')">
+          <div class="field-with-tip">
+            <el-switch
+              v-model="uiForm.enableRecharge"
+              :active-value="1"
+              :inactive-value="0"
+              :disabled="Number(uiForm.enablePay) !== 1"
+              @change="onEnableRechargeChange"
+            />
+            <el-tooltip
+              :content="$t('global.wxConfig.helpEnableRecharge')"
+              placement="top"
+              popper-class="wx-config-ui-help"
+            >
               <el-icon class="field-tip-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
           </div>

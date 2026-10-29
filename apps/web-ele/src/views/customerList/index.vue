@@ -7,7 +7,13 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useUserStore } from '@vben/stores';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
-import { addStoreBlacklistApi, getCustomerListApi, updateStoreMemberStatusApi } from '#/api';
+import {
+  addStoreBlacklistApi,
+  assistStoreMemberRechargeApi,
+  getCustomerListApi,
+  updateStoreMemberStatusApi,
+  verifyStoreMemberDebitApi,
+} from '#/api';
 import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
@@ -82,11 +88,21 @@ const tableConfig = reactive({
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '180px',
+      width: '280px',
       operations: [
         {
           type: 'primary',
           label: $t('global.btn.edit'),
+          isShow: () => true,
+        },
+        {
+          type: 'success',
+          label: $t('global.customerList.recharge'),
+          isShow: () => true,
+        },
+        {
+          type: 'warning',
+          label: $t('global.customerList.verify'),
           isShow: () => true,
         },
         {
@@ -158,11 +174,165 @@ const handleClick = (row: any, label: string) => {
       handleEdit(row);
       break;
     }
+    case $t('global.customerList.recharge'): {
+      openRecharge(row);
+      break;
+    }
+    case $t('global.customerList.verify'): {
+      openVerify(row);
+      break;
+    }
     case $t('global.btn.blacklist'): {
       handleBlacklist(row);
       break;
     }
     // No default
+  }
+};
+
+//* *************帮顾客储值 **************
+const rechargeVisible = ref(false);
+const rechargeSaving = ref(false);
+const rechargeRow = ref<null | Record<string, any>>(null);
+const rechargeForm = reactive({
+  amount: '',
+  remark: '',
+});
+
+const openRecharge = (row: any) => {
+  const phone = String(row?.phone || '').trim();
+  if (!row?.id && !phone) {
+    ElMessage.warning($t('global.customerList.customerRequired'));
+    return;
+  }
+  rechargeRow.value = row;
+  rechargeForm.amount = '';
+  rechargeForm.remark = '';
+  rechargeVisible.value = true;
+};
+
+const confirmRecharge = async () => {
+  const row = rechargeRow.value;
+  if (!row) return;
+  const amount = Number(rechargeForm.amount);
+  if (!Number.isFinite(amount) || amount < 0.01) {
+    ElMessage.warning($t('global.customerList.amountRequired'));
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      $t('global.customerList.confirmRecharge').replace(
+        '{amount}',
+        amount.toFixed(2),
+      ),
+      $t('global.tip'),
+      { type: 'warning' },
+    );
+  } catch {
+    return;
+  }
+  const payload: Record<string, any> = { amount };
+  if (row.id !== null && row.id !== undefined && row.id !== '') {
+    payload.userId = String(row.id);
+  } else if (row.phone) {
+    payload.phone = row.phone;
+  }
+  const remark = rechargeForm.remark.trim();
+  if (remark) payload.remark = remark;
+  if (
+    isAdmin.value &&
+    row.bindStoreId !== null &&
+    row.bindStoreId !== undefined &&
+    row.bindStoreId !== ''
+  ) {
+    payload.storeId = String(row.bindStoreId);
+  }
+  try {
+    rechargeSaving.value = true;
+    const res = await assistStoreMemberRechargeApi(payload);
+    if (res.code === 200) {
+      ElMessage.success($t('global.customerList.rechargeSuccess'));
+      rechargeVisible.value = false;
+      getCustomerList();
+    } else {
+      ElMessage.error(res.msg || res.message || $t('global.message.error'));
+    }
+  } catch {
+    // 错误已由请求拦截器提示
+  } finally {
+    rechargeSaving.value = false;
+  }
+};
+
+//* *************会员核验（扣减储值） **************
+const verifyVisible = ref(false);
+const verifySaving = ref(false);
+const verifyRow = ref<null | Record<string, any>>(null);
+const verifyForm = reactive({
+  amount: '',
+  remark: '',
+});
+
+const openVerify = (row: any) => {
+  const phone = String(row?.phone || '').trim();
+  if (!phone) {
+    ElMessage.warning($t('global.customerList.phoneRequired'));
+    return;
+  }
+  verifyRow.value = row;
+  verifyForm.amount = '';
+  verifyForm.remark = '';
+  verifyVisible.value = true;
+};
+
+const confirmVerify = async () => {
+  const row = verifyRow.value;
+  if (!row) return;
+  const amount = Number(verifyForm.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    ElMessage.warning($t('global.customerList.amountRequired'));
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      $t('global.customerList.confirmVerify').replace(
+        '{amount}',
+        amount.toFixed(2),
+      ),
+      $t('global.tip'),
+      { type: 'warning' },
+    );
+  } catch {
+    return;
+  }
+  const payload: Record<string, any> = {
+    phone: row.phone,
+    amount,
+  };
+  const remark = verifyForm.remark.trim();
+  if (remark) payload.remark = remark;
+  if (
+    isAdmin.value &&
+    row.bindStoreId !== null &&
+    row.bindStoreId !== undefined &&
+    row.bindStoreId !== ''
+  ) {
+    payload.storeId = String(row.bindStoreId);
+  }
+  try {
+    verifySaving.value = true;
+    const res = await verifyStoreMemberDebitApi(payload);
+    if (res.code === 200) {
+      ElMessage.success($t('global.customerList.verifySuccess'));
+      verifyVisible.value = false;
+      getCustomerList();
+    } else {
+      ElMessage.error(res.msg || res.message || $t('global.message.error'));
+    }
+  } catch {
+    // 错误已由请求拦截器提示
+  } finally {
+    verifySaving.value = false;
   }
 };
 
@@ -322,6 +492,110 @@ onMounted(() => {
       @close="closeDialog"
       @confirm="confirmDialog"
     />
+
+    <!-- 帮顾客储值 -->
+    <el-dialog
+      v-model="rechargeVisible"
+      :title="$t('global.customerList.recharge')"
+      width="480px"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="90px">
+        <el-form-item :label="$t('global.customerList.realName')">
+          <span>{{ rechargeRow?.realName || '—' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('global.customerList.phone')">
+          <span>{{ rechargeRow?.phone || '—' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('global.customerList.memberBalance')">
+          <span>¥{{ Number(rechargeRow?.memberBalance || 0).toFixed(2) }}</span>
+        </el-form-item>
+        <el-form-item
+          :label="$t('global.customerList.rechargeAmount')"
+          required
+        >
+          <el-input
+            v-model="rechargeForm.amount"
+            :placeholder="$t('global.customerList.amountPlaceholder')"
+            clearable
+          >
+            <template #append>{{ $t('global.customerList.yuan') }}</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item :label="$t('global.customerList.remark')">
+          <el-input
+            v-model="rechargeForm.remark"
+            type="textarea"
+            :rows="2"
+            maxlength="200"
+            show-word-limit
+            :placeholder="$t('global.customerList.remarkPlaceholder')"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="rechargeVisible = false">
+          {{ $t('global.btn.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="rechargeSaving"
+          @click="confirmRecharge"
+        >
+          {{ $t('global.btn.confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 会员核验（扣减储值） -->
+    <el-dialog
+      v-model="verifyVisible"
+      :title="$t('global.customerList.verify')"
+      width="480px"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="90px">
+        <el-form-item :label="$t('global.customerList.phone')">
+          <span>{{ verifyRow?.phone || '—' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('global.customerList.memberBalance')">
+          <span>¥{{ Number(verifyRow?.memberBalance || 0).toFixed(2) }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('global.customerList.verifyAmount')" required>
+          <el-input
+            v-model="verifyForm.amount"
+            :placeholder="$t('global.customerList.amountPlaceholder')"
+            clearable
+          >
+            <template #append>{{ $t('global.customerList.yuan') }}</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item :label="$t('global.customerList.remark')">
+          <el-input
+            v-model="verifyForm.remark"
+            type="textarea"
+            :rows="2"
+            maxlength="200"
+            show-word-limit
+            :placeholder="$t('global.customerList.remarkPlaceholder')"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="verifyVisible = false">
+          {{ $t('global.btn.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="verifySaving"
+          @click="confirmVerify"
+        >
+          {{ $t('global.btn.confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

@@ -503,7 +503,22 @@
     "basicUser": "Basic",
     "memberUser": "Member",
     "memberBalance": "balance",
-    "confirmDemoteChain": "Membership is shared across this merchant's stores. The customer will lose member price at all branches. Continue?"
+    "confirmDemoteChain": "Membership is shared across this merchant's stores. The customer will lose member price at all branches. Continue?",
+    "recharge": "Top up for customer",
+    "verify": "Verify",
+    "customerRequired": "Customer info is incomplete",
+    "phoneRequired": "This customer has no phone number, verification unavailable",
+    "amountRequired": "Please enter a valid amount",
+    "rechargeAmount": "Top-up amount",
+    "verifyAmount": "Verify amount",
+    "amountPlaceholder": "Amount, up to 2 decimals",
+    "yuan": "CNY",
+    "remark": "Remark",
+    "remarkPlaceholder": "Optional, e.g. cash or transfer",
+    "confirmRecharge": "Top up ¥{amount} for this customer? They will become a store member.",
+    "confirmVerify": "Deduct ¥{amount} from this customer balance?",
+    "rechargeSuccess": "Top-up succeeded",
+    "verifySuccess": "Verification succeeded"
   },
   "memberVerify": {
     "storeName": "Store",
@@ -644,7 +659,10 @@
     "helpPrivateKey": "WeChat Pay - Account Center - API Security - Apply API Certificate",
     "helpPublicKey": "WeChat Pay - Account Center - API Security - WeChat Pay Public Key",
     "helpNotifyUrl": "No need to copy from WeChat. Leave blank to use platform pay notify URL / storeId",
-    "helpRefundNotifyUrl": "No need to copy from WeChat. Leave blank to use platform refund notify URL / storeId"
+    "helpRefundNotifyUrl": "No need to copy from WeChat. Leave blank to use platform refund notify URL / storeId",
+    "enableRecharge": "Enable top-up",
+    "helpEnableRecharge": "Requires payment enabled. When off, all top-up entries are hidden in the mini program (home notice, top-up button, VIP badge, staff privileges, member verification), and merchants cannot top up or verify for customers.",
+    "confirmDisableRecharge": "After disabling top-up, all existing member balances of this store become unusable (no top-up, no verification deduction, and all top-up entries are hidden in the mini program). Balances are not cleared and will work again once re-enabled. Disable anyway?"
   },
   "printer": {
     "storeName": "Store",

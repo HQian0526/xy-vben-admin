@@ -22,12 +22,63 @@ import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import Tree from '#/components/tree/index.vue';
 import { $t } from '#/locales';
-import { getDict, toRelativeFilePath } from '#/utils';
+import { currentMerchantStoreId, getDict, toRelativeFilePath } from '#/utils';
 
 const userStore = useUserStore();
-const isAdmin = computed(
-  () => Number(userStore.userInfo?.identityType) === 3,
-);
+const isAdmin = computed(() => Number(userStore.userInfo?.identityType) === 3);
+
+/**
+ * 店铺小程序权限（「系统管理-小程序权限配置」中维护）：
+ * showStock 控制商品弹窗是否可设置库存，enablePay 控制是否可设置价格/会员价
+ */
+const storeUi = reactive({
+  showStock: true,
+  enablePay: true,
+});
+
+const showStockField = computed(() => storeUi.showStock);
+const showPayFields = computed(() => storeUi.enablePay);
+
+function flagOn(value: any, fallback: boolean) {
+  if (value === undefined || value === null || value === '') {
+    return fallback;
+  }
+  return Number(value) === 1;
+}
+
+/**
+ * 拉取店铺小程序权限：库存是否展示、是否接入支付。
+ * 取不到配置时按「全部展示」，保持原有录入能力。
+ */
+async function loadStoreUi(storeId?: any) {
+  const id =
+    storeId === null || storeId === undefined ? '' : String(storeId).trim();
+  if (!id) {
+    storeUi.showStock = true;
+    storeUi.enablePay = true;
+    return;
+  }
+  try {
+    const res = await getStoreListApi({
+      storeId: id,
+      pageNum: 1,
+      pageSize: 1,
+    });
+    if (res.code !== 200) {
+      return;
+    }
+    const store = (res.data?.list || [])[0];
+    if (!store) {
+      return;
+    }
+    // 预约服务类店铺默认不展示库存，与后端 MiniappUiHelper 一致
+    const defaultFlag = Number(store.miniappType) !== 2;
+    storeUi.showStock = flagOn(store.showStock, defaultFlag);
+    storeUi.enablePay = flagOn(store.enablePay, true);
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 const isLoading = ref(false);
 const storeDict = reactive<Array<{ label: string; value: any }>>([]);
@@ -162,8 +213,8 @@ const formConfig = reactive({
 const itemVisible = ref(false); // 是否展示弹窗
 const formTitle = ref(''); // 弹窗标题
 const formInfo = ref<Record<string, any>>({}); // 弹窗其他信息
-// 弹窗表单配置
-const editConfig = reactive([
+// 弹窗表单配置（价格/会员价、库存按店铺权限动态显示）
+const editConfigBase = [
   {
     label: $t('global.product.belongCatagory'),
     name: 'catagoryId',
@@ -183,6 +234,7 @@ const editConfig = reactive([
     type: 'input',
     span: 24,
     onlyNumber: true,
+    placeholder: '选填',
     append: {
       label: '元',
     },
@@ -203,6 +255,7 @@ const editConfig = reactive([
     name: 'productNum',
     type: 'input',
     span: 24,
+    placeholder: '选填',
   },
   {
     label: $t('global.product.productStatus'),
@@ -231,42 +284,55 @@ const editConfig = reactive([
     span: 24,
     limit: 1,
   },
-]);
-// 弹窗表单校验规则
-const editRules = reactive({
-  catagoryId: [
-    {
-      required: true,
-      message: $t('global.product.belongCatagory') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  productName: [
-    {
-      required: true,
-      message: $t('global.product.productName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-  price: [
-    {
-      required: true,
-      message: $t('global.product.price') + $t('global.required'),
-      trigger: 'blur',
-    },
-    {
-      pattern: /^\d+(\.\d+)?$/,
-      message: `${$t('global.pleaseEnter')}数字`,
-      trigger: 'blur',
-    },
-  ],
-  productNum: [
-    {
-      required: true,
-      message: $t('global.product.productNum') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
+];
+const editConfig = computed(() =>
+  editConfigBase.filter((item) => {
+    // 未开启「库存是否展示」→ 不显示库存设置
+    if (item.name === 'productNum') {
+      return showStockField.value;
+    }
+    // 未开启「是否接入支付功能」→ 不显示价格、会员价
+    if (item.name === 'price' || item.name === 'memberPrice') {
+      return showPayFields.value;
+    }
+    return true;
+  }),
+);
+// 弹窗表单校验规则：价格、库存均为选填，只保留格式校验
+const editRules = computed<Record<string, any>>(() => {
+  const rules: Record<string, any> = {
+    catagoryId: [
+      {
+        required: true,
+        message: $t('global.product.belongCatagory') + $t('global.required'),
+        trigger: 'change',
+      },
+    ],
+    productName: [
+      {
+        required: true,
+        message: $t('global.product.productName') + $t('global.required'),
+        trigger: 'blur',
+      },
+    ],
+  };
+  if (showPayFields.value) {
+    rules.price = [
+      {
+        pattern: /^\d+(\.\d+)?$/,
+        message: `${$t('global.pleaseEnter')}数字`,
+        trigger: 'blur',
+      },
+    ];
+    rules.memberPrice = [
+      {
+        pattern: /^\d+(\.\d+)?$/,
+        message: `${$t('global.pleaseEnter')}数字`,
+        trigger: 'blur',
+      },
+    ];
+  }
+  return rules;
 });
 
 // 左侧树单选：按分类筛选商品
@@ -299,7 +365,7 @@ const search = async (form: any) => {
   if (isAdmin.value && prevStoreId !== nextStoreId) {
     selectedCatagoryId.value = null;
     treeKey.value += 1;
-    await getCatagoryTree();
+    await Promise.all([getCatagoryTree(), loadStoreUi(nextStoreId)]);
   }
   getProductList();
 };
@@ -321,7 +387,7 @@ const reset = () => {
 };
 
 // 点击操作列按钮
-const handleClick = (row: any, label: string) => {
+const handleClick = async (row: any, label: string) => {
   console.log('row', row);
   console.log('label', label);
   switch (label) {
@@ -336,6 +402,8 @@ const handleClick = (row: any, label: string) => {
       formInfo.value = {
         ...row,
       }; // 确保是新的对象引用
+      // 打开前同步一次店铺权限，避免切换店铺后权限过期
+      await loadStoreUi(resolveUiStoreId());
       itemVisible.value = true;
       break;
     }
@@ -402,6 +470,48 @@ const confirmDialog = async (title: string, data: any) => {
   } else {
     delete payload.storeId;
   }
+  // 店铺未开启对应权限时，不提交相关字段（后端保留原值 / 走默认值）
+  if (!showPayFields.value) {
+    delete payload.price;
+    delete payload.memberPrice;
+  }
+  if (!showStockField.value) {
+    delete payload.productNum;
+  }
+  // 价格、库存为选填：空值统一转 null，避免空字符串提交到后端
+  ['price', 'productNum'].forEach((key) => {
+    if (key in payload) {
+      const raw = payload[key];
+      payload[key] =
+        raw === '' || raw === null || raw === undefined ? null : Number(raw);
+    }
+  });
+  const priceValue = Number(payload.price);
+  // 已接入支付的店铺：新增的上架商品必须填价格，否则顾客下单会失败
+  const isAdding = title === $t('global.btn.add');
+  const onShelf =
+    payload.productStatus === null ||
+    payload.productStatus === undefined ||
+    Number(payload.productStatus) === 1;
+  if (
+    isAdding &&
+    showPayFields.value &&
+    onShelf &&
+    (payload.price === null || payload.price === undefined)
+  ) {
+    ElMessage.warning('该店铺已接入支付，请填写商品价格');
+    return;
+  }
+  if (
+    showPayFields.value &&
+    payload.memberPrice > 0 &&
+    Number.isFinite(priceValue) &&
+    priceValue > 0 &&
+    payload.memberPrice >= priceValue
+  ) {
+    ElMessage.warning('会员价须低于常规价');
+    return;
+  }
   try {
     const res =
       title === $t('global.btn.add')
@@ -424,7 +534,7 @@ const confirmDialog = async (title: string, data: any) => {
 };
 
 // 新增
-const handleAdd = () => {
+const handleAdd = async () => {
   if (isAdmin.value && !searchParams.value.storeId) {
     ElMessage.warning($t('global.product.selectStore'));
     return;
@@ -436,6 +546,8 @@ const handleAdd = () => {
     productStatus: 1,
     orderNum: 0,
   };
+  // 打开前同步一次店铺权限，避免切换店铺后权限过期
+  await loadStoreUi(resolveUiStoreId());
   itemVisible.value = true;
 };
 
@@ -504,6 +616,14 @@ const handleDelete = (row: any) => {
 const resolveStoreId = () => {
   const storeId = searchParams.value.storeId;
   return storeId != null && storeId !== '' ? String(storeId) : '';
+};
+
+/** 当前正在录入商品的店铺：管理员按过滤框所选店铺，商户取当前经营店铺 */
+const resolveUiStoreId = () => {
+  if (isAdmin.value) {
+    return resolveStoreId();
+  }
+  return currentMerchantStoreId(userStore.userInfo);
 };
 
 // 获取商品列表
@@ -635,6 +755,8 @@ onMounted(async () => {
     return;
   }
   await getCatagoryTree();
+  // 商户：按当前经营店铺的小程序权限决定价格/库存是否可录入
+  await loadStoreUi(currentMerchantStoreId(userStore.userInfo));
   getProductList();
 });
 </script>
