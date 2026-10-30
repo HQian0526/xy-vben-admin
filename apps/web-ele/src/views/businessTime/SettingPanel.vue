@@ -33,7 +33,9 @@ const endTime = ref('23:00')
 const statusSubmitting = ref(false)
 const hoursSubmitting = ref(false)
 const feeSubmitting = ref(false)
+const noticeSubmitting = ref(false)
 const deliveryFee = ref(0)
+const homeNotice = ref('')
 const localStore = reactive<Record<string, any>>({})
 
 const weekdayOptions = computed(() => [
@@ -83,6 +85,7 @@ function applyStore(store: Record<string, any>) {
   Object.assign(localStore, store || {})
   const fee = Number(store?.deliveryFee)
   deliveryFee.value = Number.isFinite(fee) && fee >= 0 ? fee : 0
+  homeNotice.value = String(store?.homeNotice || '')
   const hours = parseBusinessHours(store?.businessHours)
   const rule = (hours.rules || [])[0]
   if (!rule || !(rule.days || []).length) {
@@ -229,6 +232,34 @@ async function handleSaveDeliveryFee() {
   }
 }
 
+async function handleSaveHomeNotice() {
+  if (noticeSubmitting.value || !localStore.id) return
+  const text = String(homeNotice.value || '').trim().replace(/\s+/g, ' ')
+  if (text.length > 200) {
+    ElMessage.warning($t('global.businessTime.homeNoticeTooLong'))
+    return
+  }
+  noticeSubmitting.value = true
+  try {
+    const res = await editStoreApi({
+      id: localStore.id,
+      homeNotice: text,
+    })
+    if (res.code === 200) {
+      homeNotice.value = text
+      applyStore({ ...localStore, ...(res.data || {}), homeNotice: text })
+      ElMessage.success($t('global.businessTime.homeNoticeSaved'))
+      emit('updated', res.data)
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'))
+    }
+  } catch (error) {
+    console.log(error)
+  } finally {
+    noticeSubmitting.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -350,6 +381,29 @@ async function handleSaveDeliveryFee() {
           @click="handleSaveDeliveryFee"
         >
           {{ $t('global.businessTime.saveDeliveryFee') }}
+        </el-button>
+      </div>
+    </div>
+
+    <div class="hours-card">
+      <div class="hours-title">{{ $t('global.businessTime.homeNotice') }}</div>
+      <div class="hours-preview">{{ $t('global.businessTime.homeNoticeTip') }}</div>
+      <el-input
+        v-model="homeNotice"
+        type="textarea"
+        :rows="3"
+        maxlength="200"
+        show-word-limit
+        :placeholder="$t('global.businessTime.homeNoticePlaceholder')"
+      />
+      <div class="hours-save-wrap">
+        <el-button
+          class="hours-save"
+          type="primary"
+          :loading="noticeSubmitting"
+          @click="handleSaveHomeNotice"
+        >
+          {{ $t('global.businessTime.saveHomeNotice') }}
         </el-button>
       </div>
     </div>

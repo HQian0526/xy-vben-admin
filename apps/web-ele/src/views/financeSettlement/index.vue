@@ -204,7 +204,12 @@ const handleSettle = (row: any) => {
           storeId: String(row.storeId),
         });
         if (res.code === 200) {
-          ElMessage.success($t('global.message.success'));
+          const amount = res.data?.settledAmount;
+          ElMessage.success(
+            amount != null && amount !== ''
+              ? `已标记结算，请线下打款 ¥${amount}`
+              : $t('global.message.success'),
+          );
           await getList();
         } else {
           ElMessage.error(res.msg || $t('global.message.error'));

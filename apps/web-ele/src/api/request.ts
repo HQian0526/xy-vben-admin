@@ -67,6 +67,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
 
       config.headers.Authorization = formatToken(accessStore.accessToken);
       config.headers['Accept-Language'] = preferences.app.locale;
+      config.headers['X-Client'] = 'pc';
       const lastStoreId = useUserStore().userInfo?.lastStoreId;
       if (lastStoreId != null && String(lastStoreId).trim() !== '') {
         config.headers['X-Store-Id'] = String(lastStoreId);

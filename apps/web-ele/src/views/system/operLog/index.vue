@@ -53,6 +53,16 @@ const tableConfig = reactive({
       label: $t('global.operLog.operUser'),
     },
     {
+      prop: 'clientSource',
+      label: $t('global.operLog.clientSource'),
+      width: '100px',
+      filter: (value: any) => {
+        if (value === 'miniapp') return $t('global.operLog.sourceMiniapp');
+        if (value === 'pc') return $t('global.operLog.sourcePc');
+        return '—';
+      },
+    },
+    {
       prop: 'ipAddress',
       label: $t('global.operLog.ipAddress'),
     },
@@ -82,7 +92,7 @@ const tableConfig = reactive({
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '110px',
+      width: '140px',
       operations: [
         {
           type: 'primary',
@@ -113,6 +123,17 @@ const formConfig = reactive({
       label: $t('global.operLog.operUser'),
       value: '',
       placeholder: `${$t('global.pleaseEnter')}${$t('global.operLog.operUser')}`,
+    },
+    {
+      type: 'select',
+      prop: 'clientSource',
+      label: $t('global.operLog.clientSource'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.operLog.clientSource')}`,
+      options: [
+        { label: $t('global.operLog.sourcePc'), value: 'pc' },
+        { label: $t('global.operLog.sourceMiniapp'), value: 'miniapp' },
+      ],
     },
     {
       type: 'date',
