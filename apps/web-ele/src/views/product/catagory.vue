@@ -289,26 +289,33 @@ const handleAdd = () => {
 const handleDelete = (row: any) => {
   console.log('row', row);
   try {
-    ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
-      confirmButtonText: $t('global.btn.confirm'),
-      cancelButtonText: $t('global.btn.cancel'),
-      type: 'warning',
-    }).then(async () => {
-      const res = await deleteCatagoryApi([row.id]);
-      console.log('res', res);
-      if (res.code === 200) {
-        ElMessage({
-          type: 'success',
-          message: $t('global.message.success'),
-        });
-        getCatagoryList();
-      } else {
-        ElMessage({
-          type: 'error',
-          message: $t('global.message.error'),
-        });
-      }
-    });
+    ElMessageBox.confirm(
+      `${$t('global.message.confirmDelete')}（删除后该分类下的商品将从小程序逛店/预约页消失）`,
+      $t('global.tip'),
+      {
+        confirmButtonText: $t('global.btn.confirm'),
+        cancelButtonText: $t('global.btn.cancel'),
+        type: 'warning',
+      },
+    )
+      .then(async () => {
+        const res = await deleteCatagoryApi([row.id]);
+        console.log('res', res);
+        if (res.code === 200) {
+          ElMessage({
+            type: 'success',
+            message: $t('global.message.success'),
+          });
+          getCatagoryList();
+        } else {
+          // 分类下仍有商品时后端会返回具体原因，优先透传
+          ElMessage({
+            type: 'error',
+            message: res.msg || $t('global.message.error'),
+          });
+        }
+      })
+      .catch(() => {});
   } catch (error) {
     console.log(error);
   }
