@@ -133,6 +133,8 @@ const handleSizeChange = (pageSize: number) => {
           :prop="item.prop"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :min-width="item.minWidth"
+          :show-overflow-tooltip="!!item.showOverflowTooltip"
           :sortable="item.sortable ? item.sortable : false"
         >
           <template #default="scope">
@@ -222,21 +224,24 @@ const handleSizeChange = (pageSize: number) => {
           :fixed="item.fixed ? item.fixed : false"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :min-width="item.minWidth"
           :sortable="item.sortable ? item.sortable : false"
         >
           <template #default="scope">
-            <template v-for="(op, ind) in item.operations" :key="ind">
-              <ElButton
-                :style="{
-                  display: op.isShow && !op.isShow(scope.row) ? 'none' : '',
-                }"
-                :type="op.type !== 'text' ? op.type : 'primary'"
-                :link="op.type === 'text' ? true : false"
-                @click="handleClick(scope.row, op.label)"
-              >
-                {{ op.label }}
-              </ElButton>
-            </template>
+            <div class="table-ops">
+              <template v-for="(op, ind) in item.operations" :key="ind">
+                <ElButton
+                  :style="{
+                    display: op.isShow && !op.isShow(scope.row) ? 'none' : '',
+                  }"
+                  :type="op.type !== 'text' ? op.type : 'primary'"
+                  :link="op.type === 'text' ? true : false"
+                  @click="handleClick(scope.row, op.label)"
+                >
+                  {{ op.label }}
+                </ElButton>
+              </template>
+            </div>
           </template>
         </ElTableColumn>
         <!-- 正常列 -->
@@ -245,6 +250,8 @@ const handleSizeChange = (pageSize: number) => {
           :prop="item.prop"
           :label="item.label"
           :width="item.width ? item.width : 'auto'"
+          :min-width="item.minWidth"
+          :show-overflow-tooltip="!!item.showOverflowTooltip"
           :sortable="item.sortable ? item.sortable : false"
         />
       </template>
@@ -296,6 +303,13 @@ const handleSizeChange = (pageSize: number) => {
   flex-shrink: 0;
   justify-content: flex-end;
   margin-top: 10px;
+}
+
+.table-ops {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .table-img-cell {

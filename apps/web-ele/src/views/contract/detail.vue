@@ -1,456 +1,562 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
-import { ElMessage } from 'element-plus';
-import { Plus, Back, CircleCheck } from '@element-plus/icons-vue';
-import { addContractApi, addContractItem } from '#/api';
-import Detail from '#/components/edit/detail.vue';
-import Table from '#/components/table/index.vue';
+import { Back } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { useUserStore } from '@vben/stores';
+
+import {
+  addContractApi,
+  editContractApi,
+  getContractDetailApi,
+  getContractTempApi,
+  getContractVarApi,
+  getStoreListApi,
+  initiateSignApi,
+  platformSignApi,
+  previewContractContentApi,
+  voidContractApi,
+} from '#/api';
 import { $t } from '#/locales';
-import { getDict } from '#/utils';
+import { resolveFileUrl } from '#/utils';
+
+import ContractBodyEditor from './ContractBodyEditor.vue';
+import { CONTRACT_VARS, skeletonByPartyType } from './contractContent';
 
 const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const isAdmin = computed(
+  () => Number(userStore.userInfo?.identityType) === 3,
+);
 
-const active = ref(0);
-
-const contractNo = ref(null);
-
-// 字典相关
-const contractTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同类型字典
-const paymentCycleDict = reactive<Array<{ label: string; value: any }>>([]); // 合同付款周期字典
-const lesseeTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 承租方类型字典
-const contractStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 合同状态字典
-const itemTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同项类型字典
-
-const formInfo1 = ref({}); // 表单1信息
-// 表单1配置
-const detailForm1 = ref(null); // 创建 ref
-const editConfig1 = reactive([
-  {
-    label: $t('global.contract.contractName'),
-    name: 'contractName',
-    type: 'input',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.contractType'),
-    name: 'contractType',
-    type: 'select',
-    span: 12,
-    options: contractTypeDict,
-  },
-  {
-    label: $t('global.contract.totalAmount'),
-    name: 'totalAmount',
-    type: 'number',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.paymentCycle'),
-    name: 'paymentCycle',
-    type: 'select',
-    span: 12,
-    options: paymentCycleDict,
-  },
-  {
-    label: $t('global.contract.startDate'),
-    name: 'startDate',
-    type: 'date',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.endDate'),
-    name: 'endDate',
-    type: 'date',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.lesseeType'),
-    name: 'lesseeType',
-    type: 'select',
-    span: 12,
-    options: lesseeTypeDict,
-  },
-  {
-    label: $t('global.contract.lesseeName'),
-    name: 'lesseeName',
-    type: 'input',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.contractStatus'),
-    name: 'contractStatus',
-    type: 'select',
-    span: 12,
-    options: contractStatusDict,
-  },
-  {
-    label: $t('global.contract.remark'),
-    name: 'remark',
-    type: 'textarea',
-    span: 12,
-  },
-]);
-// 弹窗表单校验规则
-const editRules1 = reactive({
-  contractName: [
-    {
-      required: true,
-      message: $t('global.contract.contractName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-  contractType: [
-    {
-      required: true,
-      message: $t('global.contract.contractType') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  totalAmount: [
-    {
-      required: true,
-      message: $t('global.contract.totalAmount') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-  paymentCycle: [
-    {
-      required: true,
-      message: $t('global.contract.paymentCycle') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  startDate: [
-    {
-      required: true,
-      message: $t('global.contract.startDate') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  lesseeType: [
-    {
-      required: true,
-      message: $t('global.contract.lesseeType') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  lesseeName: [
-    {
-      required: true,
-      message: $t('global.contract.lesseeName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
+const saving = ref(false);
+const initiating = ref(false);
+const statusLabel = ref('');
+const platformSignStatus = ref(0);
+const merchantSignImage = ref('');
+const storeDict = reactive<Array<{ label: string; value: any }>>([]);
+const filling = ref(false);
+const varCatalog = ref<
+  Array<{ key: string; label: string; sourceType: number; defaultValue: string }>
+>([]);
+const customVarValues = reactive<Record<string, string>>({});
+const insertVars = computed(() =>
+  varCatalog.value.length
+    ? varCatalog.value.map((item) => ({ key: item.key, label: item.label }))
+    : [...CONTRACT_VARS],
+);
+const customVars = computed(() =>
+  varCatalog.value.filter((item) => Number(item.sourceType) === 2),
+);
+const templateDict = reactive<
+  Array<{ label: string; value: any; partyType: number; content: string }>
+>([]);
+const form = reactive({
+  contractNo: '',
+  contractName: '',
+  storeId: '' as string,
+  templateId: '' as string,
+  partyType: 1,
+  startDate: '',
+  endDate: '',
+  totalAmount: undefined as number | undefined,
+  remark: '',
+  contentSnapshot: '',
+  contractStatus: 0,
 });
 
-// 第二步表格配置
-const editTableConfig = reactive({
-  list: [
-    {
-      prop: 'index',
-    },
-    {
-      prop: 'itemName',
-      label: $t('global.contract.itemName'),
-      type: 'input',
-    },
-    {
-      prop: 'itemType',
-      label: $t('global.contract.itemType'),
-      type: 'select',
-      options: itemTypeDict,
-    },
-    {
-      prop: 'quantity',
-      label: $t('global.contract.quantity'),
-      type: 'number',
-    },
-    {
-      prop: 'unitPrice',
-      label: $t('global.contract.unitPrice'),
-      type: 'number',
-    },
-    {
-      prop: 'specification',
-      label: $t('global.contract.specification'),
-      type: 'input',
-    },
-    {
-      prop: 'totalPrice',
-      label: $t('global.contract.totalPrice'),
-      type: 'number',
-    },
-    {
-      prop: 'remark',
-      label: $t('global.contract.remark'),
-      type: 'input',
-    },
-    {
-      prop: 'operation',
-      label: $t('global.operation'),
-      fixed: 'right',
-      width: '100px',
-      operations: [
-        {
-          type: 'danger',
-          label: $t('global.btn.delete'),
-          show: true,
-        },
-      ],
-    },
-  ],
-});
+const isDraft = computed(
+  () => !form.contractNo || Number(form.contractStatus) === 0,
+);
 
-// 第二步表格数据
-const editTableList = ref([
-  {
-    itemName: '',
-    itemType: '',
-    quantity: '',
-    unitPrice: '',
-    specification: '',
-    totalPrice: '',
-    remark: '',
-  }
-]);
-
-// 点击下一步/确定
-const handleConfirm = async (title: String, form: any) => {
-  console.log('title', title);
-  console.log('form', form);
-  // 第一步保存合同基本信息
-  if (title === 'step1') {
-    // 接口所需其他字段
-    const obj = {
-      // 出租方类型
-      lessorType: Number(import.meta.env.VITE_CONTRACT_LESSOR_TYPE),
-      // 出租方名称
-      lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
-    };
-    try {
-      const res = await addContractApi({ ...form, ...obj });
-      if (res.code === 200) {
-        ElMessage({
-          type: 'success',
-          message: $t('global.message.success'),
-        });
-        contractNo.value = res.data.contractNo;
-        if (active.value < 2) {
-          active.value++;
-        }
-      } else {
-        ElMessage({
-          type: 'error',
-          message: res.msg,
-        });
-      }
-    } catch { }
+const loadStores = async () => {
+  const res = await getStoreListApi({ pageSize: 9999, pageNum: 1 });
+  if (res.code === 200) {
+    storeDict.splice(
+      0,
+      storeDict.length,
+      ...(res.data.list || []).map((item: any) => ({
+        label: item.storeName,
+        value: String(item.storeId),
+      })),
+    );
   }
 };
 
-// 点击第二步表格操作列按钮
-const editTableClick = (row: any, label: string) => {
-  console.log('row', row);
-  console.log('label', label);
-  if (label === $t('global.btn.delete')) {
-    const index = editTableList.value.indexOf(row);
-    if (index !== -1) {
-      editTableList.value.splice(index, 1);
-    }
-  }
-};
-
-// 提交合同项
-const submit = async () => {
-  console.log('提交合同');
-  const valid = validContractItem();
-  if (!valid) return;
-  const obj = {
-    contractNo: contractNo.value,
-    items: editTableList.value,
-  }
+const loadVars = async () => {
   try {
-    const res = await addContractItem(obj);
-    if (res.code === 200) {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.saveSuccess'),
-      });
-      active.value++;
-    } else {
-      ElMessage({
-        type: 'error',
-        message: res.msg,
-      });
+    const res = await getContractVarApi({ pageNum: 1, pageSize: 200, status: 1 });
+    if (res.code === 200 && res.data?.list?.length) {
+      varCatalog.value = res.data.list.map((item: any) => ({
+        key: item.varKey,
+        label: item.varLabel,
+        sourceType: Number(item.sourceType) || 2,
+        defaultValue: item.defaultValue || '',
+      }));
+      syncCustomValues();
     }
-  } catch { }
-};
-
-// 表格新增项
-const addItem = async () => {
-  const valid = validContractItem();
-  if (!valid) return;
-  editTableList.value.push({
-    itemName: '',
-    itemType: '',
-    quantity: '',
-    unitPrice: '',
-    specification: '',
-    totalPrice: '',
-    remark: '',
-  });
-};
-
-const previous = () => {
-  if (active.value > 0) {
-    active.value--;
+  } catch {
+    /* keep builtin fallback */
   }
 };
 
-// 校验合同项输入
-const validContractItem = () => {
-  if (editTableList.value.length === 0) {
-    ElMessage({
-      type: 'warning',
-      message: $t('global.message.contractItemIsNull'),
+const syncCustomValues = (fromJson?: string) => {
+  let parsed: Record<string, any> = {};
+  if (fromJson) {
+    try {
+      parsed = JSON.parse(fromJson) || {};
+    } catch {
+      parsed = {};
+    }
+  }
+  for (const item of customVars.value) {
+    const incoming = parsed[item.key];
+    if (incoming != null && String(incoming) !== '') {
+      customVarValues[item.key] = String(incoming);
+    } else if (customVarValues[item.key] == null) {
+      customVarValues[item.key] = item.defaultValue || '';
+    }
+  }
+};
+
+const customVariablesJson = () => {
+  const payload: Record<string, string> = {};
+  for (const item of customVars.value) {
+    payload[item.key] = customVarValues[item.key] ?? '';
+  }
+  return JSON.stringify(payload);
+};
+
+const loadTemplates = async () => {
+  const res = await getContractTempApi({ pageNum: 1, pageSize: 200, status: 1 });
+  if (res.code === 200) {
+    templateDict.splice(
+      0,
+      templateDict.length,
+      ...(res.data.list || []).map((item: any) => ({
+        label: item.templateName,
+        value: String(item.id),
+        partyType: Number(item.partyType) || 1,
+        content: item.content || '',
+      })),
+    );
+  }
+};
+
+const onTemplateChange = (val: string) => {
+  const hit = templateDict.find((item) => item.value === val);
+  if (!hit) return;
+  form.partyType = hit.partyType;
+  if (hit.content) {
+    form.contentSnapshot = hit.content;
+  }
+};
+
+const applySkeleton = () => {
+  form.contentSnapshot = skeletonByPartyType(form.partyType);
+};
+
+const onPartyTypeChange = (val: number) => {
+  const next = skeletonByPartyType(val);
+  const prev = skeletonByPartyType(val === 2 ? 1 : 2);
+  if (!form.contentSnapshot.trim() || form.contentSnapshot === prev) {
+    form.contentSnapshot = next;
+  }
+};
+
+const fillVariables = async () => {
+  if (!form.storeId) {
+    ElMessage.warning(`${$t('global.pleaseSelect')}${$t('global.contract.storeName')}`);
+    return;
+  }
+  if (!form.contentSnapshot.trim() && !form.templateId) {
+    ElMessage.warning(`${$t('global.pleaseEnter')}${$t('global.contract.content')}`);
+    return;
+  }
+  filling.value = true;
+  try {
+    const res = await previewContractContentApi({
+      storeId: form.storeId,
+      templateId: form.templateId || undefined,
+      contentSnapshot: form.contentSnapshot,
+      startDate: form.startDate || undefined,
+      endDate: form.endDate || undefined,
+      totalAmount: form.totalAmount,
+      partyType: form.partyType,
+      variablesJson: customVariablesJson(),
     });
-    return false;
-  } else {
-    let res = true;
-    for (let i = 0; i < editTableList.value.length; i++) {
-      if (editTableList.value[i]?.itemName === '') {
-        ElMessage({
-          type: 'warning',
-          message: $t('global.message.pleaseEnterItemName'),
-        });
-        res = false;
-        break;
-      }
-      if (editTableList.value[i]?.quantity === '') {
-        ElMessage({
-          type: 'warning',
-          message: $t('global.message.pleaseEnterItemNumber'),
-        });
-        res = false;
-        break;
-      }
-      if (editTableList.value[i]?.unitPrice === '') {
-        ElMessage({
-          type: 'warning',
-          message: $t('global.message.pleaseEnterItemUnitPrice'),
-        });
-        res = false;
-        break;
-      }
-      if (editTableList.value[i]?.totalPrice === '') {
-        ElMessage({
-          type: 'warning',
-          message: $t('global.message.pleaseEnterItemTotalPrice'),
-        });
-        res = false;
-        break;
-      }
+    if (res.code === 200 && res.data?.content) {
+      form.contentSnapshot = res.data.content;
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
     }
-    return res;
+  } catch (error: any) {
+    if (error?.msg) ElMessage.error(error.msg);
+  } finally {
+    filling.value = false;
   }
+};
+
+const loadDetail = async (contractNo: string) => {
+  const res = await getContractDetailApi(contractNo);
+  if (res.code !== 200 || !res.data) {
+    ElMessage.error(res.msg || $t('global.message.error'));
+    return;
+  }
+  const data = res.data;
+  form.contractNo = data.contractNo;
+  form.contractName = data.contractName;
+  form.storeId = data.storeId == null ? '' : String(data.storeId);
+  form.templateId = data.templateId == null ? '' : String(data.templateId);
+  form.partyType = Number(data.partyType) || 1;
+  form.startDate = data.startDate ? String(data.startDate).slice(0, 10) : '';
+  form.endDate = data.endDate ? String(data.endDate).slice(0, 10) : '';
+  form.totalAmount = data.totalAmount;
+  form.remark = data.remark || '';
+  form.contentSnapshot = data.contentSnapshot || '';
+  form.contractStatus = Number(data.contractStatus) || 0;
+  statusLabel.value = data.statusLabel || '';
+  platformSignStatus.value = Number(data.platformSignStatus) || 0;
+  const merchant = (data.signers || []).find((item: any) => Number(item.partyRole) === 2);
+  merchantSignImage.value = resolveFileUrl(merchant?.signImageUrl);
+};
+
+const buildPayload = () => ({
+  contractNo: form.contractNo || undefined,
+  contractName: form.contractName,
+  storeId: form.storeId,
+  templateId: form.templateId || undefined,
+  partyType: form.partyType,
+  startDate: form.startDate || undefined,
+  endDate: form.endDate || undefined,
+  totalAmount: form.totalAmount,
+  remark: form.remark,
+  contentSnapshot: form.contentSnapshot,
+  variablesJson: customVariablesJson(),
+});
+
+const saveDraft = async () => {
+  if (!form.contractName) {
+    ElMessage.warning(`${$t('global.pleaseEnter')}${$t('global.contract.contractName')}`);
+    return false;
+  }
+  if (!form.storeId) {
+    ElMessage.warning(`${$t('global.pleaseSelect')}${$t('global.contract.storeName')}`);
+    return false;
+  }
+  if (!form.templateId && !form.contentSnapshot.trim()) {
+    ElMessage.warning(`${$t('global.pleaseEnter')}${$t('global.contract.content')}`);
+    return false;
+  }
+  saving.value = true;
+  try {
+    const api = form.contractNo ? editContractApi : addContractApi;
+    const res = await api(buildPayload());
+    if (res.code === 200) {
+      ElMessage.success($t('global.message.success'));
+      const no = res.data?.contractNo || form.contractNo;
+      if (no) {
+        await loadDetail(no);
+      }
+      return true;
+    }
+    ElMessage.error(res.msg || $t('global.message.error'));
+    return false;
+  } catch (error: any) {
+    if (error?.msg) ElMessage.error(error.msg);
+    return false;
+  } finally {
+    saving.value = false;
+  }
+};
+
+const saveAndInitiate = async () => {
+  initiating.value = true;
+  try {
+    const ok = await saveDraft();
+    if (!ok || !form.contractNo) return;
+    const res = await initiateSignApi(form.contractNo);
+    if (res.code === 200) {
+      ElMessage.success(res.data?.message || $t('global.message.success'));
+      await loadDetail(form.contractNo);
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
+    }
+  } finally {
+    initiating.value = false;
+  }
+};
+
+const handlePlatformSign = async () => {
+  const res = await platformSignApi(form.contractNo);
+  if (res.code === 200) {
+    ElMessage.success($t('global.message.success'));
+    await loadDetail(form.contractNo);
+  } else {
+    ElMessage.error(res.msg || $t('global.message.error'));
+  }
+};
+
+const handleVoid = () => {
+  ElMessageBox.prompt('请输入作废原因（选填）', $t('global.btn.voidContract'), {
+    confirmButtonText: $t('global.btn.confirm'),
+    cancelButtonText: $t('global.btn.cancel'),
+  })
+    .then(async ({ value }) => {
+      const res = await voidContractApi(form.contractNo, value);
+      if (res.code === 200) {
+        ElMessage.success($t('global.message.success'));
+        await loadDetail(form.contractNo);
+      } else {
+        ElMessage.error(res.msg || $t('global.message.error'));
+      }
+    })
+    .catch(() => {});
 };
 
 onMounted(async () => {
-  // 获取合同类型字典值
-  const dict1 = await getDict('contract_type');
-  contractTypeDict.splice(0, contractTypeDict.length, ...dict1);
-  // 获取合同付款周期字典值
-  const dict2 = await getDict('payment_cycle');
-  paymentCycleDict.splice(0, paymentCycleDict.length, ...dict2);
-  // 获取承租方类型字典值
-  const dict3 = await getDict('lessor_type');
-  lesseeTypeDict.splice(0, lesseeTypeDict.length, ...dict3);
-  // 获取合同状态字典值
-  const dict4 = await getDict('contract_status');
-  contractStatusDict.splice(0, contractStatusDict.length, ...dict4);
-  // 获取合同项类型字典值
-  const dict5 = await getDict('contract_item_type');
-  itemTypeDict.splice(0, itemTypeDict.length, ...dict5);
-  formInfo1.value = {}; // 确保是新的对象引用
+  await Promise.all([loadStores(), loadTemplates(), loadVars()]);
+  const no = String(route.query.no || '');
+  if (no) {
+    await loadDetail(no);
+  }
 });
 </script>
 
 <template>
-  <div class="detail-view">
-    <el-steps class="step" :active="active" finish-status="success" align-center>
-      <el-step title="填写基本信息" />
-      <el-step title="完善合同细则" />
-      <el-step title="生成预览二维码" />
-    </el-steps>
-    <div class="pd20">
-      <Detail ref="detailForm1" v-if="active === 0" label-width="120px" title="step1" :form-config="editConfig1"
-        :form-rules="editRules1" :form-info="formInfo1" :confirm-text="$t('global.btn.next')"
-        @confirm="handleConfirm" />
-      <Table v-if="active === 1" :pagination="false" :table-config="editTableConfig" :list="editTableList"
-        @handle-click="editTableClick" />
-      <!-- 底部按钮 -->
-      <div v-if="active === 1" class="bottom-item">
-        <div class="button">
-          <div class="cancel">
-            <ElButton type="success" :icon="Plus" @click="addItem">{{ $t('global.contract.addContractItem') }}
-            </ElButton>
-          </div>
-          <div class="cancel">
-            <ElButton :icon="Back" @click="previous">{{ $t('global.btn.previous') }}</ElButton>
-          </div>
-          <div class="confirm">
-            <ElButton type="primary" :icon="CircleCheck" plain @click="submit">
-              {{ $t('global.btn.save') }}
-            </ElButton>
-          </div>
-        </div>
+  <div class="pd5 contract-detail-page">
+    <el-card class="detail-card">
+      <div class="header">
+        <el-button :icon="Back" @click="router.push('/contract-list')">
+          {{ $t('global.btn.back') }}
+        </el-button>
+        <span class="title">
+          {{
+            !form.contractNo
+              ? $t('global.btn.add')
+              : isDraft
+                ? $t('global.btn.edit')
+                : $t('global.btn.detail')
+          }}
+        </span>
+        <el-tag v-if="statusLabel" class="status-tag">{{ statusLabel }}</el-tag>
       </div>
-    </div>
+      <el-form label-width="120px" class="mgt5" :disabled="!isDraft">
+        <el-form-item :label="$t('global.contract.contractName')" required>
+          <el-input v-model="form.contractName" maxlength="128" />
+        </el-form-item>
+        <el-form-item v-if="isAdmin" :label="$t('global.contract.storeName')" required>
+          <el-select v-model="form.storeId" filterable style="width: 100%">
+            <el-option
+              v-for="item in storeDict"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.templateName')">
+          <el-select
+            v-model="form.templateId"
+            clearable
+            style="width: 100%"
+            :placeholder="`${$t('global.pleaseSelect')}${$t('global.contract.templateName')}`"
+            @change="onTemplateChange"
+          >
+            <el-option
+              v-for="item in templateDict"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.partyType')">
+          <el-radio-group v-model="form.partyType" @change="onPartyTypeChange">
+            <el-radio :value="1">{{ $t('global.contract.person') }}</el-radio>
+            <el-radio :value="2">{{ $t('global.contract.enterprise') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.startDate')">
+          <el-date-picker v-model="form.startDate" type="date" value-format="YYYY-MM-DD" />
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.endDate')">
+          <el-date-picker v-model="form.endDate" type="date" value-format="YYYY-MM-DD" />
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.totalAmount')">
+          <el-input-number v-model="form.totalAmount" :min="0" :precision="2" style="width: 240px" />
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.remark')">
+          <el-input v-model="form.remark" type="textarea" :rows="2" maxlength="500" />
+        </el-form-item>
+        <el-form-item v-if="customVars.length" :label="$t('global.contract.customVars')">
+          <div class="custom-vars">
+            <p class="hint">{{ $t('global.contract.customVarHint') }}</p>
+            <div v-for="item in customVars" :key="item.key" class="custom-var-row">
+              <span class="custom-var-label">{{ item.label }}</span>
+              <el-input v-model="customVarValues[item.key]" maxlength="255" />
+            </div>
+          </div>
+        </el-form-item>
+        <el-form-item :label="$t('global.contract.content')" required>
+          <div class="content-wrap">
+            <p class="hint">{{ $t('global.contract.contentHint') }}</p>
+            <div v-if="isDraft" class="content-actions">
+              <el-button size="small" @click="applySkeleton">
+                {{ $t('global.contract.applySkeleton') }}
+              </el-button>
+              <el-button size="small" type="primary" :loading="filling" @click="fillVariables">
+                {{ $t('global.contract.fillVariables') }}
+              </el-button>
+            </div>
+            <ContractBodyEditor
+              v-model="form.contentSnapshot"
+              :readonly="!isDraft"
+              show-insert
+              :vars="insertVars"
+              :rows="18"
+              :placeholder="$t('global.contract.contentPlaceholder')"
+            />
+            <div v-if="!isDraft" class="sign-off">
+              <div class="sign-off-label">{{ $t('global.contract.partyBSign') }}</div>
+              <el-image
+                v-if="merchantSignImage"
+                class="sign-off-img"
+                :src="merchantSignImage"
+                fit="contain"
+                :preview-src-list="[merchantSignImage]"
+              />
+              <span v-else class="sign-off-empty">暂无手写签名</span>
+            </div>
+          </div>
+        </el-form-item>
+      </el-form>
+      <div v-if="isAdmin && isDraft" class="footer">
+        <el-button :loading="saving" @click="saveDraft">{{ $t('global.btn.save') }}</el-button>
+        <el-button type="primary" :loading="initiating" @click="saveAndInitiate">
+          {{ $t('global.btn.initiateSign') }}
+        </el-button>
+      </div>
+      <div v-else-if="isAdmin && form.contractStatus === 1" class="footer">
+        <el-button
+          v-if="platformSignStatus === 0"
+          type="warning"
+          @click="handlePlatformSign"
+        >
+          {{ $t('global.btn.platformSign') }}
+        </el-button>
+        <el-button type="danger" @click="handleVoid">
+          {{ $t('global.btn.voidContract') }}
+        </el-button>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.detail-view {
-  height: calc(100vh - 180px);
-  overflow-y: auto;
+@use "#/styles/style.scss" as *;
 
-  .step {
-    width: 600px;
-    margin: 0 auto;
-    margin-top: 20px;
+.contract-detail-page {
+  min-height: 0;
+}
+
+.detail-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  :deep(.el-card__body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
-.bottom-item {
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.status-tag {
+  margin-left: auto;
+}
+
+.content-wrap {
   width: 100%;
-  margin-top: 20px;
+}
 
-  .button {
-    display: flex;
-    justify-content: center;
-    margin: 0 auto;
-  }
+.hint {
+  margin: 0 0 8px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.5;
+}
 
-  .cancel {
-    margin-right: 10px;
-  }
+.custom-vars {
+  width: 100%;
+}
 
-  .confirm {
-    margin-left: 10px;
+.custom-var-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 
-    .el-button--primary {
-      color: #fff;
-      background: #2278e9 !important;
-      border-color: #2278e9 !important;
-    }
+.custom-var-label {
+  flex: 0 0 96px;
+  color: #606266;
+}
 
-    .el-button--primary:hover {
-      background: #1890ff !important;
-      border-color: #1890ff !important;
-    }
-  }
+.content-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sign-off {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--el-border-color);
+}
+
+.sign-off-label {
+  margin-bottom: 8px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.sign-off-img {
+  width: 220px;
+  height: 96px;
+  border: 1px solid var(--el-border-color-lighter);
+  background: #fff;
+}
+
+.sign-off-empty {
+  color: var(--el-text-color-placeholder);
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 20px 20px;
 }
 </style>

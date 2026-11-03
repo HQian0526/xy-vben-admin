@@ -1,93 +1,77 @@
 import { requestClient } from '#/api/request';
 
-/**
- * 查询列表
- */
 export async function getContractListApi(param: any) {
-  return requestClient.get('/contract/findContract', {
-    params: param,
-  });
+  return requestClient.get('/esign/contract/findContract', { params: param });
 }
 
-/**
- * 新增
- */
 export async function addContractApi(data: any) {
-  return requestClient.post('/contract/addContract', data);
+  return requestClient.post('/esign/contract/addContract', data);
 }
 
-/**
- * 编辑
- */
 export async function editContractApi(data: any) {
-  return requestClient.put('/contract/updateContract', data);
+  return requestClient.put('/esign/contract/updateContract', data);
 }
 
-/**
- * 删除
- */
+export async function previewContractContentApi(data: any) {
+  return requestClient.post('/esign/contract/previewContent', data);
+}
+
 export async function deleteContractApi(data: any) {
-  return requestClient.delete('/contract/deleteContract', {
-    data,
-  });
+  return requestClient.delete('/esign/contract/deleteContract', { data });
 }
 
-/**
- * 新增合同细则
- */
-export async function addContractItem(data: any) {
-  return requestClient.post('/contract/addContractItems', data);
+export async function getContractDetailApi(contractNo: string) {
+  return requestClient.get(`/esign/contract/detail/${contractNo}`);
 }
 
-/**
- * 保存合同细则
- */
-export async function saveContractItem(data: any) {
-  return requestClient.post('/contract/saveContractItems', data);
+export async function initiateSignApi(contractNo: string) {
+  return requestClient.post('/esign/contract/initiate', { contractNo });
 }
 
-/**
- * 查询合同细则列表
- */
-export async function getContractItemList(no: string) {
-  return requestClient.get(`/contract/getContractItem/${no}`);
+export async function platformSignApi(contractNo: string) {
+  return requestClient.post('/esign/contract/platformSign', { contractNo });
 }
 
-/**
- * 查询合同模板列表
- */
+export async function voidContractApi(contractNo: string, reason?: string) {
+  return requestClient.post('/esign/contract/void', { contractNo, reason });
+}
+
+export async function exportContractApi(param: any) {
+  return requestClient.download('/esign/contract/export', { params: param });
+}
+
+export async function downloadContractFileApi(contractNo: string) {
+  return requestClient.download(`/esign/contract/file/${contractNo}`);
+}
+
 export async function getContractTempApi(param: any) {
-  return requestClient.get('/contract-template/findContractTemp', {
-    params: param,
-  });
+  return requestClient.get('/esign/template/findTemplate', { params: param });
 }
 
-/**
- * 新增合同模板
- */
 export async function addContractTempApi(data: any) {
-  return requestClient.post('/contract-template/addContractTemp', data);
+  return requestClient.post('/esign/template/addTemplate', data);
 }
 
-/**
- * 编辑合同模板
- */
 export async function editContractTempApi(data: any) {
-  return requestClient.put('/contract-template/updateContractTemp', data);
+  return requestClient.put('/esign/template/updateTemplate', data);
 }
 
-/**
- * 删除合同模板
- */
 export async function deleteContractTempApi(data: any) {
-  return requestClient.delete('/contract-template/deleteContractTemp', {
-    data,
-  });
+  return requestClient.delete('/esign/template/deleteTemplate', { data });
 }
 
-/**
- * 预览合同模板
- */
-export async function previewContractTempApi(templateNo: string) {
-  return requestClient.get(`/preview/${templateNo}`);
+export async function getContractVarApi(param: any) {
+  return requestClient.get('/esign/var/findVar', { params: param });
+}
+
+export async function addContractVarApi(data: any) {
+  return requestClient.post('/esign/var/addVar', data);
+}
+
+export async function editContractVarApi(data: any) {
+  return requestClient.put('/esign/var/updateVar', data);
+}
+
+export async function deleteContractVarApi(data: any) {
+  return requestClient.delete('/esign/var/deleteVar', { data });
 }

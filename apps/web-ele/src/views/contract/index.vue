@@ -2,114 +2,177 @@
 <!-- eslint-disable unicorn/prefer-spread -->
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { CircleCheck, Plus } from '@element-plus/icons-vue';
+import { Download, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { useUserStore } from '@vben/stores';
 
 import {
   deleteContractApi,
-  editContractApi,
-  getContractItemList,
+  downloadContractFileApi,
+  exportContractApi,
+  getContractDetailApi,
   getContractListApi,
-  saveContractItem,
+  getStoreListApi,
+  initiateSignApi,
+  platformSignApi,
+  voidContractApi,
 } from '#/api';
-import Edit from '#/components/edit/index.vue';
 import Filter from '#/components/filter/index.vue';
 import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
-import { getDict } from '#/utils';
+import { resolveFileUrl } from '#/utils';
+
+import ContractPrintSheet from './ContractPrintSheet.vue';
+
+const PLATFORM_SEAL_PATH = 'xy-community/seal.png';
 
 const router = useRouter();
+const userStore = useUserStore();
+const isAdmin = computed(
+  () => Number(userStore.userInfo?.identityType) === 3,
+);
 
 const isLoading = ref(false);
-//* *************table相关变量**************
-const total = ref(10);
+const total = ref(0);
 const pageInfo = reactive({
   pageNum: 1,
   pageSize: 10,
 });
-// 表格配置
+const searchParams = ref<Record<string, any>>({});
+const storeDict = reactive<Array<{ label: string; value: any }>>([]);
+const list = reactive<any[]>([]);
+
+function saveBlob(data: any, filename: string) {
+  const blob = data instanceof Blob ? data : new Blob([data]);
+  if (blob.type && blob.type.includes('application/json')) {
+    return blob.text().then((text) => {
+      try {
+        const json = JSON.parse(text);
+        ElMessage.error(json.msg || $t('global.message.error'));
+      } catch {
+        ElMessage.error($t('global.message.error'));
+      }
+    });
+  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 const tableConfig = reactive({
   list: [
     {
       prop: 'contractNo',
       label: $t('global.contract.contractNo'),
+      width: '240px',
+      showOverflowTooltip: true,
     },
     {
       prop: 'contractName',
       label: $t('global.contract.contractName'),
+      width: '240px',
+      showOverflowTooltip: true,
     },
     {
-      prop: 'contractType',
-      label: $t('global.contract.contractType'),
-      filter: (value: any) => {
-        if (value === 1) return $t('global.contract.leaseContract');
-        if (value === 2) return $t('global.contract.salesContract');
-      },
+      prop: 'storeName',
+      label: $t('global.contract.storeName'),
+      width: '140px',
+      showOverflowTooltip: true,
+    },
+    {
+      prop: 'partyTypeLabel',
+      label: $t('global.contract.partyType'),
+      width: '90px',
+    },
+    {
+      prop: 'statusLabel',
+      label: $t('global.contract.contractStatus'),
+      width: '110px',
+    },
+    {
+      prop: 'platformSignStatusLabel',
+      label: $t('global.contract.platformSign'),
+      width: '100px',
+    },
+    {
+      prop: 'merchantSignStatusLabel',
+      label: $t('global.contract.merchantSign'),
+      width: '100px',
     },
     {
       prop: 'totalAmount',
       label: $t('global.contract.totalAmount'),
-    },
-    {
-      prop: 'lesseeName',
-      label: $t('global.contract.lesseeName'),
-    },
-    {
-      prop: 'startDate',
-      label: $t('global.contract.startDate'),
-      filter: (value: any) => {
-        return value ? value.slice(0, 10) : '';
-      },
+      width: '130px',
     },
     {
       prop: 'createdTime',
       label: $t('global.createdTime'),
-      filter: (value: any) => {
-        return value ? value.slice(0, 10) : '';
-      },
-    },
-    {
-      prop: 'contractStatus',
-      label: $t('global.contract.contractStatus'),
-      filter: (value: any) => {
-        if (value === 1) return $t('global.contract.unsigned');
-        if (value === 2) return $t('global.contract.signed');
-        if (value === 3) return $t('global.contract.expired');
-        if (value === 4) return $t('global.contract.finished');
-      },
-    },
-    {
-      prop: 'remark',
-      label: $t('global.contract.remark'),
+      width: '180px',
+      filter: (value: any) => (value ? String(value).slice(0, 19) : ''),
     },
     {
       prop: 'operation',
       label: $t('global.operation'),
       fixed: 'right',
-      width: '200px',
+      width: '440px',
       operations: [
         {
           type: 'primary',
           label: $t('global.btn.edit'),
+          isShow: (item: any) => Number(item.contractStatus) === 0,
+        },
+        {
+          type: 'success',
+          label: $t('global.btn.initiateSign'),
+          isShow: (item: any) => Number(item.contractStatus) === 0,
+        },
+        {
+          type: 'warning',
+          label: $t('global.btn.platformSign'),
+          isShow: (item: any) =>
+            Number(item.contractStatus) === 1 && Number(item.platformSignStatus) === 0,
+        },
+        {
+          type: 'primary',
+          label: $t('global.btn.detail'),
           isShow: () => true,
+        },
+        {
+          type: 'default',
+          label: $t('global.btn.print'),
+          isShow: () => true,
+        },
+        {
+          type: 'info',
+          label: $t('global.btn.signProgress'),
+          isShow: (item: any) => Number(item.contractStatus) !== 0,
+        },
+        // {
+        //   type: 'success',
+        //   label: $t('global.btn.download'),
+        //   isShow: (item: any) => Number(item.contractStatus) === 2,
+        // },
+        {
+          type: 'danger',
+          label: $t('global.btn.voidContract'),
+          isShow: (item: any) => Number(item.contractStatus) === 1,
         },
         {
           type: 'danger',
           label: $t('global.btn.delete'),
-          isShow: () => true,
+          isShow: (item: any) => Number(item.contractStatus) === 0,
         },
       ],
     },
   ],
 });
-// 表格数据
-const list = reactive([]);
-//* *************filter相关变量**************
-// const isCollapsed = ref(false);
-// 头部搜索框
+
 const formConfig = reactive({
   list: [
     {
@@ -120,391 +183,292 @@ const formConfig = reactive({
       placeholder: `${$t('global.pleaseEnter')}${$t('global.contract.contractName')}`,
     },
     {
-      type: 'select',
-      prop: 'contractType',
-      label: $t('global.contract.contractType'),
+      type: 'input',
+      prop: 'contractNo',
+      label: $t('global.contract.contractNo'),
       value: '',
-      placeholder: `${$t('global.pleaseSelect')}${$t('global.contract.contractType')}`,
-      options: [
-        {
-          label: $t('global.contract.leaseContract'),
-          value: 1,
-        },
-        {
-          label: $t('global.contract.salesContract'),
-          value: 2,
-        },
-      ],
+      placeholder: `${$t('global.pleaseEnter')}${$t('global.contract.contractNo')}`,
     },
     {
       type: 'select',
       prop: 'contractStatus',
-      label: $t('global.contract.contractType'),
+      label: $t('global.contract.contractStatus'),
       value: '',
       placeholder: `${$t('global.pleaseSelect')}${$t('global.contract.contractStatus')}`,
       options: [
-        {
-          label: $t('global.contract.unsigned'),
-          value: 1,
-        },
-        {
-          label: $t('global.contract.signed'),
-          value: 2,
-        },
-        {
-          label: $t('global.contract.expired'),
-          value: 3,
-        },
-        {
-          label: $t('global.contract.finished'),
-          value: 4,
-        },
+        { label: $t('global.contract.statusDraft'), value: '0', keepValue: true },
+        { label: $t('global.contract.statusPending'), value: '1', keepValue: true },
+        { label: $t('global.contract.statusDone'), value: '2', keepValue: true },
+        { label: $t('global.contract.statusVoid'), value: '3', keepValue: true },
       ],
     },
-  ],
+  ] as Array<Record<string, any>>,
 });
-//* *************edit相关变量**************
-const itemVisible = ref(false); // 是否展示弹窗
-const formTitle = ref(''); // 弹窗标题
-const formInfo = ref({}); // 弹窗其他信息
-const contractTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同类型字典
-const paymentCycleDict = reactive<Array<{ label: string; value: any }>>([]); // 合同付款周期字典
-const lesseeTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 承租方类型字典
-const contractStatusDict = reactive<Array<{ label: string; value: any }>>([]); // 合同状态字典
-// 弹窗表单配置
-const editForm = ref(null); // 创建 ref
-const editConfig = reactive([
-  {
-    label: $t('global.contract.contractName'),
-    name: 'contractName',
-    type: 'input',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.contractType'),
-    name: 'contractType',
-    type: 'select',
-    span: 12,
-    options: contractTypeDict,
-  },
-  {
-    label: $t('global.contract.totalAmount'),
-    name: 'totalAmount',
-    type: 'number',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.paymentCycle'),
-    name: 'paymentCycle',
-    type: 'select',
-    span: 12,
-    options: paymentCycleDict,
-  },
-  {
-    label: $t('global.contract.startDate'),
-    name: 'startDate',
-    type: 'date',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.endDate'),
-    name: 'endDate',
-    type: 'date',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.lesseeType'),
-    name: 'lesseeType',
-    type: 'select',
-    span: 12,
-    options: lesseeTypeDict,
-  },
-  {
-    label: $t('global.contract.lesseeName'),
-    name: 'lesseeName',
-    type: 'input',
-    span: 12,
-  },
-  {
-    label: $t('global.contract.contractStatus'),
-    name: 'contractStatus',
-    type: 'select',
-    span: 12,
-    options: contractStatusDict,
-  },
-  {
-    label: $t('global.contract.remark'),
-    name: 'remark',
-    type: 'textarea',
-    span: 12,
-  },
-]);
-// 弹窗表单校验规则
-const editRules = reactive({
-  contractName: [
-    {
-      required: true,
-      message: $t('global.contract.contractName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-  contractType: [
-    {
-      required: true,
-      message: $t('global.contract.contractType') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  totalAmount: [
-    {
-      required: true,
-      message: $t('global.contract.totalAmount') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-  paymentCycle: [
-    {
-      required: true,
-      message: $t('global.contract.paymentCycle') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  startDate: [
-    {
-      required: true,
-      message: $t('global.contract.startDate') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  lesseeType: [
-    {
-      required: true,
-      message: $t('global.contract.lesseeType') + $t('global.required'),
-      trigger: 'change',
-    },
-  ],
-  lesseeName: [
-    {
-      required: true,
-      message: $t('global.contract.lesseeName') + $t('global.required'),
-      trigger: 'blur',
-    },
-  ],
-});
-const itemTypeDict = reactive<Array<{ label: string; value: any }>>([]); // 合同项类型字典
-// 弹窗内表格配置
-const editTableConfig = reactive({
-  list: [
-    {
-      prop: 'index',
-    },
-    {
-      prop: 'itemName',
-      label: $t('global.contract.itemName'),
-      type: 'input',
-    },
-    {
-      prop: 'itemType',
-      label: $t('global.contract.itemType'),
-      type: 'select',
-      options: itemTypeDict,
-    },
-    {
-      prop: 'quantity',
-      label: $t('global.contract.quantity'),
-      type: 'input',
-    },
-    {
-      prop: 'unitPrice',
-      label: $t('global.contract.unitPrice'),
-      type: 'input',
-    },
-    {
-      prop: 'specification',
-      label: $t('global.contract.specification'),
-      type: 'input',
-    },
-    {
-      prop: 'totalPrice',
-      label: $t('global.contract.totalPrice'),
-      type: 'input',
-    },
-    {
-      prop: 'remark',
-      label: $t('global.contract.remark'),
-      type: 'input',
-    },
-    {
-      prop: 'operation',
-      label: $t('global.operation'),
-      fixed: 'right',
-      width: '100px',
-      operations: [
-        {
-          type: 'danger',
-          label: $t('global.btn.delete'),
-          show: true,
-        },
-      ],
-    },
-  ],
-});
-// 弹窗内表格数据
-interface TableItem {
-  itemName: string;
-  itemType: string;
-  quantity: string;
-  unitPrice: string;
-  specification: string;
-  totalPrice: string;
-  remark: string;
-}
-const editTableList = ref<TableItem[]>([]);
-
-// 点击展开收起
-// const toggleCollapse = () => {
-//   isCollapsed.value = !isCollapsed.value;
-// };
 
 const search = (form: any) => {
-  console.log('form', form);
-  getContractList(form);
+  searchParams.value = { ...form };
+  pageInfo.pageNum = 1;
+  getList();
 };
 
-const reset = (form: any) => {
-  console.log('form', form);
+const reset = () => {
   formConfig.list.forEach((item) => {
     item.value = null;
   });
-  getContractList(form);
+  searchParams.value = {};
+  pageInfo.pageNum = 1;
+  getList();
 };
 
-// 点击操作列按钮
 const handleClick = (row: any, label: string) => {
-  console.log('row', row);
-  console.log('label', label);
   switch (label) {
-    // 删除
-    case $t('global.btn.delete'): {
-      handleDelete(row);
+    case $t('global.btn.edit'): {
+      router.push({ path: '/contract-detail', query: { no: row.contractNo } });
       break;
     }
-    // 编辑
-    case $t('global.btn.edit'): {
-      // 编辑
-      formTitle.value = label;
-      formInfo.value = {
-        ...row,
-      }; // 确保是新的对象引用
-      getContractItem(row);
-      itemVisible.value = true;
+    case $t('global.btn.detail'): {
+      router.push({ path: '/contract-detail', query: { no: row.contractNo } });
+      break;
+    }
+    case $t('global.btn.signProgress'): {
+      openSignProgress(row);
+      break;
+    }
+    case $t('global.btn.print'): {
+      openPrint(row);
+      break;
+    }
+    case $t('global.btn.initiateSign'): {
+      handleInitiate(row);
+      break;
+    }
+    case $t('global.btn.platformSign'): {
+      handlePlatformSign(row);
+      break;
+    }
+    case $t('global.btn.download'): {
+      handleDownload(row);
+      break;
+    }
+    case $t('global.btn.voidContract'): {
+      handleVoid(row);
+      break;
+    }
+    case $t('global.btn.delete'): {
+      handleDelete(row);
       break;
     }
   }
 };
 
-// 表格分页
 const handleCurrentChange = (currentPage: number) => {
-  console.log('currentPage', currentPage);
   pageInfo.pageNum = currentPage;
-  getContractList();
+  getList();
 };
 
-// 表格分页大小
 const handleSizeChange = (pageSize: number) => {
-  console.log('pageSize', pageSize);
   pageInfo.pageSize = pageSize;
-  getContractList();
+  getList();
 };
 
-// 关闭编辑弹窗
-const closeDialog = () => {
-  editTableList.value = []; // 使用 ref 时这样清空
-  formInfo.value = {}; // 同时清空表单数据
-  itemVisible.value = false;
-  getContractList();
-};
-
-// 确定编辑弹窗
-const confirmDialog = async (title: string, data: any) => {
-  console.log('title', title);
-  console.log('data', data);
-  // 接口所需其他字段
-  const obj = {
-    // 出租方类型
-    lessorType: Number(import.meta.env.VITE_CONTRACT_LESSOR_TYPE),
-    // 出租方名称
-    lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
-    items: editTableList.value,
-    startDate: data.startDate ? data.startDate.split('T')[0] : '',
-    endDate: data.endDate ? data.endDate.split('T')[0] : '',
-  };
-  console.log('obj', obj);
-  try {
-    const valid = validContractItem();
-    if (!valid) return;
-    const res = await saveContractItem({ ...data, ...obj });
-    if (res.code === 200) {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
-      getContractList();
-      itemVisible.value = false;
-    } else {
-      ElMessage({
-        type: 'error',
-        message: res.msg,
-      });
-    }
-  } catch { }
-};
-
-// 新增
 const handleAdd = () => {
-  formTitle.value = $t('global.btn.add');
-  formInfo.value = {}; // 清空表单数据
-  editTableList.value = []; // 明确清空表格数据
-  itemVisible.value = true;
-  router.push({
-    path: '/contract-detail',
-  });
+  router.push({ path: '/contract-detail' });
 };
 
-// 删除
-const handleDelete = (row: any) => {
-  console.log('row', row);
+const progressVisible = ref(false);
+const progressLoading = ref(false);
+const progressTitle = ref('');
+const progressSigners = ref<any[]>([]);
+
+const openSignProgress = async (row: any) => {
+  progressTitle.value = row.contractName
+    ? `${row.contractName}（${row.contractNo}）`
+    : row.contractNo;
+  progressSigners.value = [];
+  progressVisible.value = true;
+  progressLoading.value = true;
   try {
-    ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
+    const res = await getContractDetailApi(row.contractNo);
+    if (res.code === 200) {
+      progressSigners.value = res.data?.signers || [];
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
+      progressVisible.value = false;
+    }
+  } catch (error: any) {
+    if (error?.msg) ElMessage.error(error.msg);
+    progressVisible.value = false;
+  } finally {
+    progressLoading.value = false;
+  }
+};
+
+const printVisible = ref(false);
+const printLoading = ref(false);
+const printData = ref<Record<string, any> | null>(null);
+
+function sliceTime(value: any) {
+  return value ? String(value).slice(0, 19) : '';
+}
+
+const openPrint = async (row: any) => {
+  printData.value = null;
+  printVisible.value = true;
+  printLoading.value = true;
+  try {
+    const res = await getContractDetailApi(row.contractNo);
+    if (res.code !== 200 || !res.data) {
+      ElMessage.error(res.msg || $t('global.message.error'));
+      printVisible.value = false;
+      return;
+    }
+    const data = res.data;
+    const signers = data.signers || [];
+    const partyA = signers.find((item: any) => Number(item.partyRole) === 1);
+    const partyB = signers.find((item: any) => Number(item.partyRole) === 2);
+    printData.value = {
+      contractName: data.contractName,
+      contractNo: data.contractNo,
+      storeName: data.storeName,
+      partyTypeLabel: data.partyTypeLabel,
+      statusLabel: data.statusLabel,
+      totalAmount: data.totalAmount,
+      contentSnapshot: data.contentSnapshot || '',
+      contractStatus: Number(data.contractStatus) || 0,
+      partyAName: partyA?.companyName || partyA?.signerName || '',
+      partyBName: partyB?.companyName || partyB?.signerName || '',
+      partyASealImage: partyA?.signTime ? resolveFileUrl(PLATFORM_SEAL_PATH) : '',
+      partyBSignImage: resolveFileUrl(partyB?.signImageUrl),
+      partyASignTime: sliceTime(partyA?.signTime),
+      partyBSignTime: sliceTime(partyB?.signTime),
+    };
+  } catch (error: any) {
+    if (error?.msg) ElMessage.error(error.msg);
+    printVisible.value = false;
+  } finally {
+    printLoading.value = false;
+  }
+};
+
+const doPrint = async () => {
+  if (!printData.value) return;
+  await nextTick();
+  const imgs = document.querySelectorAll('.contract-print-root img');
+  await Promise.all(
+    [...imgs].map(
+      (node) =>
+        new Promise<void>((resolve) => {
+          const img = node as HTMLImageElement;
+          if (img.complete) {
+            resolve();
+            return;
+          }
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        }),
+    ),
+  );
+  window.print();
+};
+
+const handleInitiate = async (row: any) => {
+  try {
+    await ElMessageBox.confirm('确认发起签署？平台将尝试自动盖章。', $t('global.tip'), {
       confirmButtonText: $t('global.btn.confirm'),
       cancelButtonText: $t('global.btn.cancel'),
       type: 'warning',
-    }).then(async () => {
-      const res = await deleteContractApi([row.id]);
-      console.log('res', res);
-      if (res.code === 200) {
-        ElMessage({
-          type: 'success',
-          message: $t('global.message.success'),
-        });
-        getContractList();
-      } else {
-        ElMessage({
-          type: 'error',
-          message: $t('global.message.error'),
-        });
-      }
     });
+    const res = await initiateSignApi(row.contractNo);
+    if (res.code === 200) {
+      ElMessage.success(res.data?.message || $t('global.message.success'));
+      getList();
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
+    }
+  } catch (error: any) {
+    if (error !== 'cancel' && error?.msg) {
+      ElMessage.error(error.msg);
+    }
+  }
+};
+
+const handlePlatformSign = async (row: any) => {
+  try {
+    await ElMessageBox.confirm('确认完成平台签署？完成后将推送给商家。', $t('global.tip'), {
+      confirmButtonText: $t('global.btn.confirm'),
+      cancelButtonText: $t('global.btn.cancel'),
+      type: 'warning',
+    });
+    const res = await platformSignApi(row.contractNo);
+    if (res.code === 200) {
+      ElMessage.success($t('global.message.success'));
+      getList();
+    } else {
+      ElMessage.error(res.msg || $t('global.message.error'));
+    }
+  } catch (error: any) {
+    if (error !== 'cancel' && error?.msg) {
+      ElMessage.error(error.msg);
+    }
+  }
+};
+
+const handleVoid = (row: any) => {
+  ElMessageBox.prompt('请输入作废原因（选填）', $t('global.btn.voidContract'), {
+    confirmButtonText: $t('global.btn.confirm'),
+    cancelButtonText: $t('global.btn.cancel'),
+  })
+    .then(async ({ value }) => {
+      const res = await voidContractApi(row.contractNo, value);
+      if (res.code === 200) {
+        ElMessage.success($t('global.message.success'));
+        getList();
+      } else {
+        ElMessage.error(res.msg || $t('global.message.error'));
+      }
+    })
+    .catch(() => {});
+};
+
+const handleDelete = (row: any) => {
+  ElMessageBox.confirm($t('global.message.confirmDelete'), $t('global.tip'), {
+    confirmButtonText: $t('global.btn.confirm'),
+    cancelButtonText: $t('global.btn.cancel'),
+    type: 'warning',
+  })
+    .then(async () => {
+      const res = await deleteContractApi([row.id]);
+      if (res.code === 200) {
+        ElMessage.success($t('global.message.success'));
+        getList();
+      } else {
+        ElMessage.error(res.msg || $t('global.message.error'));
+      }
+    })
+    .catch(() => {});
+};
+
+const handleDownload = async (row: any) => {
+  try {
+    const blob = await downloadContractFileApi(row.contractNo);
+    await saveBlob(blob, `${row.contractNo}.txt`);
   } catch (error) {
     console.log(error);
   }
 };
 
-// 获取合同列表
-const getContractList = async (form: any = undefined) => {
+const handleExport = async () => {
+  try {
+    const blob = await exportContractApi({ ...searchParams.value });
+    await saveBlob(blob, 'esign-contracts.csv');
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getList = async () => {
   const obj = {
-    ...form,
-    deleted: 0,
+    ...searchParams.value,
     pageNum: pageInfo.pageNum,
     pageSize: pageInfo.pageSize,
   };
@@ -512,205 +476,132 @@ const getContractList = async (form: any = undefined) => {
     isLoading.value = true;
     const res = await getContractListApi(obj);
     if (res.code === 200) {
-      // 正确的方式：先清空数组再添加新数据
-      list.length = 0; // 清空数组但保持响应性
-      list.push(...res.data.list); // 添加新数据
-      total.value = res.data.total;
-      isLoading.value = false;
+      list.length = 0;
+      list.push(...(res.data.list || []));
+      total.value = res.data.total || 0;
     } else {
-      isLoading.value = false;
-      ElMessage({
-        type: 'error',
-        message: $t('global.message.searchError'),
-      });
+      ElMessage.error($t('global.message.searchError'));
     }
   } catch (error) {
-    isLoading.value = false;
     console.log(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// 获取合同项
-const getContractItem = async (row: any) => {
-  try {
-    const res = await getContractItemList(row.contractNo);
-    if (res.code === 200) {
-      editTableList.value = res.data;
-    } else {
-      ElMessage({
-        type: 'error',
-        message: $t('global.message.getContractItemFail'),
-      });
-    }
-  } catch { }
-};
-
-// 点击弹窗内表格操作列按钮
-const editTableClick = (row: any, label: string) => {
-  console.log('row', row);
-  console.log('label', label);
-  if (label === $t('global.btn.delete')) {
-    const index = editTableList.value.indexOf(row);
-    if (index !== -1) {
-      editTableList.value.splice(index, 1);
-    }
+const getStoreList = async () => {
+  const res = await getStoreListApi({ pageSize: 9999, pageNum: 1 });
+  if (res.code === 200) {
+    storeDict.splice(
+      0,
+      storeDict.length,
+      ...(res.data.list || []).map((item: any) => ({
+        label: item.storeName,
+        value: String(item.storeId),
+        keepValue: true,
+      })),
+    );
   }
-};
-
-// 弹窗内表格新增项
-const editTableAdd = async () => {
-  const valid = validContractItem();
-  if (!valid) return;
-  if (!formInfo.value.contractNo) {
-    return ElMessage({
-      type: 'warning',
-      message: $t('global.message.pleaseSaveContractFirst'),
-    });
-  }
-  editTableList.value.push({
-    itemName: '',
-    itemType: '',
-    quantity: '',
-    unitPrice: '',
-    specification: '',
-    totalPrice: '',
-    remark: '',
-  });
-};
-
-// 弹窗内表格新增项
-const editTableSave = async () => {
-  const valid = editForm.value.validateForm();
-  if (!valid) return;
-  // 接口所需其他字段
-  const obj = {
-    // 出租方类型
-    lessorType: Number(import.meta.env.VITE_CONTRACT_LESSOR_TYPE),
-    // 出租方名称
-    lessorName: import.meta.env.VITE_CONTRACT_LESSOR_NAME,
-  };
-  console.log('obj', obj);
-  console.log('formInfo', formInfo.value);
-  try {
-    const nowFormData = editForm.value.getFormData();
-    const res = await editContractApi({ ...nowFormData, ...obj });
-    if (res.code === 200) {
-      ElMessage({
-        type: 'success',
-        message: $t('global.message.success'),
-      });
-    } else {
-      ElMessage({
-        type: 'error',
-        message: res.msg,
-      });
-    }
-  } catch { }
-};
-
-// 校验合同项输入
-const validContractItem = () => {
-  let res = true;
-  for (let i = 0; i < editTableList.value.length; i++) {
-    if (editTableList.value[i]?.itemName === '') {
-      ElMessage({
-        type: 'warning',
-        message: $t('global.message.pleaseEnterItemName'),
-      });
-      res = false;
-      break;
-    }
-    if (editTableList.value[i]?.quantity === '') {
-      ElMessage({
-        type: 'warning',
-        message: $t('global.message.pleaseEnterItemNumber'),
-      });
-      res = false;
-      break;
-    }
-    if (editTableList.value[i]?.unitPrice === '') {
-      ElMessage({
-        type: 'warning',
-        message: $t('global.message.pleaseEnterItemUnitPrice'),
-      });
-      res = false;
-      break;
-    }
-    if (editTableList.value[i]?.totalPrice === '') {
-      ElMessage({
-        type: 'warning',
-        message: $t('global.message.pleaseEnterItemTotalPrice'),
-      });
-      res = false;
-      break;
-    }
-  }
-  return res;
 };
 
 onMounted(async () => {
-  // 获取合同类型字典值
-  const dict1 = await getDict('contract_type');
-  contractTypeDict.splice(0, contractTypeDict.length, ...dict1);
-  // 获取合同付款周期字典值
-  const dict2 = await getDict('payment_cycle');
-  paymentCycleDict.splice(0, paymentCycleDict.length, ...dict2);
-  // 获取承租方类型字典值
-  const dict3 = await getDict('lessor_type');
-  lesseeTypeDict.splice(0, lesseeTypeDict.length, ...dict3);
-  // 获取合同状态字典值
-  const dict4 = await getDict('contract_status');
-  contractStatusDict.splice(0, contractStatusDict.length, ...dict4);
-  // 获取合同项类型字典值
-  const dict5 = await getDict('contract_item_type');
-  itemTypeDict.splice(0, itemTypeDict.length, ...dict5);
-  getContractList(); // 获取合同列表
+  if (isAdmin.value) {
+    formConfig.list.push({
+      type: 'select',
+      prop: 'storeId',
+      label: $t('global.contract.storeName'),
+      value: '',
+      placeholder: `${$t('global.pleaseSelect')}${$t('global.contract.storeName')}`,
+      options: storeDict,
+    });
+    await getStoreList();
+  }
+  getList();
 });
 </script>
 
 <template>
   <div v-loading="isLoading" class="pd5">
     <el-card>
-      <!-- 头部搜索框 -->
       <Filter :form-config="formConfig" @search="search" @reset="reset">
         <template #extra>
-          <!-- <el-button link type="primary" @click="toggleCollapse">
-            {{
-              isCollapsed
-                ? $t('global.btn.expandMore')
-                : $t('global.btn.collapseMore')
-            }}
-          </el-button> -->
-          <!-- v-show="!isCollapsed" -->
           <div class="button-group">
-            <el-button type="success" :icon="Plus" @click="handleAdd">
+            <el-button v-if="isAdmin" type="success" :icon="Plus" @click="handleAdd">
               {{ $t('global.btn.add') }}
+            </el-button>
+            <el-button type="primary" :icon="Download" @click="handleExport">
+              {{ $t('global.btn.export') }}
             </el-button>
           </div>
         </template>
       </Filter>
     </el-card>
     <el-card class="table-box mgt5">
-      <!-- 表格 -->
-      <Table :table-config="tableConfig" :list="list" :total="total" @handle-click="handleClick"
-        @handle-current-change="handleCurrentChange" @handle-size-change="handleSizeChange" />
+      <Table
+        :table-config="tableConfig"
+        :list="list"
+        :total="total"
+        @handle-click="handleClick"
+        @handle-current-change="handleCurrentChange"
+        @handle-size-change="handleSizeChange"
+      />
     </el-card>
-    <!-- 编辑弹窗 -->
-    <Edit ref="editForm" label-width="120px" :form-config="editConfig" :form-rules="editRules" :title="formTitle"
-      :form-info="formInfo" :visible="itemVisible" :confirm-text="formInfo.contractStatus === 1 ? $t('global.btn.confirm') : ''
-      " @close="closeDialog" @confirm="confirmDialog">
-      <template #slot>
-        <!-- 弹窗内的表格 -->
-        <el-button v-if="formInfo.contractStatus === 1" type="primary" :icon="CircleCheck" @click="editTableSave">
-          {{ $t('global.contract.saveContractInfo') }}
+
+    <el-dialog
+      v-model="progressVisible"
+      :title="$t('global.contract.signProgress')"
+      width="560px"
+      append-to-body
+      :close-on-click-modal="false"
+    >
+      <div v-loading="progressLoading" class="progress-dialog">
+        <p v-if="progressTitle" class="progress-name">{{ progressTitle }}</p>
+        <el-timeline v-if="progressSigners.length">
+          <el-timeline-item
+            v-for="item in progressSigners"
+            :key="item.id"
+            :timestamp="item.signTime ? String(item.signTime).slice(0, 19) : item.signStatusLabel"
+            :type="Number(item.signStatus) === 1 ? 'success' : 'primary'"
+          >
+            {{ item.partyRoleLabel }} · {{ item.signerName }}
+            <span v-if="item.companyName">（{{ item.companyName }}）</span>
+            · {{ item.signStatusLabel }}
+            <el-image
+              v-if="item.signImageUrl"
+              class="progress-sign-img"
+              :src="resolveFileUrl(item.signImageUrl)"
+              fit="contain"
+              :preview-src-list="[resolveFileUrl(item.signImageUrl)]"
+            />
+          </el-timeline-item>
+        </el-timeline>
+        <el-empty v-else-if="!progressLoading" :description="$t('global.contract.noSigners')" />
+      </div>
+    </el-dialog>
+
+    <el-dialog
+      v-model="printVisible"
+      :title="$t('global.contract.printPreview')"
+      width="860px"
+      append-to-body
+      :close-on-click-modal="false"
+    >
+      <div v-loading="printLoading" class="print-preview">
+        <ContractPrintSheet v-if="printData" :data="printData" />
+      </div>
+      <template #footer>
+        <el-button @click="printVisible = false">{{ $t('global.btn.cancel') }}</el-button>
+        <el-button type="primary" :disabled="!printData" @click="doPrint">
+          {{ $t('global.btn.print') }}
         </el-button>
-        <el-button v-if="formInfo.contractStatus === 1" type="primary" :icon="Plus" @click="editTableAdd">
-          {{ $t('global.contract.addContractItem') }}
-        </el-button>
-        <Table :pagination="false" :table-config="editTableConfig" :list="editTableList"
-          @handle-click="editTableClick" />
       </template>
-    </Edit>
+    </el-dialog>
+
+    <Teleport to="body">
+      <div v-if="printVisible && printData" class="contract-print-root">
+        <ContractPrintSheet :data="printData" />
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -720,5 +611,78 @@ onMounted(async () => {
 .button-group {
   display: inline-flex;
   margin-left: 10px;
+}
+
+.progress-dialog {
+  min-height: 120px;
+}
+
+.progress-name {
+  margin: 0 0 16px;
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.progress-sign-img {
+  display: block;
+  width: 180px;
+  height: 72px;
+  margin-top: 8px;
+  border: 1px solid var(--el-border-color-lighter);
+  background: #fff;
+}
+
+.print-preview {
+  min-height: 240px;
+  max-height: 70vh;
+  overflow: auto;
+  background: #f2f3f5;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.print-preview :deep(.print-sheet) {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+</style>
+
+<style lang="scss">
+.contract-print-root {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 210mm;
+  background: #fff;
+  pointer-events: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body > *:not(.contract-print-root) {
+    display: none !important;
+  }
+
+  .contract-print-root {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+    background: #fff !important;
+    pointer-events: auto !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
 </style>
