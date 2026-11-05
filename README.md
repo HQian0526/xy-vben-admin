@@ -1,153 +1,102 @@
-<div align="center">
-  <a href="https://github.com/anncwb/vue-vben-admin">
-    <img alt="VbenAdmin Logo" width="215" src="https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp">
-  </a>
-  <br>
-  <br>
+# 星萤经营管理系统 · PC 管理端
 
-[![license](https://img.shields.io/github/license/anncwb/vue-vben-admin.svg)](LICENSE)
+适用场景：店铺需要会员储值系统、预约系统、商城系统等。
 
-  <h1>Vue Vben Admin</h1>
-</div>
+已验证场景/已接入案例：理发店会员充值、美妆美甲店预约、社区跑腿小程序、大学跑腿小程序、便利店、餐饮店、花店、奶茶店。
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vbenjs_vue-vben-admin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=vbenjs_vue-vben-admin) ![codeql](https://github.com/vbenjs/vue-vben-admin/actions/workflows/codeql.yml/badge.svg) ![build](https://github.com/vbenjs/vue-vben-admin/actions/workflows/build.yml/badge.svg) ![ci](https://github.com/vbenjs/vue-vben-admin/actions/workflows/ci.yml/badge.svg) ![deploy](https://github.com/vbenjs/vue-vben-admin/actions/workflows/deploy.yml/badge.svg)
+系统包含：微信小程序（顾客充值、点单、预约、支付等功能）+电脑管理端（商家在后台查看经营数据、流水、对账、管理员工等），以及一套后端。
 
-**English** | [中文](./README.zh-CN.md) | [日本語](./README.ja-JP.md)
+本仓库是 **PC 管理端**，基于 [Vue Vben Admin](https://github.com/vbenjs/vue-vben-admin) 5 + Element Plus 改的，实际业务在 `apps/web-ele`。
 
-## Introduction
+| 仓库                                                                  | 说明        |
+| ------------------------------------------------------------------- | --------- |
+| [xy-vben-admin](https://github.com/HQian0526/xy-vben-admin)         | 本仓库，PC 后台 |
+| [xy-control-java](https://github.com/HQian0526/xy-control-java)     | Java 后端   |
+| [xy-community-sapp](https://github.com/HQian0526/xy-community-sapp) | 微信小程序     |
 
-Vue Vben Admin is a free and open source middle and back-end template. Using the latest `vue3`, `vite`, `TypeScript` and other mainstream technology development, the out-of-the-box middle and back-end front-end solutions can also be used for learning reference.
+> 想上线或让作者帮你部署：邮箱 **xingying003@126.com**，GitHub [@HQian0526](https://github.com/HQian0526)。
 
-## Upgrade Notice
+## 页面大致有哪些
 
-This is the latest version, 5.0, and it is not compatible with previous versions. If you are starting a new project, it is recommended to use the latest version. If you wish to view the old version, please use the [v2 branch](https://github.com/vbenjs/vue-vben-admin/tree/v2).
+- 工作台
+- 商户 / 店铺资料、营业时间、员工、打印机、微信配置
+- 商品分类与商品
+- 订单、流水、结算
+- 会员、储值、优惠券、促销
+- 客资、黑名单、核销记录
+- 合同列表、我的合同（打印）、合同模板与变量
+- 系统用户、角色、菜单、字典、操作日志
 
-## Features
+## 技术栈
 
-- **Latest Technology Stack**: Developed with cutting-edge front-end technologies like Vue 3 and Vite
-- **TypeScript**: A language for application-scale JavaScript
-- **Themes**: Multiple theme colors available with customizable options
-- **Internationalization**: Comprehensive built-in internationalization support
-- **Permissions**: Built-in solution for dynamic route-based permission generation
+- Vue 3、Vite、TypeScript
+- Element Plus（应用包 `@vben/web-ele`）
+- pnpm monorepo
 
-## Preview
+## 环境
 
-- [Vben Admin](https://vben.pro/) - Full version Chinese site
+- Node.js ≥ 20.10
+- pnpm ≥ 9.12（可用 `corepack`）
+- 先启动后端 `xy-control-java`（默认 `http://localhost:8080/api`）
 
-Test Account: vben/123456
-
-<div align="center">
-  <img alt="VbenAdmin Logo" width="100%" src="https://anncwb.github.io/anncwb/images/preview1.png">
-  <img alt="VbenAdmin Logo" width="100%" src="https://anncwb.github.io/anncwb/images/preview2.png">
-  <img alt="VbenAdmin Logo" width="100%" src="https://anncwb.github.io/anncwb/images/preview3.png">
-</div>
-
-### Use Gitpod
-
-Open the project in Gitpod (free online dev environment for GitHub) and start coding immediately.
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/vbenjs/vue-vben-admin)
-
-## Documentation
-
-[Document](https://doc.vben.pro/)
-
-## Install and Use
-
-1. Get the project code
+## 本地运行
 
 ```bash
-git clone https://github.com/vbenjs/vue-vben-admin.git
-```
-
-2. Install dependencies
-
-```bash
-cd vue-vben-admin
+git clone https://github.com/HQian0526/xy-vben-admin.git
+cd xy-vben-admin
 npm i -g corepack
+corepack enable
 pnpm install
 ```
 
-3. Run
+连真实后端时，把 `apps/web-ele/.env.development` 里的 Mock 关掉：
 
-```bash
-pnpm dev
+```env
+VITE_NITRO_MOCK=false
+VITE_PORT=5777
+VITE_GLOB_API_URL=/api
+VITE_MINIO_URL=https://你的文件域名
 ```
 
-4. Build
+开发代理在 `apps/web-ele/vite.config.mts`，默认把 `/api` 转到 `http://localhost:8080/api`。
 
 ```bash
-pnpm build
+pnpm dev:ele
 ```
 
-## Change Log
+浏览器打开控制台提示的地址（一般是 `http://localhost:5777`）。账号在后端用户表里，首次请用库里的管理员或自己插入的用户登录。
 
-[CHANGELOG](https://github.com/vbenjs/vue-vben-admin/releases)
+### 打包
 
-## How to Contribute
+```bash
+pnpm build:ele
+```
 
-You are very welcome to join! [Raise an issue](https://github.com/anncwb/vue-vben-admin/issues/new/choose) or submit a Pull Request.
+产物在 `apps/web-ele/dist`。生产环境把 Nginx 的 `/api` 反代到后端，并改 `apps/web-ele/.env.production` 里的文件访问前缀 `VITE_MINIO_URL`。
 
-**Pull Request Process:**
+## 目录（业务相关）
 
-1. Fork the code
-2. Create your branch: `git checkout -b feat/xxxx`
-3. Submit your changes: `git commit -am 'feat(function): add xxxxx'`
-4. Push your branch: `git push origin feat/xxxx`
-5. Submit `pull request`
+```
+apps/web-ele/
+  src/api/           接口
+  src/views/         页面（店铺、商品、订单、合同等）
+  src/locales/       中英文案
+  .env.development   本地环境
+  vite.config.mts    开发代理
+```
 
-## Git Contribution Submission Specification
+不要改其它 `apps/web-antd`、`playground` 也能跑模板，但星萤业务只维护 `web-ele`。
 
-Reference [vue](https://github.com/vuejs/vue/blob/dev/.github/COMMIT_CONVENTION.md) specification ([Angular](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular))
+## 部署
 
-- `feat` Add new features
-- `fix` Fix the problem/BUG
-- `style` The code style is related and does not affect the running result
-- `perf` Optimization/performance improvement
-- `refactor` Refactor
-- `revert` Undo edit
-- `test` Test related
-- `docs` Documentation/notes
-- `chore` Dependency update/scaffolding configuration modification etc.
-- `ci` Continuous integration
-- `types` Type definition file changes
+需要：静态资源托管或 Nginx、已上线的后端、HTTPS、文件 CDN。微信相关在小程序仓库配置。
 
-## Browser Support
+**不想自己折腾环境，发邮件 xingying003@126.com**，写明有几家店、要不要支付和小程序，作者按这套代码帮你部署。
 
-The `Chrome 80+` browser is recommended for local development
+## 说明
 
-Support modern browsers, not IE
+- UI 框架版权见原项目 [Vue Vben Admin](https://github.com/vbenjs/vue-vben-admin)（MIT）
+- 业务代码用于学习与对接；商用请先联系作者
+- 不要把账号密码、密钥提交进仓库
 
-| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari |
-| :-: | :-: | :-: | :-: |
-| last 2 versions | last 2 versions | last 2 versions | last 2 versions |
 
-## Maintainer
-
-[@Vben](https://github.com/anncwb)
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=vbenjs/vue-vben-admin&type=Date)](https://star-history.com/#vbenjs/vue-vben-admin&Date)
-
-## Donate
-
-If you think this project is helpful to you, you can help the author buy a cup of coffee to show your support!
-
-![donate](https://unpkg.com/@vbenjs/static-source@0.1.7/source/sponsor.png)
-
-<a style="display: block;width: 100px;height: 50px;line-height: 50px; color: #fff;text-align: center; background: #408aee;border-radius: 4px;" href="https://www.paypal.com/paypalme/cvvben">Paypal Me</a>
-
-## Contributors
-
-<a href="https://github.com/vbenjs/vue-vben-admin/graphs/contributors">
-  <img alt="Contributors" src="https://opencollective.com/vbenjs/contributors.svg?button=false" />
-</a>
-
-## Discord
-
-- [Github Discussions](https://github.com/anncwb/vue-vben-admin/discussions)
-
-## License
-
-[MIT © Vben-2020](./LICENSE)

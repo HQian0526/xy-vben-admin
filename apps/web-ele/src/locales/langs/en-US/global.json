@@ -115,6 +115,7 @@
     "platformSign": "platform sign",
     "signProgress": "sign progress",
     "print": "print",
+    "printPreview": "print / preview",
     "voidContract": "void"
   },
   "user": {
@@ -342,6 +343,7 @@
     "partyBSign": "merchant signature",
     "partyASeal": "party A (seal)",
     "printPreview": "print preview",
+    "myContract": "my contracts",
     "varKey": "variable key",
     "varLabel": "variable name",
     "varSource": "source",

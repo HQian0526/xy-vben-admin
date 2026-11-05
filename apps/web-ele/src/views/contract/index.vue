@@ -2,7 +2,7 @@
 <!-- eslint-disable unicorn/prefer-spread -->
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { Download, Plus } from '@element-plus/icons-vue';
@@ -25,9 +25,8 @@ import Table from '#/components/table/index.vue';
 import { $t } from '#/locales';
 import { resolveFileUrl } from '#/utils';
 
-import ContractPrintSheet from './ContractPrintSheet.vue';
-
-const PLATFORM_SEAL_PATH = 'xy-community/seal.png';
+import ContractPrintHost from './ContractPrintHost.vue';
+import { useContractPrint } from './useContractPrint';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -303,73 +302,7 @@ const openSignProgress = async (row: any) => {
   }
 };
 
-const printVisible = ref(false);
-const printLoading = ref(false);
-const printData = ref<Record<string, any> | null>(null);
-
-function sliceTime(value: any) {
-  return value ? String(value).slice(0, 19) : '';
-}
-
-const openPrint = async (row: any) => {
-  printData.value = null;
-  printVisible.value = true;
-  printLoading.value = true;
-  try {
-    const res = await getContractDetailApi(row.contractNo);
-    if (res.code !== 200 || !res.data) {
-      ElMessage.error(res.msg || $t('global.message.error'));
-      printVisible.value = false;
-      return;
-    }
-    const data = res.data;
-    const signers = data.signers || [];
-    const partyA = signers.find((item: any) => Number(item.partyRole) === 1);
-    const partyB = signers.find((item: any) => Number(item.partyRole) === 2);
-    printData.value = {
-      contractName: data.contractName,
-      contractNo: data.contractNo,
-      storeName: data.storeName,
-      partyTypeLabel: data.partyTypeLabel,
-      statusLabel: data.statusLabel,
-      totalAmount: data.totalAmount,
-      contentSnapshot: data.contentSnapshot || '',
-      contractStatus: Number(data.contractStatus) || 0,
-      partyAName: partyA?.companyName || partyA?.signerName || '',
-      partyBName: partyB?.companyName || partyB?.signerName || '',
-      partyASealImage: partyA?.signTime ? resolveFileUrl(PLATFORM_SEAL_PATH) : '',
-      partyBSignImage: resolveFileUrl(partyB?.signImageUrl),
-      partyASignTime: sliceTime(partyA?.signTime),
-      partyBSignTime: sliceTime(partyB?.signTime),
-    };
-  } catch (error: any) {
-    if (error?.msg) ElMessage.error(error.msg);
-    printVisible.value = false;
-  } finally {
-    printLoading.value = false;
-  }
-};
-
-const doPrint = async () => {
-  if (!printData.value) return;
-  await nextTick();
-  const imgs = document.querySelectorAll('.contract-print-root img');
-  await Promise.all(
-    [...imgs].map(
-      (node) =>
-        new Promise<void>((resolve) => {
-          const img = node as HTMLImageElement;
-          if (img.complete) {
-            resolve();
-            return;
-          }
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        }),
-    ),
-  );
-  window.print();
-};
+const { printVisible, printLoading, printData, openPrint, doPrint } = useContractPrint();
 
 const handleInitiate = async (row: any) => {
   try {
@@ -579,29 +512,12 @@ onMounted(async () => {
       </div>
     </el-dialog>
 
-    <el-dialog
-      v-model="printVisible"
-      :title="$t('global.contract.printPreview')"
-      width="860px"
-      append-to-body
-      :close-on-click-modal="false"
-    >
-      <div v-loading="printLoading" class="print-preview">
-        <ContractPrintSheet v-if="printData" :data="printData" />
-      </div>
-      <template #footer>
-        <el-button @click="printVisible = false">{{ $t('global.btn.cancel') }}</el-button>
-        <el-button type="primary" :disabled="!printData" @click="doPrint">
-          {{ $t('global.btn.print') }}
-        </el-button>
-      </template>
-    </el-dialog>
-
-    <Teleport to="body">
-      <div v-if="printVisible && printData" class="contract-print-root">
-        <ContractPrintSheet :data="printData" />
-      </div>
-    </Teleport>
+    <ContractPrintHost
+      v-model:visible="printVisible"
+      :loading="printLoading"
+      :data="printData"
+      @print="doPrint"
+    />
   </div>
 </template>
 
@@ -631,58 +547,5 @@ onMounted(async () => {
   margin-top: 8px;
   border: 1px solid var(--el-border-color-lighter);
   background: #fff;
-}
-
-.print-preview {
-  min-height: 240px;
-  max-height: 70vh;
-  overflow: auto;
-  background: #f2f3f5;
-  padding: 16px;
-  border-radius: 6px;
-}
-
-.print-preview :deep(.print-sheet) {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-}
-</style>
-
-<style lang="scss">
-.contract-print-root {
-  position: absolute;
-  left: -9999px;
-  top: 0;
-  width: 210mm;
-  background: #fff;
-  pointer-events: none;
-}
-
-@media print {
-  @page {
-    size: A4;
-    margin: 12mm;
-  }
-
-  html,
-  body {
-    height: auto !important;
-    overflow: visible !important;
-    background: #fff !important;
-  }
-
-  body > *:not(.contract-print-root) {
-    display: none !important;
-  }
-
-  .contract-print-root {
-    position: static !important;
-    left: auto !important;
-    top: auto !important;
-    width: auto !important;
-    background: #fff !important;
-    pointer-events: auto !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
 }
 </style>

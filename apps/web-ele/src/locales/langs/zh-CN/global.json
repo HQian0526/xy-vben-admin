@@ -119,6 +119,7 @@
     "platformSign": "平台签署",
     "signProgress": "签署进度",
     "print": "打印",
+    "printPreview": "打印/预览",
     "voidContract": "作废"
   },
   "userModule": "********************用户管理模块********************",
@@ -353,6 +354,7 @@
     "partyBSign": "乙方签字",
     "partyASeal": "甲方（盖章）",
     "printPreview": "打印预览",
+    "myContract": "我的合同",
     "varKey": "变量标识",
     "varLabel": "变量名称",
     "varSource": "取值来源",
